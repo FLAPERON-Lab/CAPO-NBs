@@ -4,10 +4,9 @@
         "ms-python.python",
         "ms-python.vscode-pylance",
         "ms-python.debugpy",
-        "github.vscode-pull-request-github",
-        "github.vscode-github-actions",
         "mhutchie.git-graph",
         "janisdd.vscode-edit-csv",
         "mechatroner.rainbow-csv",
+        "charliermarsh.ruff",
     ]
 }

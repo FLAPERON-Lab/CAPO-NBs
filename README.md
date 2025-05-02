@@ -10,22 +10,29 @@ The notebooks provide:
 - Recall of relevant theorems to apply a solution method and/or predict the existence and properties of solutions
 - Interactive visualizations to observe the influence of common flight parameters (altitude, speed, weight) on flight performance metrics (climb rate, cruise speed, …), and highlight the mathematical role of physical and operational constraints (stall, limit load factor, procedures).
 
-A set of Object-Oriented classes provides a backend for the notebooks, to allow for a more structured and modular approach to the problem formulation and separate the didactic software implementation from the administrative one.
+A set of functions and classes provides a backend for the notebooks, to allow for a more structured and modular approach to the problem formulation and separate the didactic software implementation from the administrative one.
 
-
-
-## Scope 
+## Getting started 
 The notebooks are available for end-users in various forms: 
-- editable notebooks themselves, in this GitHub repository
+- editable notebooks to be deployed locally
 - static documents, downloadable via link
 - interactive web apps, accessible via URL
 
 While the source code that is visible in the notebooks should be intended to have didactic values as well, end-users should also be able to consult them only for the sake of their content.
 
-### Managing the aircraft databases
-You can view and manipulate the `AircraftDB_*.ssv` files by opening them in the [VSCode](https://code.visualstudio.com/) editor using the [Rainbow CSV](https://marketplace.visualstudio.com/items?itemName=mechatroner.rainbow-csv) and the [Edit CSV](https://marketplace.visualstudio.com/items?itemName=janisdd.vscode-edit-csv) extensions. 
+### Local deployment
+The notebooks can be run locally using the _marimo_ server. This allows for interactive visualizations and the ability to modify the code directly.
 
-Please DO NOT to use Microsoft Excel, as it is not able to preserve the correct format of the documents.
+1. Follow the [installation instructions](CONTRIBUTING.md#installation-instructions) to set up this repository on your local machine.
+2. Open a terminal and navigate to the notebooks directory:
+    ```bash
+    cd your/path/to/FlightPerfCalculus/
+    cd notebooks
+    ```
+3. Run the following command to start the _marimo_ server:
+    ```bash
+    marimo run Scope.py
+    ```
 
 ## Licensing
 
@@ -43,10 +50,13 @@ The content of this repository has been developed by:
 The contents of the folder `\notebooks` are licensed under an <a href="https://opensource.org/licenses/Apache-2.0" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">Apache License 2.0</a>. 
 See the [Apache-2.0.txt](LICENSES/Apache-2.0.txt) file for details.
 
-The contents of the folders `\data` and `\output` are licensed under a <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY-NC-SA 4.0</a> license. See the [CC-BY-NC-SA-4.0.txt](LICENSES/CC-BY-NC-SA-4.0.txt) file for details.
+The contents of the folder `\data` are licensed under a <a href="https://creativecommons.org/licenses/by/4.0/ " target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY 4.0</a> license.
+See the [CC-BY-4.0.txt](LICENSES/CC-BY-4.0.txt) file for details.
+
+The contents of the folders `\output` are licensed under a <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY-NC-SA 4.0</a> license. See the [CC-BY-NC-SA-4.0.txt](LICENSES/CC-BY-NC-SA-4.0.txt) file for details.
 
 ### Copyright notice
-Technische Universiteit Delft hereby disclaims all copyright interest in the work "Flight Performance Analysis and Optimization: from Calculus to Computers". 
+Technische Universiteit Delft hereby disclaims all copyright interest in the work "Flight Performance Analysis and Optimization: from Calculus to Computers (FPAO-CC)". 
 It is a collection of Marimo notebooks to explain and visualize the theory of aircraft performance optimization using interactive visualizations in Python, written by the Author(s).
 Henri Werij, Dean of Faculty of Aerospace Engineering, Technische Universiteit Delft.
 
