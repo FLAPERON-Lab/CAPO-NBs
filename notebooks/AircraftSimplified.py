@@ -78,14 +78,6 @@ def _(ac, ac_type_dropdown, mo):
             ac_name_dropdown,
         ]
     )
-    return (ac_name_dropdown,)
-
-
-@app.cell
-def _(ac, ac_name_dropdown, ac_type_dropdown):
-    aircraft = ac.Aircraft(
-        ac_type=ac_type_dropdown.value, ac_name=ac_name_dropdown.value
-    )
     return
 
 
@@ -96,7 +88,14 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(ac, mo):
+    table = mo.ui.table(data=ac.available_aircrafts(ac_type="Any", data=True))
+    return (table,)
+
+
+@app.cell
+def _(table):
+    table
     return
 
 
