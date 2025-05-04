@@ -1,8 +1,6 @@
-
-
 import marimo
 
-__generated_with = "0.13.3"
+__generated_with = "0.13.4"
 app = marimo.App(width="medium")
 
 
@@ -24,10 +22,10 @@ def _():
 def _(mo):
     mo.md(
         r"""
-        # Simplified Aircraft Models
+    # Simplified Aircraft Models
 
-        Using simplified aero-propulsive models to characterize the performance of an aircraft keeps the analytical derivations manageable and preserves their didactic value.
-        """
+    Using simplified aero-propulsive models to characterize the performance of an aircraft keeps the analytical derivations manageable and preserves their didactic value.
+    """
     )
     return
 
@@ -36,21 +34,45 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        ## Assumptions
+    ## Assumptions
 
-        These are standard assumptions in the field of FPAO.
+    These are standard assumptions in the field of FPAO.
 
-        |<div style="width:250px">Assumption</div> | <div style="width:150px">Jet aircraft</div> | <div style="width:150px">Propeller aircraft</div> |
-        |:-|:----------|:----------|
-        | Parabolic drag polar | $C_D = C_{D0} + K C_L^2$ | $C_D = C_{D_0} + K C_L^2$ |  
-        | Proportional throttle command | $T=\delta_T T_a$ | $P=\delta_T P_a$ |
-        | Thrust/power lapse  | $T_a(h) = T_{a_0}\sigma^\beta$ | $P_a(h) = P_{a_0}\sigma^\beta$ |
-        | Available power | $P_a =TV$ | $P_a(V)=\mathit{const}$ |
-        | Available thrust | $T_a(V)=\mathit{const}$ | $\displaystyle{T_a = \frac{P_a}{V}}$ |
-        | Power-Specific Fuel Consumption| | $c_{P}=\mathit{const}$ |
-        | Thrust-Specific Fuel Consumption| $c_{T}=\mathit{const}$ | |
-        """
+    |<div style="width:250px">Assumption</div> | <div style="width:150px">Jet aircraft</div> | <div style="width:150px">Propeller aircraft</div> |
+    |:-|:----------|:----------|
+    | Parabolic drag polar | $C_D = C_{D0} + K C_L^2$ | $C_D = C_{D_0} + K C_L^2$ |  
+    | Proportional throttle command | $T=\delta_T T_a$ | $P=\delta_T P_a$ |
+    | Thrust/power lapse  | $T_a(h) = T_{a_0}\sigma^\beta$ | $P_a(h) = P_{a_0}\sigma^\beta$ |
+    | Available power | $P_a =TV$ | $P_a(V)=\mathit{const}$ |
+    | Available thrust | $T_a(V)=\mathit{const}$ | $\displaystyle{T_a = \frac{P_a}{V}}$ |
+    | Power-Specific Fuel Consumption| | $c_{P}=\mathit{const}$ |
+    | Thrust-Specific Fuel Consumption| $c_{T}=\mathit{const}$ | |
+    """
     )
+    return
+
+
+@app.cell
+def _(mo):
+    from core import aircraft as ac
+
+    ac_type_dropdown = mo.ui.dropdown(
+        options=["Any", "Simplified Jet", "Simplified Propeller"], value="Any"
+    )
+
+    return ac, ac_type_dropdown
+
+
+@app.cell
+def _(ac, ac_type_dropdown, mo):
+    availables = ac.available_aircrafts(ac_type= ac_type_dropdown.value)
+
+    ac_dropdown = mo.ui.dropdown(
+        options=availables,
+        value= availables[0]
+    )
+
+    mo.hstack([mo.md("Select the aero-propulsive model type:"), ac_type_dropdown, mo.md("Select the aircraft:"), ac_dropdown])
     return
 
 

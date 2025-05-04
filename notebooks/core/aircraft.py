@@ -23,7 +23,7 @@ def available_aircrafts(ac_type= None):
         "Any": pd.concat([simplified_props["name"], simplified_jets["name"]])
     }
     
-    return aircraft_map.get(ac_type, [])
+    return list(aircraft_map.get(ac_type, []))
     
 
 class Aircrafts:
@@ -31,3 +31,5 @@ class Aircrafts:
         
         self.ac_data = None
         raise NotImplementedError
+    
+    
