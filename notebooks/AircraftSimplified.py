@@ -89,13 +89,54 @@ def _(mo):
 
 @app.cell
 def _(ac, mo):
-    table = mo.ui.table(data=ac.available_aircrafts(ac_type="Any", data=True))
-    return (table,)
+    ac_table = mo.ui.table(data=ac.available_aircrafts(ac_type="Any", data=True))
+    return (ac_table,)
 
 
 @app.cell
-def _(table):
-    table
+def _(ac_table):
+    ac_table
+    return
+
+
+@app.cell
+def _(ac, ac_table):
+    aircraft_list = list(zip(ac_table.value["type"], ac_table.value["name"],))
+
+    fleet = {name: ac.Aircraft(ac_name=name, ac_type=ac_type) for ac_type, name in aircraft_list}
+    return (fleet,)
+
+
+@app.cell
+def _(fleet):
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+    import numpy as np
+
+    fig = make_subplots(
+            rows=1,
+            cols=4,
+            shared_yaxes=True,
+            y_title="Power (kW)",
+            x_title="Velocity (m/s)",
+            horizontal_spacing=0.025,
+    )
+
+    velocities = np.linspace(0, 200, 250)
+
+    for name, aircraft in fleet.items():
+        power_values = aircraft.power(V=velocities, beta= 1.0, h= 11000, deltaT= 0.5)[0]
+        fig.add_trace(go.Scatter(
+            x=velocities, 
+            y=power_values, 
+            mode='lines', 
+            name=name,
+            line=dict(width=2)
+        ), 
+        row=1, 
+        col=1)
+
+    fig
     return
 
 
