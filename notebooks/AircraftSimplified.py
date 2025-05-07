@@ -64,7 +64,9 @@ def _(mo):
 
 @app.cell
 def _(ac, ac_type_dropdown, mo):
-    availables = ac.available_aircrafts(ac_type=ac_type_dropdown.value)
+    availables = ac.available_aircrafts(ac_type=ac_type_dropdown.value)[
+        "full_name"
+    ].values
 
     ac_name_dropdown = mo.ui.dropdown(options=availables, value=availables[0])
 
@@ -87,7 +89,7 @@ def _(mo):
 
 @app.cell
 def _(ac, mo):
-    ac_table = mo.ui.table(data=ac.available_aircrafts(ac_type="Any", data=True))
+    ac_table = mo.ui.table(data=ac.available_aircrafts())
     return (ac_table,)
 
 
@@ -99,39 +101,66 @@ def _(ac_table):
 
 @app.cell
 def _(ac, ac_table):
-    aircraft_list = list(zip(ac_table.value["type"], ac_table.value["name"],))
+    aircraft_list = ac_table.value["ID"].tolist()
 
-    fleet = {name: ac.Aircraft(ac_name=name, ac_type=ac_type) for ac_type, name in aircraft_list}
-    return (fleet,)
+    fleet = {ID: ac.Aircraft(ac_ID=ID) for ID in aircraft_list}
+    return aircraft_list, fleet
 
 
 @app.cell
-def _(fleet):
+def _():
     import plotly.graph_objects as go
     from plotly.subplots import make_subplots
     import numpy as np
 
     fig = make_subplots(
-            rows=1,
-            cols=4,
-            shared_yaxes=True,
-            y_title="Power (kW)",
-            x_title="Velocity (m/s)",
-            horizontal_spacing=0.025,
+        rows=1,
+        cols=4,
+        shared_yaxes=True,
+        horizontal_spacing=0.025,
     )
+    return fig, go, np
+
+
+@app.cell
+def _(aircraft_list, fig, fleet, go, np):
+    fig.data = []
 
     velocities = np.linspace(0, 200, 250)
-    for name, aircraft in fleet.items():
-        power_values = aircraft.power(V=velocities, beta= 1.0, h= 11000, deltaT= 0.5)[0]
-        fig.add_trace(go.Scatter(
-            x=velocities, 
-            y=power_values, 
-            mode='lines', 
-            name=name,
-            line=dict(width=2)
-        ), 
-        row=1, 
-        col=1)
+    power_values = np.zeros((len(aircraft_list), len(velocities)))
+    thrust_values = np.zeros((len(aircraft_list), len(velocities)))
+
+    for index, (id, obj) in enumerate(fleet.items()):
+        power_value = obj.power(V=velocities, beta=0.85, h=11000, deltaT=0.5)[0]
+        thrust_value = obj.thrust(V=velocities, beta=0.85, h=11000, deltaT=0.5)[0]
+        power_values[index] = power_value
+        thrust_values[index] = thrust_value
+
+    print(power_values, thrust_values)
+    for index, (id, _) in enumerate(fleet.items()):
+        fig.add_trace(
+            go.Scatter(
+                x=velocities,
+                y=power_values[index],
+                mode="lines",
+                name=id,
+                line=dict(width=2),
+            ),
+            row=1,
+            col=1,
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=velocities,
+                y=thrust_values[index],
+                mode="lines",
+                name=id,
+                line=dict(width=2),
+            ),
+            row=1,
+            col=2,
+        )
+
     fig
     return
 
