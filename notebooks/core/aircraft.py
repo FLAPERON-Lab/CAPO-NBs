@@ -23,7 +23,6 @@ def available_aircrafts(ac_type=None):
     return simplified_aircrafts
 
 
-@cache
 class Aircraft:
     def __init__(self, ac_ID):
         df_aircrafts = pd.read_csv(simplified_dir, sep=";")
