@@ -36,7 +36,15 @@ def _():
     ## Assumptions
 
     These are standard assumptions in the field of FPAO.
+    """
+    )
+    return
 
+
+@app.cell
+def _():
+    mo.md(
+        r"""
     |<div style="width:250px">Assumption</div> | <div style="width:150px">Jet aircraft</div> | <div style="width:150px">Propeller aircraft</div> |
     |:-|:----------|:----------|
     | Parabolic drag polar | $C_D = C_{D0} + K C_L^2$ | $C_D = C_{D_0} + K C_L^2$ |  
@@ -47,34 +55,34 @@ def _():
     | Power-Specific Fuel Consumption| | $c_{P}=\mathit{const}$ |
     | Thrust-Specific Fuel Consumption| $c_{T}=\mathit{const}$ | |
     """
-    )
+    ).center()
     return
 
 
 @app.cell
 def _():
-    ac_type_dropdown = mo.ui.dropdown(
-        options=["Simplified Jet", "Simplified Propeller"], value="Simplified Jet"
-    )
-    return (ac_type_dropdown,)
+    # ac_type_dropdown = mo.ui.dropdown(
+    #     options=["Simplified Jet", "Simplified Propeller"], value="Simplified Jet"
+    # )
+    return
 
 
 @app.cell
-def _(ac, ac_type_dropdown):
-    availables = ac.available_aircrafts(ac_type=ac_type_dropdown.value)[
-        "full_name"
-    ].values
+def _():
+    # availables = ac.available_aircrafts(ac_type=ac_type_dropdown.value)[
+    #     "full_name"
+    # ].values
 
-    ac_name_dropdown = mo.ui.dropdown(options=availables, value=availables[0])
+    # ac_name_dropdown = mo.ui.dropdown(options=availables, value=availables[0])
 
-    mo.hstack(
-        [
-            mo.md("Select the aero-propulsive model type:"),
-            ac_type_dropdown,
-            mo.md("Select the corresponding aircraft:"),
-            ac_name_dropdown,
-        ]
-    )
+    # mo.hstack(
+    #     [
+    #         mo.md("Select the aero-propulsive model type:"),
+    #         ac_type_dropdown,
+    #         mo.md("Select the corresponding aircraft:"),
+    #         ac_name_dropdown,
+    #     ]
+    # )
     return
 
 
@@ -96,13 +104,36 @@ def _(atmos, h_slider, np, pd):
 
 @app.cell
 def _():
-    mo.md(r"""## Visualization""")
+    mo.md(r"# Visualizations").center()
+    return
+
+
+@app.cell
+def _():
+    tabs = mo.ui.tabs({"Multiple Selection": False, "Single Selection": 0})
+
+    mo.vstack(
+        [
+            "Select whether to plot the specifics of a single or of multiple aircrafts simoultaneously",
+            tabs,
+        ],
+        align="center",
+    )
     return
 
 
 @app.cell
 def _(ac):
-    ac_table = mo.ui.table(data=ac.available_aircrafts())
+    data = ac.available_aircrafts()
+
+    ac_table = mo.ui.table(
+        data=data,
+        pagination=True,
+        freeze_columns_left=["full_name"],
+        show_column_summaries=False,
+    ).form(
+        show_clear_button=True,
+    )
     return (ac_table,)
 
 
@@ -114,7 +145,10 @@ def _(ac_table):
 
 @app.cell
 def _(ac, ac_table):
-    aircraft_list = ac_table.value["ID"].tolist()
+    try:
+        aircraft_list = ac_table.value["ID"].tolist()
+    except (AttributeError, TypeError, KeyError):
+        aircraft_list = []
 
     fleet = {ID: ac.Aircraft(ac_ID=ID) for ID in aircraft_list}
     return (fleet,)
@@ -133,6 +167,29 @@ def _(fig, fleet, go, h_slider, np, px):
 
     colors = px.colors.qualitative.Vivid
     color_map = {id: colors[i % len(colors)] for i, id in enumerate(fleet.keys())}
+    # Add invisible placeholder traces to force subplot rendering
+    fig.add_trace(
+        go.Scatter(
+            x=[],
+            y=[],
+            mode="lines",
+            showlegend=False,
+            line=dict(color="rgba(0,0,0,0)"),  # Transparent line
+        ),
+        row=1,
+        col=1,
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=[],
+            y=[],
+            mode="lines",
+            showlegend=False,
+            line=dict(color="rgba(0,0,0,0)"),
+        ),
+        row=1,
+        col=2,
+    )
 
     for index, (id, obj) in enumerate(fleet.items()):
         power_value = obj.power(
@@ -182,18 +239,22 @@ def _(fig, fleet, go, h_slider, np, px):
     return
 
 
-@app.cell
-def _():
+app._unparsable_cell(
+    r"""
     h_slider = mo.ui.slider(
         start=0,
         stop=14,
-        label=r"Altitude (km)",
+        label=r\"Altitude (km)\",
         value=10,
         show_value=True,
     )
 
-    h_slider
-    return (h_slider,)
+    speed = mo.ui.dropdown(options=[\"TAS\", \"EAS\", \"M\", \"CAS\"], value=\"TAS\", label=r\"Speed\")
+
+    mo.hstack([h_slider, speed], align=)
+    """,
+    name="_",
+)
 
 
 @app.cell
@@ -213,6 +274,7 @@ def _():
     from core import aircraft as ac
     import pandas as pd
     from core import atmos
+
     return ac, atmos, go, make_subplots, np, pd, px
 
 
