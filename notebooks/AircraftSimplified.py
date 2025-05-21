@@ -178,6 +178,12 @@ def _():
 
 
 @app.cell
+def _():
+    mo.md("""In the following graph it is possible to fix the y-axis range by ticking the checkmark, this is useful to understand the behaviour of the different curves with the changing of the parameters. You can change the different parameters at the bottom of the graphs, through the use of sliders.""")
+    return
+
+
+@app.cell
 def _(fix_yaxis):
     fix_yaxis.right()
     return
@@ -204,14 +210,14 @@ def _():
 
 @app.cell
 def _(axis_limits, fig, fix_yaxis, fleet, go, h_slider, np, px):
-    global axis_limits  # <-- Add this line
+    global axis_limits 
     fig.data = []
     velocities = np.linspace(0, 200, 250)
 
     colors = px.colors.qualitative.Vivid
     color_map = {id: colors[i % len(colors)] for i, id in enumerate(fleet.keys())}
 
-    # Add invisible placeholder traces to force subplot rendering
+
     fig.add_trace(
         go.Scatter(
             x=[],
@@ -255,7 +261,7 @@ def _(axis_limits, fig, fix_yaxis, fleet, go, h_slider, np, px):
                 x=velocities,
                 y=power_value,
                 mode="lines",
-                legendgroup=id,
+                legendgroup=r"$P_a$" + id,
                 name=id,
                 line=dict(width=2, color=color_map[id]),
                 showlegend=True,
@@ -268,7 +274,7 @@ def _(axis_limits, fig, fix_yaxis, fleet, go, h_slider, np, px):
                 x=velocities,
                 y=thrust_value,
                 mode="lines",
-                legendgroup=id,
+                legendgroup=(r"$T_a$" + id),
                 line=dict(width=2, color=color_map[id]),
                 showlegend=False,
             ),
