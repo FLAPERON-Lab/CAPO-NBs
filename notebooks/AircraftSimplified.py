@@ -148,6 +148,28 @@ def _():
 
 
 @app.cell
+def _():
+    h_slider = mo.ui.slider(
+        start=0,
+        stop=20,
+        label=r"Altitude (km)",
+        value=10,
+        show_value=True,
+    )
+
+    speed = mo.ui.dropdown(
+        options=["TAS", "EAS", "M", "CAS"], value="TAS", label=r"Speed"
+    )
+
+    delta_t = mo.ui.slider(
+        start=0, stop=1, label=r"$\delta_T$", show_value=True, step=0.1
+    )
+
+    mo.hstack([h_slider, speed, delta_t])
+    return delta_t, h_slider
+
+
+@app.cell
 def _(
     atmos,
     axis_limits,
@@ -164,10 +186,12 @@ def _(
 ):
     global axis_limits
     fig.data = []
-    velocities = np.linspace(1, 340, 250)
+    velocities = np.linspace(15, 340, 250)
 
     colors = px.colors.qualitative.Vivid
-    color_map = {id: colors[i % len(colors)] for i, id in enumerate(fleet.keys())}
+    color_map_available = {id: colors[i % len(colors)] for i, id in enumerate(fleet.keys())}
+    colors = px.colors.qualitative.Safe
+    color_map_required = {id: colors[i % len(colors)] for i, id in enumerate(fleet.keys())}
 
     h = h_slider.value * 1000
 
@@ -196,8 +220,6 @@ def _(
 
     yaxis1 = 0
     yaxis2 = 0
-    legend_available = False
-    legend_required = False
 
 
     for index, (id, obj) in enumerate(fleet.items()):
@@ -221,7 +243,7 @@ def _(
                     legendgroup="Available",
                     legendgrouptitle_text="Available",
                     name=id,
-                    line=dict(width=2, color=color_map[id]),
+                    line=dict(width=2, color=color_map_available[id]),
                     showlegend=True,
                 ),
                 row=1,
@@ -233,7 +255,7 @@ def _(
                     y=thrust_value,
                     mode="lines",
                     legendgroup="Available",
-                    line=dict(width=2, color=color_map[id]),
+                    line=dict(width=2, color=color_map_available[id]),
                     showlegend=False,
                 ),
                 row=1,
@@ -270,7 +292,7 @@ def _(
                     legendgrouptitle_text="Required",
                     legendgroup="Required",
                     name=id,
-                    line=dict(width=2, color=color_map[id]),
+                    line=dict(width=2, color=color_map_required[id]),
                     showlegend=True,
                 ),
                 row=1,
@@ -284,7 +306,7 @@ def _(
                     mode="lines",
                     legendgroup="Required",
                     name=id,
-                    line=dict(width=2, color=color_map[id]),
+                    line=dict(width=2, color=color_map_required[id]),
                     showlegend=False,
                 ),
                 row=1,
@@ -323,28 +345,6 @@ def _():
 def _(show_available, show_required):
     mo.hstack(["Select what to plot: ", show_required, show_available]).left()
     return
-
-
-@app.cell
-def _():
-    h_slider = mo.ui.slider(
-        start=0,
-        stop=20,
-        label=r"Altitude (km)",
-        value=10,
-        show_value=True,
-    )
-
-    speed = mo.ui.dropdown(
-        options=["TAS", "EAS", "M", "CAS"], value="TAS", label=r"Speed"
-    )
-
-    delta_t = mo.ui.slider(
-        start=0, stop=1, label=r"$\delta_T$", show_value=True, step=0.1
-    )
-
-    mo.hstack([h_slider, speed, delta_t])
-    return delta_t, h_slider
 
 
 @app.cell
