@@ -67,6 +67,12 @@ def _():
 
 @app.cell
 def _():
+    mo.md(r"""Here it is possible to select multiple aircrafts to visualise their thrust and power behaviour with respect to speed, visualising the standard assumptions mentioned above.""")
+    return
+
+
+@app.cell
+def _():
     mo.md(
         r"""
     /// admonition | Heads up!
@@ -74,37 +80,6 @@ def _():
      Don't forget to press **submit** in the "multiple selection" tab! or **clear** if you want to erase all the lines.
     ///
     """
-    )
-    return
-
-
-@app.cell
-def _():
-    ac_type_dropdown = mo.ui.dropdown(
-        options=["Simplified Jet", "Simplified Propeller"], value="Simplified Jet"
-    )
-    return (ac_type_dropdown,)
-
-
-@app.cell
-def _(ac, ac_type_dropdown):
-    availables = ac.available_aircrafts(ac_type=ac_type_dropdown.value)[
-        "full_name"
-    ].values
-
-    ac_name_dropdown = mo.ui.dropdown(options=availables, value=availables[0])
-    return (ac_name_dropdown,)
-
-
-@app.cell
-def _(ac_name_dropdown, ac_type_dropdown):
-    single_selection_ui = mo.hstack(
-        [
-            mo.md("Select the aero-propulsive model type:"),
-            ac_type_dropdown,
-            mo.md("Select the corresponding aircraft:"),
-            ac_name_dropdown,
-        ]
     )
     return
 
@@ -123,40 +98,15 @@ def _(ac):
 
 
 @app.cell
-def _(ac_table, fig, go):
+def _(ac_table, fig):
     aircraft_list = []
 
     fig.data = []
-    show = ac_table
     if ac_table.value is not None and ac_table.value.any().any():
         aircraft_list = ac_table.value["ID"]
 
-    else:
-        aircraft_list = []
-    fig.add_trace(
-        go.Scatter(
-            x=[],
-            y=[],
-            mode="lines",
-            showlegend=False,
-            line=dict(color="rgba(0,0,0,0)"),  # Transparent line
-        ),
-        row=1,
-        col=1,
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=[],
-            y=[],
-            mode="lines",
-            showlegend=False,
-            line=dict(color="rgba(0,0,0,0)"),
-        ),
-        row=1,
-        col=2,
-    )
 
-    show
+    ac_table
     return (aircraft_list,)
 
 
