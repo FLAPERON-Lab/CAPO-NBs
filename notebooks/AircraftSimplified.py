@@ -186,7 +186,7 @@ def _(
 ):
     global axis_limits
     fig.data = []
-    velocities = np.linspace(15, 340, 250)
+    velocities = np.linspace(1, 340, 250)
 
     colors = px.colors.qualitative.Vivid
     color_map_available = {id: colors[i % len(colors)] for i, id in enumerate(fleet.keys())}

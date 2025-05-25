@@ -44,14 +44,14 @@ class Aircraft:
             Ta = np.full_like(V, np.nan, dtype=float)
 
             mask = V != 0
-            Ta[mask] = Pa[mask] / V[mask]
+            Ta[mask] = P[mask] / V[mask]
 
             return None, Ta
 
     def power(self, V=None, beta=None, h=None, deltaT=None):
         if self.ac_type == "Simplified Jet":
             Ta, T = self.thrust(V, beta, h, deltaT)
-            Pa = Ta * V
+            Pa = T * V
             return None, Pa
 
         elif self.ac_type == "Simplified Propeller":
