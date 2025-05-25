@@ -196,6 +196,10 @@ def _(
 
     yaxis1 = 0
     yaxis2 = 0
+    legend_available = False
+    legend_required = False
+
+
     for index, (id, obj) in enumerate(fleet.items()):
         if show_available.value:
             power_value = obj.power(
@@ -214,7 +218,8 @@ def _(
                     x=velocities,
                     y=power_value,
                     mode="lines",
-                    legendgroup=id,
+                    legendgroup="Available",
+                    legendgrouptitle_text="Available",
                     name=id,
                     line=dict(width=2, color=color_map[id]),
                     showlegend=True,
@@ -227,7 +232,7 @@ def _(
                     x=velocities,
                     y=thrust_value,
                     mode="lines",
-                    legendgroup=(r"$T_a$" + id),
+                    legendgroup="Available",
                     line=dict(width=2, color=color_map[id]),
                     showlegend=False,
                 ),
@@ -241,10 +246,10 @@ def _(
                 * 1
                 / (velocities**2)
             )
-            cd = obj.drag_polar(CL=CL)
+            CD = obj.drag_polar(CL=CL)
 
             drag = (
-                cd
+                CD
                 * 0.5
                 * atmos.rho(h)
                 * velocities**2
@@ -254,12 +259,16 @@ def _(
 
             power_required = drag * velocities
 
+            yaxis1 = max(yaxis1, max(power_required))
+            yaxis2 = max(yaxis2, max(drag))
+
             fig.add_trace(
                 go.Scatter(
                     x=velocities,
                     y=power_required,
                     mode="lines",
-                    legendgroup=id,
+                    legendgrouptitle_text="Required",
+                    legendgroup="Required",
                     name=id,
                     line=dict(width=2, color=color_map[id]),
                     showlegend=True,
@@ -273,10 +282,10 @@ def _(
                     x=velocities,
                     y=drag,
                     mode="lines",
-                    legendgroup=id,
+                    legendgroup="Required",
                     name=id,
                     line=dict(width=2, color=color_map[id]),
-                    showlegend=True,
+                    showlegend=False,
                 ),
                 row=1,
                 col=2,
@@ -297,7 +306,7 @@ def _(
         row=1,
         col=2,
         range=[0, axis_limits["thrust"]] if fix_yaxis.value else None,
-    ).update_xaxes(title="Velocity (m/s)")
+    ).update_xaxes(title="Velocity (m/s)", range=[0, 350])
 
     fig
     return
