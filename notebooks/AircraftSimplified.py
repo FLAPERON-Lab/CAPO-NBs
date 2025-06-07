@@ -171,7 +171,9 @@ def _(fix_yaxis):
     m_slider = mo.ui.slider(start=0, stop=1, step=0.1, label=r"", show_value=True)
 
 
-    speed = mo.ui.dropdown(options=["TAS", "EAS", "M"], value="TAS", label=r"Speed")
+    speed = mo.ui.dropdown(
+        options=["CAS", "TAS", "EAS", "M"], value="CAS", label=r"Speed"
+    )
 
     delta_t = mo.ui.slider(
         start=0,
@@ -187,7 +189,12 @@ def _(fix_yaxis):
         align="start",
         justify="start",
     )
-    mo.vstack([mo.hstack([h_slider, speed, delta_t]), mo.hstack([mass_stack, fix_yaxis.right()])])
+    mo.vstack(
+        [
+            mo.hstack([h_slider, speed, delta_t]),
+            mo.hstack([mass_stack, fix_yaxis.right()]),
+        ]
+    )
     return delta_t, h_slider, m_slider, speed
 
 
@@ -197,7 +204,7 @@ def _(show_available, show_required):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(
     atmos,
     axis_limits,
@@ -216,17 +223,31 @@ def _(
 ):
     global axis_limits
     fig.data = []
-    TAS = np.linspace(1, 340, 250)
+    CAS = np.linspace(1, 340, 250)
 
     h = h_slider.value * 1000
-    rho0 = 1.225
+    rho = atmos.rho(h)
+    p = atmos.p(h)
+    rho0 = atmos.rho0
+    p0 = atmos.p0
+    # Calculate TAS as it is needed for mach and EAS calculations
+    qdyn = p0 * ((1.0 + rho0 * CAS * CAS / (7.0 * p0)) ** 3.5 - 1.0)
+    TAS = np.sqrt(7.0 * p / rho * ((1.0 + qdyn / p) ** (2.0 / 7.0) - 1.0))
 
-    if speed.value == "TAS":
+    # cope with negative speed
+    TAS = np.where(CAS < 0, -1 * TAS, TAS)
+
+
+    if speed.value == "CAS":
+        x_axis = CAS
+    elif speed.value == "TAS":
         x_axis = TAS
     elif speed.value == "EAS":
-        x_axis = TAS * np.sqrt(atmos.rho(h) / rho0)
+        x_axis = TAS * np.sqrt(rho / atmos.rho0)
     elif speed.value == "M":
         x_axis = TAS / atmos.a(h)
+
+    print(x_axis)
 
     colors = px.colors.qualitative.Vivid
     color_map_available = {
@@ -266,9 +287,9 @@ def _(
 
     for index, (id, obj) in enumerate(fleet.items()):
         if show_available.value:
-            power_value = obj.power(V=TAS, h=h, deltaT=delta_t.value)[1]
+            power_value = obj.power(V=CAS, h=h, deltaT=delta_t.value)[1]
 
-            thrust_value = obj.thrust(V=TAS, h=h, deltaT=delta_t.value)[1]
+            thrust_value = obj.thrust(V=CAS, h=h, deltaT=delta_t.value)[1]
 
             yaxis1 = max(yaxis1, max(power_value))
             yaxis2 = max(yaxis2, max(thrust_value))
@@ -310,14 +331,14 @@ def _(
                 (mass * 9.80665 / obj.ac_data["S"].values)
                 * (2 / atmos.rho(h))
                 * 1
-                / (TAS**2)
+                / (CAS**2)
             )
 
             CD = obj.drag_polar(CL=CL)
 
-            drag = CD * 0.5 * atmos.rho(h) * TAS**2 * obj.ac_data["S"].values / 1e3
+            drag = CD * 0.5 * atmos.rho(h) * CAS**2 * obj.ac_data["S"].values / 1e3
 
-            power_required = drag * TAS
+            power_required = drag * CAS
 
             yaxis1 = max(yaxis1, max(power_required))
             yaxis2 = max(yaxis2, max(drag))
