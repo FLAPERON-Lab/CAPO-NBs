@@ -175,6 +175,12 @@ def _(fix_yaxis):
         options=["CAS", "TAS", "EAS", "M"], value="CAS", label=r"Speed"
     )
 
+    drag_condition = mo.ui.dropdown(
+        options=["Cruise", "Landing", "Take Off"],
+        value="Cruise",
+        label="Flight Phase",
+    )
+
     delta_t = mo.ui.slider(
         start=0,
         stop=1,
@@ -192,10 +198,19 @@ def _(fix_yaxis):
     mo.vstack(
         [
             mo.hstack([h_slider, speed, delta_t]),
-            mo.hstack([mass_stack, fix_yaxis.right()]),
+            mo.hstack([drag_condition, fix_yaxis.right()]),
         ]
     )
-    return delta_t, h_slider, m_slider, speed
+    return delta_t, drag_condition, h_slider, m_slider, mass_stack, speed
+
+
+@app.cell
+def _(drag_condition, mass_stack):
+    show = None
+    if drag_condition.value == "Cruise":
+        show = mo.hstack([mass_stack.center()]).center()
+    show
+    return
 
 
 @app.cell
@@ -204,11 +219,12 @@ def _(show_available, show_required):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(
     atmos,
     axis_limits,
     delta_t,
+    drag_condition,
     fig,
     fix_yaxis,
     fleet,
@@ -325,16 +341,20 @@ def _(
                 + (obj.ac_data["MTOM"].values - obj.ac_data["OEM"].values)
                 * m_slider.value
             )
-
-            CL = (
-                (mass * 9.80665 / obj.ac_data["S"].values)
-                * (2 / atmos.rho(h))
-                * 1
-                / (CAS**2)
-            )
+            if drag_condition.value == "Cruise":
+                CL = (
+                    (mass * 9.80665 / obj.ac_data["S"].values)
+                    * (2 / atmos.rho(h))
+                    * 1
+                    / (CAS**2)
+                )
+            elif drag_condition.value == "Take Off":
+                CL = obj.ac_data["CLmax_to"].values
+            elif drag_condition.value == "Landing":
+                CL = obj.ac_data["CLmax_ld"].values
 
             CD = obj.drag_polar(CL=CL)
-
+            print(CL)
             drag = CD * 0.5 * atmos.rho(h) * CAS**2 * obj.ac_data["S"].values / 1e3
 
             power_required = drag * CAS
