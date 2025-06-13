@@ -76,7 +76,7 @@ def _():
 
 @app.cell
 def _():
-    # mo.md(r"""- [ ] Plot a 2D chart with CL on x axis and dT on y axis, and a 3D chart with also V on Z axis (with nothing plotted on it). There is a selection menu for only one aircraft at a time, which is useless (but that's the point). Two sliders allow to pick a value of Cl and dT. The chart shows only the one point in the domain corresponding to the chosen values.""")
+    mo.md(r"""- [ ] Plot a 2D chart with CL on x axis and dT on y axis, and a 3D chart with also V on Z axis (with nothing plotted on it). There is a selection menu for only one aircraft at a time, which is useless (but that's the point). Two sliders allow to pick a value of Cl and dT. The chart shows only the one point in the domain corresponding to the chosen values.""")
     return
 
 
@@ -123,6 +123,11 @@ def _(CL_maxld, CL_slider, ac_table, dT_slider, go, make_subplots):
         rows=1, cols=2, specs=[[{"type": "Scatter"}, {"type": "Surface"}]]
     )
 
+    if ac_table.value is not None and ac_table.value.any().any():
+        title_text = str(ac_table.value.full_name.values[0])
+    else:
+        title_text = ""
+
     fig.data = []
 
     fig.add_trace(
@@ -164,20 +169,18 @@ def _(CL_maxld, CL_slider, ac_table, dT_slider, go, make_subplots):
             xaxis=dict(range=[-0.5, CL_maxld]),
             yaxis=dict(range=[-0.25, 1]),
         )
-    )
+    );
     fig.update_layout(
-        title_text=str(ac_table.value.full_name.values[0]),
+        title_text=title_text,
         title_x=0.5,
-    )
+    );
     return (fig,)
 
 
 @app.cell(hide_code=True)
-def _(ac_table, np):
-    value = float(ac_table.value.CLmax_ld.values[0])
-
-    if not np.isnan(value):
-        CL_maxld = value
+def _(ac_table):
+    if ac_table.value is not None and ac_table.value.any().any():
+        CL_maxld = float(ac_table.value.CLmax_ld.values[0])
     else:
         CL_maxld = 3
 
@@ -255,7 +258,7 @@ def _():
     import plotly.express as px
     import numpy as np
 
-    return go, make_subplots, np
+    return go, make_subplots
 
 
 if __name__ == "__main__":
