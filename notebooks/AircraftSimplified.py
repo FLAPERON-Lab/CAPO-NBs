@@ -10,6 +10,10 @@ with app.setup:
 
     _defaults.set_plotly_template()
 
+    data_dir = str(
+        mo.notebook_location() / "public/data/aircraft" / "AircraftDB_Standard.ssv"
+    )
+
 
 @app.cell
 def _():
@@ -86,7 +90,7 @@ def _():
 
 @app.cell(hide_code=True)
 def _(ac):
-    data = ac.available_aircrafts().round(decimals=4)
+    data = ac.available_aircrafts(data_dir).round(decimals=4)
 
     cols_4dec = [
         "CD0",
@@ -110,7 +114,6 @@ def _(ac):
         pagination=True,
         freeze_columns_left=["full_name"],
         show_column_summaries=False,
-    
     ).form(show_clear_button=True)
     return (ac_table,)
 
@@ -445,7 +448,6 @@ def _():
     import numpy as np
     from core import aircraft as ac
     from core import atmos
-
     return ac, atmos, go, make_subplots, np, px
 
 

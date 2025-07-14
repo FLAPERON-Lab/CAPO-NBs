@@ -12,6 +12,10 @@ with app.setup:
     import plotly.express as px
     import numpy as np
 
+    data_dir = str(
+        mo.notebook_location() / "public/data/aircraft" / "AircraftDB_Standard.ssv"
+    )
+
     _defaults.set_plotly_template()
 
 
@@ -110,7 +114,7 @@ def _():
 def _():
     from core import aircraft as ac
 
-    data = ac.available_aircrafts().round(decimals=4)
+    data = ac.available_aircrafts(data_dir).round(decimals=4)
 
     cols_4dec = [
         "CD0",
@@ -151,7 +155,7 @@ def _(ac, ac_table, dT_slider):
     if ac_table.value is not None and ac_table.value.any().any():
         aircraft_list = ac_table.value["ID"]
 
-    fleet = {ID: ac.Aircraft(ac_ID=ID) for ID in aircraft_list}
+    fleet = {ID: ac.Aircraft(data_dir, ac_ID=ID) for ID in aircraft_list}
 
     for index, (id, obj) in enumerate(fleet.items()):
         c2_eq = (dT_slider.value) * 1

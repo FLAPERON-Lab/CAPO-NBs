@@ -4,18 +4,12 @@ from functools import cache
 from core import atmos
 import numpy as np
 
-# Data file paths
-curr_path = os.path.dirname(os.path.realpath(__file__))
-dir_aircraft = os.path.join(os.path.dirname(os.getcwd()), "data", "aircraft")
-simplified_dir = os.path.join(dir_aircraft, "AircraftDB_Standard.ssv")
 
-
-@cache
-def available_aircrafts(ac_type=None):
+def available_aircrafts(data_dir, ac_type=None):
     """Return the available aircrafts"""
 
     # Load the data
-    simplified_aircrafts = pd.read_csv(simplified_dir, sep=";")
+    simplified_aircrafts = pd.read_csv(data_dir, sep=";")
 
     if ac_type:
         return simplified_aircrafts[simplified_aircrafts["type"] == ac_type]
@@ -24,8 +18,8 @@ def available_aircrafts(ac_type=None):
 
 
 class Aircraft:
-    def __init__(self, ac_ID):
-        df_aircrafts = pd.read_csv(simplified_dir, sep=";")
+    def __init__(self, data_dir, ac_ID):
+        df_aircrafts = pd.read_csv(data_dir, sep=";")
 
         self.ac_data = df_aircrafts[df_aircrafts["ID"] == ac_ID]
         self.ac_ID = ac_ID
