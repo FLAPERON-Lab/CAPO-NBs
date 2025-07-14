@@ -9,6 +9,7 @@ with app.setup:
     from core import _defaults
 
     _defaults.set_plotly_template()
+    data_dir = str(mo.notebook_location() / "public" / "AircraftDB_Standard.csv")
 
 
 @app.cell
@@ -84,7 +85,7 @@ def _():
 def _():
     from core import aircraft as ac
 
-    data = ac.available_aircrafts().round(decimals=4)
+    data = ac.available_aircrafts(data_dir).round(decimals=4)
 
     cols_4dec = [
         "CD0",

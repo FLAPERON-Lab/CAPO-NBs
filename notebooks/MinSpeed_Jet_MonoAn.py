@@ -12,9 +12,7 @@ with app.setup:
     import plotly.express as px
     import numpy as np
 
-    data_dir = str(
-        mo.notebook_location() / "public/data/aircraft" / "AircraftDB_Standard.ssv"
-    )
+    data_dir = str(mo.notebook_location() / "public" / "AircraftDB_Standard.csv")
 
     _defaults.set_plotly_template()
 

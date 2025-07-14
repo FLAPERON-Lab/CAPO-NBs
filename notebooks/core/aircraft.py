@@ -3,13 +3,14 @@ import pandas as pd
 from functools import cache
 from core import atmos
 import numpy as np
+import polars as pl
 
 
 def available_aircrafts(data_dir, ac_type=None):
     """Return the available aircrafts"""
 
     # Load the data
-    simplified_aircrafts = pd.read_csv(data_dir, sep=";")
+    simplified_aircrafts = pl.read_csv(data_dir).to_pandas()
 
     if ac_type:
         return simplified_aircrafts[simplified_aircrafts["type"] == ac_type]
@@ -19,7 +20,7 @@ def available_aircrafts(data_dir, ac_type=None):
 
 class Aircraft:
     def __init__(self, data_dir, ac_ID):
-        df_aircrafts = pd.read_csv(data_dir, sep=";")
+        df_aircrafts = pl.read_csv(data_dir).to_pandas()
 
         self.ac_data = df_aircrafts[df_aircrafts["ID"] == ac_ID]
         self.ac_ID = ac_ID
