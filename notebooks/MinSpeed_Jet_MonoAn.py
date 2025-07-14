@@ -6,7 +6,7 @@ app = marimo.App(width="medium")
 with app.setup:
     # Initialization code that runs before all other cells
     import marimo as mo
-    import _defaults
+    from core import _defaults
     import plotly.graph_objects as go
     from plotly.subplots import make_subplots
     import plotly.express as px

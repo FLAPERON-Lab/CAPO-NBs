@@ -31,7 +31,7 @@ class Aircraft:
         self.ac_ID = ac_ID
         self.ac_type = self.ac_data["type"].values
 
-    def thrust(self, V=None, h=None, deltaT=None):
+    def thrust(self, V, h, deltaT):
         beta = self.ac_data["beta"]
         if self.ac_type == "Simplified Jet":
             Ta0 = self.ac_data["Ta0"].item()
@@ -49,7 +49,7 @@ class Aircraft:
 
             return None, Ta
 
-    def power(self, V=None, h=None, deltaT=None):
+    def power(self, V, h, deltaT):
         beta = self.ac_data["beta"]
         if self.ac_type == "Simplified Jet":
             Ta, T = self.thrust(V, h, deltaT)
@@ -68,7 +68,7 @@ class Aircraft:
         k = self.ac_data["K"].item()
         return cd0 + k * CL**2
 
-    def fuel_flow(self, V=None, h=None, deltaT=None):
+    def fuel_flow(self, V, h, deltaT):
         if self.ac_type == "Simplified Jet":
             cT = self.ac_data["cT"].item()
             FF = cT * self.thrust(V, h, deltaT)[1]
