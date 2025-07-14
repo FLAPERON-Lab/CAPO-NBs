@@ -74,7 +74,9 @@ def _():
 
 @app.cell
 def _():
-    mo.md(r"""Here it is possible to select multiple aircrafts to visualise their thrust and power behaviour with respect to speed, visualising the standard assumptions mentioned above.""")
+    mo.md(
+        r"""Here it is possible to select multiple aircrafts to visualise their thrust and power behaviour with respect to speed, visualising the standard assumptions mentioned above."""
+    )
     return
 
 
@@ -141,7 +143,9 @@ def _():
 
 @app.cell
 def _():
-    mo.md("""In the following graph it is possible to fix the y-axis range by ticking the checkmark, this is useful to understand the behaviour of the different curves with the changing of the parameters. You can change the different parameters through the use of sliders.""")
+    mo.md(
+        """In the following graph it is possible to fix the y-axis range by ticking the checkmark, this is useful to understand the behaviour of the different curves with the changing of the parameters. You can change the different parameters through the use of sliders."""
+    )
     return
 
 
@@ -256,11 +260,9 @@ def _(
     p = atmos.p(h)
     rho0 = atmos.rho0
     p0 = atmos.p0
-    # Calculate TAS as it is needed for mach and EAS calculations
+
     qdyn = p * ((1.0 + rho * TAS * TAS / (7.0 * p)) ** 3.5 - 1.0)
     CAS = np.sqrt(7.0 * p0 / rho0 * ((qdyn / p0 + 1.0) ** (2.0 / 7.0) - 1.0))
-    # cope with negative speed
-    CAS = np.where(TAS < 0, -1 * CAS, CAS)
 
     if speed.value == "CAS":
         x_axis = CAS
