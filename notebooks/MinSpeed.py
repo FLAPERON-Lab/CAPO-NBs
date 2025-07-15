@@ -76,9 +76,7 @@ def _():
 
 @app.cell
 def _():
-    mo.md(
-        r"""- [ ] Plot a 2D chart with CL on x axis and dT on y axis, and a 3D chart with also V on Z axis (with nothing plotted on it). There is a selection menu for only one aircraft at a time, which is useless (but that's the point). Two sliders allow to pick a value of Cl and dT. The chart shows only the one point in the domain corresponding to the chosen values."""
-    )
+    mo.md(r"""- [ ] Plot a 2D chart with CL on x axis and dT on y axis, and a 3D chart with also V on Z axis (with nothing plotted on it). There is a selection menu for only one aircraft at a time, which is useless (but that's the point). Two sliders allow to pick a value of Cl and dT. The chart shows only the one point in the domain corresponding to the chosen values.""")
     return
 
 
