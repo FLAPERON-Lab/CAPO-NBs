@@ -11,10 +11,11 @@ with app.setup:
     from plotly.subplots import make_subplots
     import plotly.express as px
     import numpy as np
+    from pathlib import Path
 
     _defaults.FILEURL = _defaults.get_url()
 
-    data_dir = str(mo.notebook_location() / "public" / "AircraftDB_Standard.csv")
+    data_dir = str(Path(mo.notebook_location()) / "public" / "AircraftDB_Standard.csv")
 
     _defaults.set_plotly_template()
 

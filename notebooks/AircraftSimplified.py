@@ -7,11 +7,12 @@ with app.setup:
     # Initialization code that runs before all other cells
     import marimo as mo
     from core import _defaults
+    from pathlib import Path
 
     _defaults.FILEURL = _defaults.get_url()
 
     _defaults.set_plotly_template()
-    data_dir = str(mo.notebook_location() / "public" / "AircraftDB_Standard.csv")
+    data_dir = str(Path(mo.notebook_location()) / "public" / "AircraftDB_Standard.csv")
 
 
 @app.cell
@@ -70,7 +71,9 @@ def _():
 
 @app.cell
 def _():
-    mo.md(r"""Here it is possible to select multiple aircrafts to visualise their thrust and power behaviour with respect to speed, visualising the standard assumptions mentioned above.""")
+    mo.md(
+        r"""Here it is possible to select multiple aircrafts to visualise their thrust and power behaviour with respect to speed, visualising the standard assumptions mentioned above."""
+    )
     return
 
 
@@ -137,7 +140,9 @@ def _():
 
 @app.cell
 def _():
-    mo.md("""In the following graph it is possible to fix the y-axis range by ticking the checkmark, this is useful to understand the behaviour of the different curves with the changing of the parameters. You can change the different parameters through the use of sliders.""")
+    mo.md(
+        """In the following graph it is possible to fix the y-axis range by ticking the checkmark, this is useful to understand the behaviour of the different curves with the changing of the parameters. You can change the different parameters through the use of sliders."""
+    )
     return
 
 
@@ -446,6 +451,7 @@ def _():
     from core import aircraft as ac
     from core import atmos
     import polars as pl
+
     return ac, atmos, go, make_subplots, np, px
 
 
