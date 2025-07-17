@@ -2,11 +2,13 @@ import marimo
 
 __generated_with = "0.13.6"
 app = marimo.App(width="medium")
-    
+
 with app.setup:
     # Initialization code that runs before all other cells
     import marimo as mo
     from core import _defaults
+
+    _defaults.FILEURL = _defaults.get_url()
 
     _defaults.set_plotly_template()
 

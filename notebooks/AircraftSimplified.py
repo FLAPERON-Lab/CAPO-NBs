@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.13.4"
+__generated_with = "0.13.8"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -8,13 +8,9 @@ with app.setup:
     import marimo as mo
     from core import _defaults
 
-    _defaults.set_plotly_template()
+    _defaults.FILEURL = _defaults.get_url()
 
-    #     notebooks/public/data
-    # └── aircraft
-    #     ├── AircraftDB_Custom_Jets.ssv
-    #     ├── AircraftDB_Custom_Props.ssv
-    #     └── AircraftDB_Standard.ssv
+    _defaults.set_plotly_template()
     data_dir = str(mo.notebook_location() / "public" / "AircraftDB_Standard.csv")
 
 
@@ -74,9 +70,7 @@ def _():
 
 @app.cell
 def _():
-    mo.md(
-        r"""Here it is possible to select multiple aircrafts to visualise their thrust and power behaviour with respect to speed, visualising the standard assumptions mentioned above."""
-    )
+    mo.md(r"""Here it is possible to select multiple aircrafts to visualise their thrust and power behaviour with respect to speed, visualising the standard assumptions mentioned above.""")
     return
 
 
@@ -143,9 +137,7 @@ def _():
 
 @app.cell
 def _():
-    mo.md(
-        """In the following graph it is possible to fix the y-axis range by ticking the checkmark, this is useful to understand the behaviour of the different curves with the changing of the parameters. You can change the different parameters through the use of sliders."""
-    )
+    mo.md("""In the following graph it is possible to fix the y-axis range by ticking the checkmark, this is useful to understand the behaviour of the different curves with the changing of the parameters. You can change the different parameters through the use of sliders.""")
     return
 
 
@@ -454,7 +446,6 @@ def _():
     from core import aircraft as ac
     from core import atmos
     import polars as pl
-
     return ac, atmos, go, make_subplots, np, px
 
 

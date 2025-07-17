@@ -12,6 +12,8 @@ with app.setup:
     import plotly.express as px
     import numpy as np
 
+    _defaults.FILEURL = _defaults.get_url()
+
     data_dir = str(mo.notebook_location() / "public" / "AircraftDB_Standard.csv")
 
     _defaults.set_plotly_template()
