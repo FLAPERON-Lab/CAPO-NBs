@@ -66,23 +66,6 @@ def _adapt_to_wasm(notebook_path: Path, output_dir: Path):
         with open(nb, "w") as f:
             f.writelines(new_lines)
 
-    with open(notebook_path / "core" / "_defaults.py", "r") as f:
-        lines = f.readlines()
-
-    new_lines = []
-
-    for line in lines:
-        if "FILEURL =" in line:
-            new_lines.append(
-                "FILEURL = 'https://CarmVarriale.github.io/FlightPerf_CalcComp/notebooks/'\n"
-            )
-        else:
-            modified_line = line.replace(".py", ".html")
-            new_lines.append(modified_line)
-
-    with open(notebook_path / "core" / "_defaults.py", "w") as f:
-        f.writelines(new_lines)
-
 
 def _export_html_wasm(
     notebook_path: Path, output_dir: Path, as_app: bool = False
