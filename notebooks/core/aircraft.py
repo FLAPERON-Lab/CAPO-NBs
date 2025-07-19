@@ -1,0 +1,73 @@
+import os
+import pandas as pd
+from functools import cache
+from core import atmos
+import numpy as np
+import polars as pl
+
+
+def available_aircrafts(data_dir, ac_type=None):
+    """Return the available aircrafts"""
+
+    # Load the data
+    simplified_aircrafts = pl.read_csv(data_dir).to_pandas()
+
+    if ac_type:
+        return simplified_aircrafts[simplified_aircrafts["type"] == ac_type]
+
+    return simplified_aircrafts
+
+
+class Aircraft:
+    def __init__(self, data_dir, ac_ID):
+        df_aircrafts = pl.read_csv(data_dir).to_pandas()
+
+        self.ac_data = df_aircrafts[df_aircrafts["ID"] == ac_ID]
+        self.ac_ID = ac_ID
+        self.ac_type = self.ac_data["type"].values
+
+    def thrust(self, V, h, deltaT):
+        beta = self.ac_data["beta"]
+        if self.ac_type == "Simplified Jet":
+            Ta0 = self.ac_data["Ta0"].item()
+            Ta = np.full_like(V, Ta0 * atmos.rhoratio(h) ** beta)
+            T = deltaT * Ta
+            return Ta, T
+
+        elif self.ac_type == "Simplified Propeller":
+            Pa, P = self.power(V, h, deltaT)
+
+            Ta = np.full_like(V, np.nan, dtype=float)
+
+            mask = V != 0
+            Ta[mask] = P[mask] / V[mask]
+
+            return None, Ta
+
+    def power(self, V, h, deltaT):
+        beta = self.ac_data["beta"]
+        if self.ac_type == "Simplified Jet":
+            Ta, T = self.thrust(V, h, deltaT)
+            Pa = T * V
+            return None, Pa
+
+        elif self.ac_type == "Simplified Propeller":
+            Pa0 = self.ac_data["Pa0"].item()
+            Pa = np.full_like(V, Pa0 * atmos.rhoratio(h) ** beta)
+            P = deltaT * Pa
+
+            return Pa, P
+
+    def drag_polar(self, CL):
+        cd0 = self.ac_data["CD0"].item()
+        k = self.ac_data["K"].item()
+        return cd0 + k * CL**2
+
+    def fuel_flow(self, V, h, deltaT):
+        if self.ac_type == "Simplified Jet":
+            cT = self.ac_data["cT"].item()
+            FF = cT * self.thrust(V, h, deltaT)[1]
+        elif self.ac_type == "Simplified Prop":
+            cP = self.ac_data["cP"].item()
+            FF = cP * self.power(V, h, deltaT)[1]
+        return FF
