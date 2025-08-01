@@ -6,16 +6,50 @@ import numpy as np
 import polars as pl
 
 
-def available_aircrafts(data_dir, ac_type=None):
+def available_aircrafts(data_dir, verbose=False, round=True, ac_type=None):
     """Return the available aircrafts"""
 
     # Load the data
-    simplified_aircrafts = pl.read_csv(data_dir).to_pandas()
+    data = pl.read_csv(data_dir).to_pandas()
 
     if ac_type:
-        return simplified_aircrafts[simplified_aircrafts["type"] == ac_type]
+        data = data[data["type"] == f"Simplified {ac_type}"]
 
-    return simplified_aircrafts
+    if round:
+        cols_round = [
+            "CD0",
+            "K",
+            "beta",
+            "CLmax_cl",
+            "CLmax_to",
+            "CLmax_ld",
+            "cT",
+            "cP",
+            "MMO",
+        ]
+        data[cols_round] = data[cols_round].round(4)
+
+        other_cols = data.columns.difference(cols_round)
+        data[other_cols] = data[other_cols].round(1)
+
+    if not verbose:
+        data = data[
+            [
+                "full_name",
+                "ID",
+                "type",
+                "b",
+                "S",
+                "CD0",
+                "K",
+                "Ta0",
+                "CLmax_ld",
+                "MTOM",
+                "OEM",
+            ]
+        ]
+
+    return data.reset_index(drop=True)
 
 
 class Aircraft:
