@@ -32,7 +32,7 @@ def available_aircrafts(data_dir, verbose=False, round=True, ac_type=None):
         other_cols = data.columns.difference(cols_round)
         data[other_cols] = data[other_cols].round(1)
 
-    if not verbose:
+    if not verbose and ac_type == "Jet":
         data = data[
             [
                 "full_name",
@@ -43,6 +43,23 @@ def available_aircrafts(data_dir, verbose=False, round=True, ac_type=None):
                 "CD0",
                 "K",
                 "Ta0",
+                "CLmax_ld",
+                "MTOM",
+                "OEM",
+                "beta",
+            ]
+        ]
+    elif not verbose and ac_type == "Propeller":
+        data = data[
+            [
+                "full_name",
+                "ID",
+                "type",
+                "b",
+                "S",
+                "CD0",
+                "K",
+                "Pa0",
                 "CLmax_ld",
                 "MTOM",
                 "OEM",
@@ -106,3 +123,19 @@ class Aircraft:
             cP = self.ac_data["cP"].item()
             FF = cP * self.power(V, h, deltaT)[1]
         return FF
+
+
+# Compute velocity as a function of C_L
+def velocity(S, C_L, W, h):
+    numerator = 2 * W  # scalar or array
+    denominator = atmos.rho(h) * S * C_L
+    vel = np.sqrt(
+        np.divide(
+            numerator,
+            denominator,
+            out=np.zeros_like(denominator),
+            where=C_L != 0,
+        )
+    )
+
+    return np.where(vel > atmos.a(h), np.nan, vel)
