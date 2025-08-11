@@ -18,6 +18,7 @@ def _():
     from core import atmos
     from core import aircraft as ac
 
+
     # Set local/online filepath
     _defaults.FILEURL = _defaults.get_url()
 
@@ -149,7 +150,7 @@ def _(active_selection, atmos, np):
         return np.where(vel > atmos.a(h), np.nan, vel)
 
 
-    def c2_eq(C_L, W, h):
+    def horizontal_constraint(C_L, W, h):
         S = active_selection["S"]
         CD0 = active_selection["CD0"]
         K = active_selection["K"]
@@ -165,7 +166,7 @@ def _(active_selection, atmos, np):
             out=np.zeros_like(C_L),
             where=C_L != 0,
         )
-    return c2_eq, velocity
+    return horizontal_constraint, velocity
 
 
 @app.cell
@@ -190,11 +191,19 @@ def _(active_selection, atmos, h_slider, m_slider, np):
 
 
 @app.cell
-def _(C_Larray, W_selected, a, c2_eq, h_selected, np, velocity):
+def _(
+    C_Larray,
+    W_selected,
+    a,
+    h_selected,
+    horizontal_constraint,
+    np,
+    velocity,
+):
     # Computation cell (1)
 
     # Calculate the c2_eq constraint curve
-    c2_constraint = c2_eq(C_Larray, W_selected, h_selected)
+    c2_constraint = horizontal_constraint(C_Larray, W_selected, h_selected)
 
     # Cut off due to the domain of dT
     c2_constraint = np.where(c2_constraint > 1.1, np.nan, c2_constraint)
@@ -339,7 +348,9 @@ def _(
 
 @app.cell(hide_code=True)
 def _(CL_slider, dT_slider, mo):
-    mo.md(f"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}""")
+    mo.md(
+        f"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}"""
+    )
     return
 
 
@@ -1335,7 +1346,15 @@ def _(mo):
 
 
 @app.cell
-def _(C_Larray, W_selected, c2_eq, h_array, minvelocity_liftlim, np, velocity):
+def _(
+    C_Larray,
+    W_selected,
+    h_array,
+    horizontal_constraint,
+    minvelocity_liftlim,
+    np,
+    velocity,
+):
     # Computation cell for surface
     h_transition = float(h_array[np.where(~np.isnan(minvelocity_liftlim))[0][-1]])
 
@@ -1348,7 +1367,7 @@ def _(C_Larray, W_selected, c2_eq, h_array, minvelocity_liftlim, np, velocity):
         (len(C_Larray), 1),
     )
 
-    c2_boundary = c2_eq(C_Larray, W_selected, h_transition)
+    c2_boundary = horizontal_constraint(C_Larray, W_selected, h_transition)
     return c2_boundary, h_transition, velocity_surface_boundary
 
 
