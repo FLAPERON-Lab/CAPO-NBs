@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.14.16"
+__generated_with = "0.14.17"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -127,7 +127,7 @@ def _(ac_table, data):
 
 
 @app.cell
-def _power_surface():
+def _():
     # Function definition cell, ideally this can go in the setup
 
 
@@ -144,7 +144,7 @@ def _power_surface():
 
         CD = CD0 + K * CL**2
 
-        return (0.5 * rho * V**3 * S * CD) / 1e3
+        return 0.5 * rho * V**3 * S * CD
 
 
     def optimum_interior(W, h, CD0, K, Ta0, beta):
@@ -162,7 +162,16 @@ def _power_surface():
         deltaT_out = np.where(condition, deltaT, np.nan)
 
         return [CL_out, deltaT_out]
-    return optimum_interior, power
+
+
+    def drag(W, h, S, CD0, K, CL):
+        rho = atmos.rho(h)
+        V = velocity(W, h, CL, S)
+
+        CD = CD0 + K * CL**2
+
+        return 0.5 * rho * V**2 * S * CD
+    return drag, optimum_interior, power
 
 
 @app.cell
@@ -191,8 +200,12 @@ def _(active_selection, h_slider, m_slider):
     CLmax = active_selection["CLmax_ld"]
     Ta0 = active_selection["Ta0"] * 1e3
     beta = active_selection["beta"]
+    CL_P = np.sqrt(3 * CD0 / K)
+    CL_E = np.sqrt(CD0 / K)
     return (
         CD0,
+        CL_E,
+        CL_P,
         CL_array,
         CLmax,
         K,
@@ -208,28 +221,39 @@ def _(active_selection, h_slider, m_slider):
 
 
 @app.cell
-def _(CD0, CL_array, K, S, Ta0, W_selected, beta, h_selected, power):
+def _(CD0, CL_array, K, S, Ta0, W_selected, beta, drag, h_selected, power):
     # Computation cell
+    power_curve = power(
+        W_selected,
+        h_selected,
+        S,
+        CD0,
+        K,
+        CL_array,
+    )
 
+    drag_curve = drag(
+        W_selected,
+        h_selected,
+        S,
+        CD0,
+        K,
+        CL_array,
+    )
     power_surface = np.tile(
-        power(
-            W_selected,
-            h_selected,
-            S,
-            CD0,
-            K,
-            CL_array,
-        ),
+        power_curve,
         (len(CL_array), 1),
     )
 
     constraint = horizontal_constraint(
         W_selected, h_selected, CD0, K, CL_array, Ta0, beta
     )
-    return constraint, power_surface
+
+    velocity_array = velocity(W_selected, h_selected, CL_array, S)
+    return constraint, drag_curve, power_curve, power_surface, velocity_array
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(
     CD0,
     CL_array,
@@ -318,7 +342,7 @@ def _(
     return (fig1,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(CL_slider, dT_slider):
     mo.md(
         f"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}"""
@@ -326,13 +350,13 @@ def _(CL_slider, dT_slider):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(variables_stack):
     variables_stack
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(fig1):
     fig1
     return
@@ -533,6 +557,8 @@ def _(ac_table):
 @app.cell
 def _(
     CD0,
+    CL_E,
+    CL_P,
     K,
     S,
     Ta0,
@@ -546,7 +572,6 @@ def _(
     # Computation cell for figure 2
 
     # Selected value, TODO find selected values by indexing in the complete array
-
     CLopt_interior_selected, dTopt_interior_selected = optimum_interior(
         W_selected, h_selected, CD0, K, Ta0, beta
     )
@@ -575,6 +600,9 @@ def _(
     )
 
     power_interior = power(W_selected, h_array, S, CD0, K, CLopt_interior)
+
+    velocity_CL_E = float(velocity(W_selected, h_selected, CL_E, S))
+    velocity_CL_P = float(velocity(W_selected, h_selected, CL_P, S))
     return (
         CLopt_interior,
         CLopt_interior_selected,
@@ -584,6 +612,8 @@ def _(
         dTopt_interior_selected,
         power_interior,
         power_interior_selected,
+        velocity_CL_E,
+        velocity_CL_P,
     )
 
 
@@ -645,7 +675,7 @@ def _(
                 ],  # Slightly elevate to show the full marker
                 mode="markers",
                 showlegend=False,
-                marker=dict(size=5, color="cyan"),
+                marker=dict(size=3, color="cyan"),
                 name="design_point",
                 hovertemplate="x: %{x}<br>y: %{y}<extra>%{fullData.name}</extra>",
             ),
@@ -798,8 +828,14 @@ def _(fig2):
 @app.cell(hide_code=True)
 def _():
     mo.md(
-        r"""Notice how $C_{L_P}$ (minimum power) $\gt$ $C_{L_E}$ (minimum drag) but $E_\mathrm{P} \lt E_{\mathrm{max}}$ ($E = C_L/C_D$) because drag increases more rapidly than $C_L$. Thus the range of $W/\sigma^\beta$ for which it is possible to fly at minimum power is smaller ($\sqrt{3}/2\lt 1$) than the one for which it is possible to fly at minimum drag."""
+        r"""Notice how $C_{L_P}$ (minimum power) $\gt$ $C_{L_E}$ (minimum drag) but $E_\mathrm{P} \lt E_{\mathrm{max}}$ ($E = C_L/C_D$) because the drag coefficient increases more rapidly than $C_L$. Thus the range of $W/\sigma^\beta$ for which it is possible to fly at minimum power is smaller ($\sqrt{3}/2\lt 1$) than the one for which it is possible to fly at minimum drag."""
     )
+    return
+
+
+@app.cell
+def _():
+    mo.md(r"""- [ ] insert power curve and show this""")
     return
 
 
@@ -819,10 +855,22 @@ def _():
     \mu_1 = - \left.\frac{\partial P}{\partial C_L} \right|_{C_{L_\mathrm{max}}} =- \sqrt{\frac{2W^3}{\rho S}}\left(-\frac{3}{2}C_{D_0}C_{L_\mathrm{max}}^{-5/2} + \frac{1}{2} K C_{L_\mathrm{max}}^{-1/2}\right) \gt 0
     $$ 
 
-    This inequality is saying that the reuiqred power should decrease for an increase in $C_L$ starting from $C_{L_\mathrm{max}}$. In other words, $P_r$ should decrease for a decrease in speed from the stall speed. Equivalently, $P_r$ should increase for a n increase in speed from the stall speed. This is clearly impossible, by the taking the shape of the power curve on the performance diagram.
+    This inequality is saying that the required power should decrease for an increase in $C_L$ starting from $C_{L_\mathrm{max}}$. In other words, $P_r$ should decrease for a decrease in speed from the stall speed. Equivalently, $P_r$ should increase for a n increase in speed from the stall speed. This is clearly impossible, by the taking the shape of the power curve on the performance diagram.
+    """
+    )
+    return
 
-    - [ ] insert power diagram curve. 
 
+@app.cell
+def _():
+    mo.md(r"""- [ ] consider adding some graph here""")
+    return
+
+
+@app.cell(hide_code=True)
+def _():
+    mo.md(
+        r"""
     As a matter of fact, by substitution from the stationarity constraint (1):
 
     $$ \frac{3}{2}C_{D_0}C_{L_\mathrm{max}}^{-5/2} + \frac{1}{2} K C_{L_\mathrm{max}}^{-1/2} \lt 0 
@@ -863,18 +911,172 @@ def _():
 def _():
     mo.md(
         r"""
-    This tells us that the required power and drag change in opposite directions with respectot the change in $C_L$. If one decreaes, then the other one has to increase. 
+    This tells us that the required power and drag change in opposite directions with respect to the change in $C_L$. If one decreaes, then the other one has to increase. 
     This can only happen in the range of $C_L$ between $C_{L_P}$ and $C_{L_E}$. On the performance diagram:
+    """
+    )
+    return
 
+
+@app.cell
+def _(CLmax, S, W_selected, h_selected, velocity_array):
+    velocity_cl_line = np.append(
+        velocity(W_selected, h_selected, CLmax, S) - 10,
+        max(velocity_array),
+    )
+
+    CL_ticks = np.arange(0, CLmax + 1, 1)[1:-2]
+    CL_ticks = np.append(CL_ticks, CLmax)
+    text_cl_ticks = [str(tick) for tick in CL_ticks[:-1]]
+    text_cl_ticks.append(r"$C_{L_\mathrm{max}}$")
+    velocity_cl_array = velocity(W_selected, h_selected, np.array(CL_ticks), S)
+    return text_cl_ticks, velocity_cl_array, velocity_cl_line
+
+
+@app.cell
+def _(
+    CLmax,
+    S,
+    W_selected,
+    active_selection,
+    drag_curve,
+    h_selected,
+    power_curve,
+    text_cl_ticks,
+    velocity_CL_E,
+    velocity_CL_P,
+    velocity_array,
+    velocity_cl_array,
+    velocity_cl_line,
+):
+    fig_thrust_limited = go.Figure()
+
+
+    # Power curve vs CL
+    fig_thrust_limited.add_traces(
+        [
+            go.Scatter(x=velocity_array, y=power_curve, name="Power"),
+            go.Scatter(
+                x=velocity_array,
+                y=drag_curve,
+                name="Drag",
+                yaxis="y2",
+            ),
+            go.Scatter(
+                x=velocity_cl_line,
+                y=[max(drag_curve) * 0.1 for i in range(len(velocity_cl_line))],
+                showlegend=False,
+                mode="lines",
+                line=dict(color="rgba(80, 103, 132, 0.35)"),
+                yaxis="y2",
+            ),
+            go.Scatter(
+                x=[min(velocity_cl_line)],
+                y=[max(drag_curve) * 0.1],
+                showlegend=False,
+                mode="markers+lines",
+                line=dict(color="rgba(80, 103, 132, 0.35)"),
+                marker=dict(
+                    symbol="arrow",
+                    size=16,
+                    angle=270,
+                ),
+                yaxis="y2",
+            ),
+            go.Scatter(
+                x=velocity_cl_array,
+                y=[max(drag_curve) * 0.08 for i in range(len(velocity_cl_array))],
+                mode="markers+text",
+                yaxis="y2",
+                marker=dict(color="rgba(0, 0 ,0 ,0)"),
+                text=text_cl_ticks,
+                textposition="bottom center",
+                showlegend=False,
+            ),
+            go.Scatter(
+                x=velocity_cl_array,
+                y=[max(drag_curve) * 0.1 for i in range(len(velocity_cl_array))],
+                mode="markers",
+                yaxis="y2",
+                marker=dict(color="rgba(255, 255 ,255 ,1)", symbol="142"),
+                showlegend=False,
+            ),
+        ]
+    )
+
+    if not np.isnan(velocity_CL_E) and not np.isnan(velocity_CL_P):
+        # Add CL_P and CL_E curves
+        fig_thrust_limited.add_vline(
+            x=velocity_CL_E,
+            line_dash="dot",
+            annotation=dict(text="$C_{L_E}$", xshift=10, yshift=-10),
+            line=dict(color="white"),
+        )
+        fig_thrust_limited.add_vline(
+            x=velocity_CL_P,
+            line_dash="dot",
+            annotation=dict(text="$C_{L_P}$", xshift=10, yshift=-10),
+            line=dict(color="white"),
+        )
+        fig_thrust_limited.add_vrect(
+            x0=velocity_CL_P,
+            x1=velocity_CL_E,
+            fillcolor="green",
+            opacity=0.25,
+            line_width=0,
+        )
+
+    fig_thrust_limited.add_vline(
+        x=float(velocity(W_selected, h_selected, CLmax, S)),
+        line_dash="dot",
+        annotation=dict(text=r"$V_{\mathrm{stall}}$", xshift=10, yshift=-10),
+        line=dict(color="rgba(255, 0, 0, 0.3)"),
+    )
+
+    # Axes configuration
+    fig_thrust_limited.update_layout(
+        legend=dict(
+            x=0.01,  # Left edge
+            y=1,  # Top edge
+            xanchor="auto",
+            yanchor="auto",
+            bgcolor="rgba(0, 0, 0, 0.0)",  # Semi-transparent background
+        ),
+        xaxis=dict(title="Velocity (m/s)"),
+        yaxis=dict(title="Power (W)"),
+        yaxis2=dict(title="Drag (N)", overlaying="y", side="right"),
+        title_text=active_selection["full_name"],
+        title_x=0.5,
+    )
+    mo.output.clear()
+    return (fig_thrust_limited,)
+
+
+@app.cell
+def _(variables_stack):
+    variables_stack
+    return
+
+
+@app.cell
+def _(fig_thrust_limited):
+    fig_thrust_limited
+    return
+
+
+@app.cell(hide_code=True)
+def _():
+    mo.md(
+        r"""
     - [ ] Plot performance diagram as seen on paper. not sure I understand how the C_{D_0} and K disappear under here.
 
     This condition is given by:
 
     $$
-    C_{L_E}\lt C_L\lt C_{L_P} \quad \Leftrightarrow \quad \sqrt{\frac{C_{D_0}}{K}}\lt C_L \lt \sqrt{3} \sqrt{\frac{C_{D_0}}{K}}\quad \Leftrightarrow  \quad \boxed{1 \lt C_L \lt \sqrt{3}}
+    C_{L_E}\lt C_L\lt C_{L_P} \quad \Leftrightarrow \quad \boxed{\sqrt{\frac{C_{D_0}}{K}}\lt C_L \lt \sqrt{3} \sqrt{\frac{C_{D_0}}{K}}}
     $$
 
-    Interistingly, it does not depend on any design parametes, in the assumptions made so far.
+    Interestingly, it does not depend on any design parametes, in the assumptions made so far.
     """
     )
     return
