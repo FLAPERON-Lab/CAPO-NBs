@@ -5,6 +5,52 @@ from core import atmos
 import numpy as np
 import polars as pl
 
+# Compute velocity as a function of C_L
+def velocity(W, h, CL, S, cap=True):
+    numerator = 2 * W  # scalar or array
+    denominator = atmos.rho(h) * S * CL
+    vel = np.sqrt(
+        np.divide(
+            numerator,
+            denominator,
+            out=np.zeros_like(denominator),
+            where=CL != 0,
+        )
+    )
+    if cap:
+        return np.where(vel > atmos.a(h), np.nan, vel)
+    else: 
+        return vel
+
+def power(h, S, CD0, K, CL, V):
+    rho = atmos.rho(h)
+
+    CD = CD0 + K * CL**2
+
+    return 0.5 * rho * V**3 * S * CD
+
+def drag(h, S, CD0, K, CL, V):
+    rho = atmos.rho(h)
+
+    CD = CD0 + K * CL**2
+
+    return 0.5 * rho * V**2 * S * CD
+
+def vertical_constraint(W, h, CD0, K, CL, Ta0, beta):
+    # Sigma ratio from rhoratio
+    sigma = atmos.rhoratio(h)
+
+    return np.divide(
+        W * (CD0 + K * CL**2) / (Ta0 * sigma**beta),
+        CL,
+        out=np.zeros_like(CL),
+        where=CL != 0,
+    )
+
+def endurance(K, CD0, type_end):
+    if type_end == "max":
+        out = np.sqrt(1 / (4 * K * CD0))
+    return out
 
 def available_aircrafts(data_dir, verbose=False, round=True, ac_type=None):
     """Return the available aircrafts"""
@@ -123,33 +169,3 @@ class Aircraft:
             cP = self.ac_data["cP"].item()
             FF = cP * self.power(V, h, deltaT)[1]
         return FF
-
-
-# Compute velocity as a function of C_L
-def velocity(W, h, CL, S, cap=True):
-    numerator = 2 * W  # scalar or array
-    denominator = atmos.rho(h) * S * CL
-    vel = np.sqrt(
-        np.divide(
-            numerator,
-            denominator,
-            out=np.zeros_like(denominator),
-            where=CL != 0,
-        )
-    )
-    if cap:
-        return np.where(vel > atmos.a(h), np.nan, vel)
-    else: 
-        return vel
-
-
-def vertical_constraint(W, h, CD0, K, CL, Ta0, beta):
-    # Sigma ratio from rhoratio
-    sigma = atmos.rhoratio(h)
-
-    return np.divide(
-        W * (CD0 + K * CL**2) / (Ta0 * sigma**beta),
-        CL,
-        out=np.zeros_like(CL),
-        where=CL != 0,
-    )
