@@ -6,28 +6,27 @@ import numpy as np
 import polars as pl
 
 # Compute velocity as a function of C_L
-def velocity(W, h, CL, S, cap=True):
+def velocity(W, h, CL, S, cap=True, vertical_equilibrium=True):
     numerator = 2 * W  # scalar or array
     denominator = atmos.rho(h) * S * CL
-    vel = np.sqrt(
-        np.divide(
-            numerator,
-            denominator,
-            out=np.zeros_like(denominator),
-            where=CL != 0,
+    if vertical_equilibrium:
+        vel = np.sqrt(
+            np.divide(
+                numerator,
+                denominator,
+                out=np.zeros_like(denominator),
+                where=CL != 0,
+            )
         )
-    )
     if cap:
         return np.where(vel > atmos.a(h), np.nan, vel)
     else: 
         return vel
 
 def power(h, S, CD0, K, CL, V):
-    rho = atmos.rho(h)
+    D = drag(h, S, CD0, K, CL, V)
 
-    CD = CD0 + K * CL**2
-
-    return 0.5 * rho * V**3 * S * CD
+    return D * V
 
 def drag(h, S, CD0, K, CL, V):
     rho = atmos.rho(h)
@@ -36,20 +35,37 @@ def drag(h, S, CD0, K, CL, V):
 
     return 0.5 * rho * V**2 * S * CD
 
-def vertical_constraint(W, h, CD0, K, CL, Ta0, beta):
+def horizontal_constraint(W, h, CD0, K, CL, plant_parameter, beta, V=0, S= 0, D=0, type="jet"):
+    """
+    Returns the deltaT values using the horizontal constraint, the plant parameter is either Ta0 or Pa0 in SI units depending on the specified type 
+    """
     # Sigma ratio from rhoratio
     sigma = atmos.rhoratio(h)
 
-    return np.divide(
-        W * (CD0 + K * CL**2) / (Ta0 * sigma**beta),
-        CL,
-        out=np.zeros_like(CL),
-        where=CL != 0,
-    )
+    # Rewrite the jet section
+    if type == "jet":
+        Ta0 = plant_parameter
+        deltaT =  np.divide(
+            W * (CD0 + K * CL**2) / (Ta0 * sigma**beta),
+            CL,
+            out=np.zeros_like(CL),
+            where=CL != 0,
+        )
+    elif type == "propeller":
+        Pa0 = plant_parameter
+        deltaT =  np.divide(
+            D * V,
+            Pa0 * sigma ** beta,
+            out=np.zeros_like(CL),
+            where=V != 0,
+        )
+    
+    return deltaT
 
 def endurance(K, CD0, type_end):
     if type_end == "max":
         out = np.sqrt(1 / (4 * K * CD0))
+    
     return out
 
 def available_aircrafts(data_dir, verbose=False, round=True, ac_type=None):
