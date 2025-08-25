@@ -15,7 +15,7 @@ with app.setup:
     import numpy as np
     from core import atmos
     from core import aircraft as ac
-    from core.aircraft import velocity, vertical_constraint
+    from core.aircraft import velocity, horizontal_constraint, power, drag, endurance
 
     # Set local/online filepath
     _defaults.FILEURL = _defaults.get_url()
@@ -23,11 +23,94 @@ with app.setup:
     # Plotly dark mode template
     _defaults.set_plotly_template()
 
-    # Set navbar on the right
-    _defaults.set_sidebar()
-
     # Data directory
     data_dir = str(mo.notebook_location() / "public" / "AircraftDB_Standard.csv")
+
+
+    # Define all the necessary functions specific to this notebook
+    def optimum_interior(W, h, CD0, K, Ta0, beta):
+        CL = np.sqrt(3 * CD0 / K)
+        E_max = np.sqrt(1 / (4 * K * CD0))
+
+        sigma = atmos.rhoratio(h)
+
+        deltaT = 2 / np.sqrt(3) * W / E_max / Ta0 / (sigma**beta)
+
+        condition = (W / (sigma**beta)) < ((np.sqrt(3) / 2) * E_max * Ta0)
+
+        # Apply the same condition separately to CL and deltaT
+        CL_out = np.where(condition, CL, np.nan)
+        deltaT_out = np.where(condition, deltaT, np.nan)
+
+        return [CL_out, deltaT_out]
+
+
+    def CL_from_horizontal_constraint(W, h, S, CD0, K, Ta0, beta, ac_type):
+        E_max = endurance(K, CD0, "max")
+        sigma = atmos.rhoratio(h)
+
+        plus_solution = np.full_like(sigma, np.nan, dtype=float)
+        minus_solution = np.full_like(sigma, np.nan, dtype=float)
+
+        if ac_type == "jet":
+            # validity condition
+            condition = (W / (sigma**beta)) < (Ta0 * E_max)
+
+            # compute safe argument for sqrt
+            arg = 1 - (W / (Ta0 * sigma**beta * E_max)) ** 2
+            arg = np.where(arg >= 0, arg, np.nan)  # mask negatives
+
+            root = np.sqrt(arg)
+            multiplier = Ta0 * sigma**beta / (2 * K * W)
+
+            plus_solution = np.where(condition, multiplier * (1 + root), np.nan)
+            minus_solution = np.where(condition, multiplier * (1 - root), np.nan)
+
+        return [plus_solution, minus_solution]
+
+
+    def optimum_maxthrust_maxlift(W, h, S, CD0, K, Ta0, CLmax, beta, ac_type):
+        sigma = atmos.rhoratio(h)  # array if h is array
+        E_max = endurance(K, CD0, "max")
+
+        # elementwise logical condition
+        condition = (
+            ((W / sigma**beta) < ((np.sqrt(3) / 8) * Ta0 * E_max))
+            & ((W / sigma**beta) > (Ta0 * E_max))
+            & (CLmax > np.sqrt(CD0 / K))
+            & (CLmax < np.sqrt(3 * CD0 / K))
+        )
+
+        deltaT_out = np.where(condition, 1, np.nan)
+        CL_out = np.where(condition, CLmax, np.nan)
+
+        return CL_out, deltaT_out
+
+
+    def optimum_maxthrust(W, h, S, CD0, K, Ta0, beta, ac_type):
+        sigma = atmos.rhoratio(h)  # array if h is array
+        E_max = endurance(K, CD0, "max")
+
+        # elementwise logical condition
+        condition = ((W / sigma**beta) < (Ta0 * E_max)) & (
+            (W / sigma**beta) > (np.sqrt(3) * (Ta0 * E_max) / 2)
+        )
+
+        CL_star = CL_from_horizontal_constraint(
+            W, h, S, CD0, K, Ta0, beta, ac_type
+        )[0]
+
+        deltaT_out = np.where(condition, 1, np.nan)
+        CL_out = np.where(condition, CL_star, np.nan)
+
+        return CL_out, deltaT_out
+
+
+@app.cell
+def _():
+    # Set navbar on the right
+    _defaults.set_sidebar()
+    return
 
 
 @app.cell(hide_code=True)
@@ -122,56 +205,9 @@ def _(ac_table, data):
         dT_slider,
         h_slider,
         m_slider,
+        mass_stack,
         variables_stack,
     )
-
-
-@app.cell
-def _():
-    # Function definition cell, ideally this can go in the setup
-
-
-    def power(
-        W,
-        h,
-        S,
-        CD0,
-        K,
-        CL,
-    ):
-        rho = atmos.rho(h)
-        V = velocity(W, h, CL, S)
-
-        CD = CD0 + K * CL**2
-
-        return 0.5 * rho * V**3 * S * CD
-
-
-    def optimum_interior(W, h, CD0, K, Ta0, beta):
-        CL = np.sqrt(3 * CD0 / K)
-        E_max = np.sqrt(1 / (4 * K * CD0))
-
-        sigma = atmos.rhoratio(h)
-
-        deltaT = 2 / np.sqrt(3) * W / E_max / Ta0 / (sigma**beta)
-
-        condition = (W / (sigma**beta)) < ((np.sqrt(3) / 2) * E_max * Ta0)
-
-        # Apply the same condition separately to CL and deltaT
-        CL_out = np.where(condition, CL, np.nan)
-        deltaT_out = np.where(condition, deltaT, np.nan)
-
-        return [CL_out, deltaT_out]
-
-
-    def drag(W, h, S, CD0, K, CL):
-        rho = atmos.rho(h)
-        V = velocity(W, h, CL, S)
-
-        CD = CD0 + K * CL**2
-
-        return 0.5 * rho * V**2 * S * CD
-    return drag, optimum_interior, power
 
 
 @app.cell(hide_code=True)
@@ -222,31 +258,31 @@ def _(active_selection, h_slider, m_slider):
 
 
 @app.cell
-def _(CD0, CL_array, K, S, Ta0, W_selected, beta, drag, h_selected, power):
+def _(CD0, CL_array, K, S, Ta0, W_selected, beta, h_selected):
     # Computation cell
     power_curve = power(
-        W_selected,
         h_selected,
         S,
         CD0,
         K,
         CL_array,
+        velocity(W_selected, h_selected, CL_array, S),
     )
 
     drag_curve = drag(
-        W_selected,
         h_selected,
         S,
         CD0,
         K,
         CL_array,
+        velocity(W_selected, h_selected, CL_array, S),
     )
     power_surface = np.tile(
         power_curve,
         (len(CL_array), 1),
     )
 
-    constraint = vertical_constraint(
+    constraint = horizontal_constraint(
         W_selected, h_selected, CD0, K, CL_array, Ta0, beta
     )
 
@@ -267,7 +303,6 @@ def _(
     dT_array,
     dT_slider,
     h_selected,
-    power,
     power_surface,
     xy_lowerbound,
 ):
@@ -313,7 +348,15 @@ def _(
                 x=[CL_slider.value],
                 y=[dT_slider.value],
                 z=[
-                    power(W_selected, h_selected, S, CD0, K, CL_slider.value) * 1.2
+                    power(
+                        h_selected,
+                        S,
+                        CD0,
+                        K,
+                        CL_slider.value,
+                        velocity(W_selected, h_selected, CL_slider.value, S),
+                    )
+                    * 1.2
                 ],  # Slightly elevate to show the full marker
                 mode="markers",
                 showlegend=False,
@@ -345,9 +388,7 @@ def _(
 
 @app.cell(hide_code=True)
 def _(CL_slider, dT_slider):
-    mo.md(
-        f"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}"""
-    )
+    mo.md(f"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}""")
     return
 
 
@@ -549,12 +590,6 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
-def _(ac_table):
-    ac_table
-    return
-
-
 @app.cell
 def _(
     CD0,
@@ -568,18 +603,19 @@ def _(
     beta,
     h_array,
     h_selected,
-    optimum_interior,
-    power,
 ):
-    # Computation cell for figure 2
-
     # Selected value, TODO find selected values by indexing in the complete array
     CLopt_interior_selected, dTopt_interior_selected = optimum_interior(
         W_selected, h_selected, CD0, K, Ta0, beta
     )
 
     power_interior_selected = power(
-        W_selected, h_selected, S, CD0, K, CLopt_interior_selected
+        h_selected,
+        S,
+        CD0,
+        K,
+        CLopt_interior_selected,
+        velocity(W_selected, h_selected, CLopt_interior_selected, S),
     )
 
     V_interior_selected = velocity(
@@ -601,7 +637,14 @@ def _(
         S,
     )
 
-    power_interior = power(W_selected, h_array, S, CD0, K, CLopt_interior)
+    power_interior = power(
+        h_array,
+        S,
+        CD0,
+        K,
+        CLopt_interior,
+        velocity(W_selected, h_array, CLopt_interior, S),
+    )
 
     velocity_CL_E = float(velocity(W_selected, h_selected, CL_E, S, False))
     velocity_CL_P = float(velocity(W_selected, h_selected, CL_P, S, False))
@@ -831,9 +874,7 @@ def _(fig2):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""Notice how $C_{L_P}$ (minimum power) $\gt$ $C_{L_E}$ (minimum drag) but $E_\mathrm{P} \lt E_{\mathrm{max}}$ ($E = C_L/C_D$) because the drag coefficient increases more rapidly than $C_L$. Thus the range of $W/\sigma^\beta$ for which it is possible to fly at minimum power is smaller ($\sqrt{3}/2\lt 1$) than the one for which it is possible to fly at minimum drag."""
-    )
+    mo.md(r"""Notice how $C_{L_P}$ (minimum power) $\gt$ $C_{L_E}$ (minimum drag) but $E_\mathrm{P} \lt E_{\mathrm{max}}$ ($E = C_L/C_D$) because the drag coefficient increases more rapidly than $C_L$. Thus the range of $W/\sigma^\beta$ for which it is possible to fly at minimum power is smaller ($\sqrt{3}/2\lt 1$) than the one for which it is possible to fly at minimum drag.""")
     return
 
 
@@ -1114,49 +1155,7 @@ def _():
 
 
 @app.cell
-def _():
-    def endurance(K, CD0, type_end):
-        if type_end == "max":
-            out = np.sqrt(1 / (4 * K * CD0))
-        return out
-
-
-    def CL_from_horizontal_constraint(W, h, S, CD0, K, Ta0, beta, ac_type):
-        E_max = endurance(K, CD0, "max")
-        sigma = atmos.rhoratio(h)
-
-        plus_solution = np.full_like(sigma, np.nan, dtype=float)
-        minus_solution = np.full_like(sigma, np.nan, dtype=float)
-
-        if ac_type == "jet":
-            # validity condition
-            condition = (W / (sigma**beta)) < (Ta0 * E_max)
-
-            # compute safe argument for sqrt
-            arg = 1 - (W / (Ta0 * sigma**beta * E_max)) ** 2
-            arg = np.where(arg >= 0, arg, np.nan)  # mask negatives
-
-            root = np.sqrt(arg)
-            multiplier = Ta0 * sigma**beta / (2 * K * W)
-
-            plus_solution = np.where(condition, multiplier * (1 + root), np.nan)
-            minus_solution = np.where(condition, multiplier * (1 - root), np.nan)
-
-        return [plus_solution, minus_solution]
-    return CL_from_horizontal_constraint, endurance
-
-
-@app.cell
-def _(
-    CD0,
-    CL_from_horizontal_constraint,
-    K,
-    S,
-    Ta0,
-    W_selected,
-    beta,
-    h_selected,
-):
+def _(CD0, K, S, Ta0, W_selected, beta, h_selected):
     plus_cl_solution, minus_cl_solution = CL_from_horizontal_constraint(
         W_selected, h_selected, S, CD0, K, Ta0, beta, "jet"
     )
@@ -1168,6 +1167,28 @@ def _(
         W_selected, h_selected, float(minus_cl_solution), S, cap=False
     )
     return plus_cl_solution, velocity_minus_solution, velocity_plus_solution
+
+
+@app.cell(hide_code=True)
+def _():
+    mo.md(
+        r"""
+    For its existence, the square root must be zero or positive, thus: 
+
+    $$
+    1 - \left(\frac{W}{T_{a0}\sigma^\beta E_{\mathrm{max}}}\right)^2 \ge 0 \quad \Rightarrow \quad \frac{W}{\sigma^\beta}\le T_{a0}E_{\mathrm{max}}
+    $$
+
+    as already seen in multiple occasions.
+    """
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _():
+    mo.md(r"""Try yourself to find wether there is a combination of altitude and weight for which the solution of the quadratic equation with the "+" falls within the bounds of $C_{L_P}$ and $C_{L_E}$, be careful, this is not always possible and will define the flight envelope where minimum power can be achieved.""")
+    return
 
 
 @app.cell(hide_code=True)
@@ -1255,30 +1276,6 @@ def _(
     return (fig_performance_cl_eq,)
 
 
-@app.cell(hide_code=True)
-def _():
-    mo.md(
-        r"""
-    For its existence, the square root must be zero or positive, thus: 
-
-    $$
-    1 - \left(\frac{W}{T_{a0}\sigma^\beta E_{\mathrm{max}}}\right)^2 \ge 0 \quad \Rightarrow \quad \frac{W}{\sigma^\beta}\le T_{a0}E_{\mathrm{max}}
-    $$
-
-    as already seen in multiple occasions.
-    """
-    )
-    return
-
-
-@app.cell(hide_code=True)
-def _():
-    mo.md(
-        r"""Try yourself to find wether there is a combination of altitude and weight for which the solution of the quadratic equation with the "+" falls within the bounds of $C_{L_P}$ and $C_{L_E}$, be careful, this is not always possible and will define the flight envelope where minimum power can be achieved."""
-    )
-    return
-
-
 @app.cell
 def _(variables_stack):
     variables_stack
@@ -1331,47 +1328,19 @@ def _():
 
 
 @app.cell
-def _(CL_from_horizontal_constraint, endurance):
-    def optimum_maxthrust(W, h, S, CD0, K, Ta0, beta, ac_type):
-        sigma = atmos.rhoratio(h)  # array if h is array
-        E_max = endurance(K, CD0, "max")
-
-        # elementwise logical condition
-        condition = ((W / sigma**beta) < (Ta0 * E_max)) & (
-            (W / sigma**beta) > (np.sqrt(3) * (Ta0 * E_max) / 2)
-        )
-
-        CL_star = CL_from_horizontal_constraint(
-            W, h, S, CD0, K, Ta0, beta, ac_type
-        )[0]
-
-        deltaT_out = np.where(condition, 1, np.nan)
-        CL_out = np.where(condition, CL_star, np.nan)
-
-        return CL_out, deltaT_out
-    return (optimum_maxthrust,)
-
-
-@app.cell
-def _(
-    CD0,
-    K,
-    S,
-    Ta0,
-    W_selected,
-    beta,
-    h_array,
-    h_selected,
-    optimum_maxthrust,
-    power,
-):
+def _(CD0, K, S, Ta0, W_selected, beta, h_array, h_selected):
     # Computation cell
     CLopt_maxthrust_selected, dTopt_maxthrust_selected = optimum_maxthrust(
         W_selected, h_selected, S, CD0, K, Ta0, beta, "jet"
     )
 
     power_maxthrust_selected = power(
-        W_selected, h_selected, S, CD0, K, CLopt_maxthrust_selected
+        h_selected,
+        S,
+        CD0,
+        K,
+        CLopt_maxthrust_selected,
+        velocity(W_selected, h_selected, CLopt_maxthrust_selected, S),
     )
 
     V_maxthrust_selected = velocity(
@@ -1392,7 +1361,14 @@ def _(
         S,
     )
 
-    power_maxthrust = power(W_selected, h_array, S, CD0, K, CLopt_maxthrust)
+    power_maxthrust = power(
+        h_array,
+        S,
+        CD0,
+        K,
+        CLopt_maxthrust,
+        velocity(W_selected, h_array, CLopt_maxthrust, S),
+    )
     return (
         CLopt_maxthrust,
         CLopt_maxthrust_selected,
@@ -1723,40 +1699,7 @@ def _():
 
 
 @app.cell
-def _(endurance):
-    def optimum_maxthrust_maxlift(W, h, S, CD0, K, Ta0, CLmax, beta, ac_type):
-        sigma = atmos.rhoratio(h)  # array if h is array
-        E_max = endurance(K, CD0, "max")
-
-        # elementwise logical condition
-        condition = (
-            ((W / sigma**beta) < ((np.sqrt(3) / 8) * Ta0 * E_max))
-            & ((W / sigma**beta) > (Ta0 * E_max))
-            & (CLmax > np.sqrt(CD0 / K))
-            & (CLmax < np.sqrt(3 * CD0 / K))
-        )
-
-        deltaT_out = np.where(condition, 1, np.nan)
-        CL_out = np.where(condition, CLmax, np.nan)
-
-        return CL_out, deltaT_out
-    return (optimum_maxthrust_maxlift,)
-
-
-@app.cell
-def _(
-    CD0,
-    CLmax,
-    K,
-    S,
-    Ta0,
-    W_selected,
-    beta,
-    h_array,
-    h_selected,
-    optimum_maxthrust_maxlift,
-    power,
-):
+def _(CD0, CLmax, K, S, Ta0, W_selected, beta, h_array, h_selected):
     # Computation cell
     CLopt_maxthrust_maxlift_selected, dTopt_maxthrust_maxlift_selected = (
         optimum_maxthrust_maxlift(
@@ -1765,7 +1708,12 @@ def _(
     )
 
     power_maxthrust_maxlift_selected = power(
-        W_selected, h_selected, S, CD0, K, CLopt_maxthrust_maxlift_selected
+        h_selected,
+        S,
+        CD0,
+        K,
+        CLopt_maxthrust_maxlift_selected,
+        velocity(W_selected, h_selected, CLopt_maxthrust_maxlift_selected, S),
     )
 
     V_maxthrust_maxlift_selected = velocity(
@@ -1787,7 +1735,12 @@ def _(
     )
 
     power_maxthrust_maxlift = power(
-        W_selected, h_array, S, CD0, K, CLopt_maxthrust_maxlift
+        h_array,
+        S,
+        CD0,
+        K,
+        CLopt_maxthrust_maxlift,
+        velocity(W_selected, h_array, CLopt_maxthrust_maxlift, S),
     )
     return (
         CLopt_maxthrust_maxlift,
@@ -2122,9 +2075,13 @@ def _(
 
 @app.cell
 def _():
-    mo.md(
-        r"""Once derived the minimum power optima and the relative conditions, the entire flight envelope can be seen below, summarizing all the flight envelopes seen so far."""
-    )
+    mo.md(r"""Once derived the minimum power optima and the relative conditions, the entire flight envelope can be seen below, summarizing all the flight envelopes seen so far.""")
+    return
+
+
+@app.cell
+def _(mass_stack):
+    mass_stack
     return
 
 
