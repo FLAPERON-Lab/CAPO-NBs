@@ -59,6 +59,8 @@ def horizontal_constraint(W, h, CD0, K, CL, plant_parameter, beta, V=0, S= 0, D=
             out=np.zeros_like(CL),
             where=V != 0,
         )
+
+        deltaT = np.where( deltaT < 1.25, deltaT, np.nan)
     
     return deltaT
 
