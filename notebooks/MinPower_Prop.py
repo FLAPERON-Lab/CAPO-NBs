@@ -1565,13 +1565,15 @@ def maxlift_thrust_altitude(W, beta, Pa0, S, CD0, K, CLmax, E_S):
     sigma = sigma_exp ** (1 / (beta + 0.5))
 
     h = atmos.altitude(sigma)
-    return np.where(((h > 0) & (CLmax < np.sqrt(3*CD0/K))), h, np.nan)
+    return np.where(((h > 0) & (CLmax < np.sqrt(3 * CD0 / K))), h, np.nan)
 
 
 @app.cell
 def _(CD0, CL_array, CLmax, E_S, K, Pa0, S, W_selected, beta):
     # This cell is to revise
-    maxlift_thrust_h = maxlift_thrust_altitude(W_selected, beta, Pa0, S, CD0, K, CLmax, E_S)
+    maxlift_thrust_h = maxlift_thrust_altitude(
+        W_selected, beta, Pa0, S, CD0, K, CLmax, E_S
+    )
 
     CLopt_maxlift_thrust = CLmax
 
@@ -1605,12 +1607,16 @@ def _(CD0, CL_array, CLmax, E_S, K, Pa0, S, W_selected, beta):
 
     power_maxlift_thrust_curve = np.where(
         ~np.isnan(constraint_maxlift_thrust),
-        power(maxlift_thrust_h, S, CD0, K, CL_array, velocity_CLarray_maxlift_thrust_h),
+        power(
+            maxlift_thrust_h, S, CD0, K, CL_array, velocity_CLarray_maxlift_thrust_h
+        ),
         np.nan,
     )
 
 
-    power_maxlift_thrust_surface = np.tile(power_maxlift_thrust_curve, (len(CL_array), 1))
+    power_maxlift_thrust_surface = np.tile(
+        power_maxlift_thrust_curve, (len(CL_array), 1)
+    )
 
     power_maxlift_thrust_selected = power(
         maxlift_thrust_h, S, CD0, K, CLopt_maxlift_thrust, velocity_maxlift_thrust
@@ -1819,6 +1825,111 @@ def _(mass_stack):
 @app.cell
 def _(fig_maxlift_thrust_optimum):
     fig_maxlift_thrust_optimum
+    return
+
+
+@app.cell(hide_code=True)
+def _():
+    mo.md(r"""Summarizing all the flight envelopes derived so far we obtain:""")
+    return
+
+
+@app.cell
+def _(
+    a_harray,
+    active_selection,
+    h_array,
+    maxthrust_h,
+    velocity_interior_harray,
+    velocity_maxthrust,
+    velocity_stall_harray,
+    xy_lowerbound,
+):
+    fig_final_flightenv = go.Figure()
+
+    fig_final_flightenv.add_traces(
+        [
+            go.Scatter(
+                x=velocity_stall_harray,
+                y=h_array / 1e3,
+                mode="lines",
+                line=dict(width=1, color="rgba(255, 0, 0, 1)", dash="dash"),
+                name="V<sub>stall</sub>",
+                showlegend=False,
+            ),
+            go.Scatter(
+                x=[velocity_stall_harray[-8]],
+                y=[h_array[-8] / 1e3],
+                mode="markers+text",
+                marker=dict(size=1, color="rgba(255, 0, 0, 0)"),
+                text=["V<sub>stall</sub>"],
+                hoverinfo="skip",
+                textposition="top left",
+                showlegend=False,
+            ),
+            go.Scatter(
+                x=a_harray,
+                y=h_array / 1e3,
+                mode="lines",
+                line=dict(color="rgba(255, 180, 90, 1)", width=2, dash="dash"),
+                name="M1.0",
+                showlegend=False,
+            ),
+            go.Scatter(
+                x=[a_harray[-8] - 5],
+                y=[h_array[-8] / 1e3],
+                mode="markers+text",
+                marker=dict(size=1, color="rgba(0, 0, 0, 0.0)"),
+                text=["M1.0"],
+                hoverinfo="skip",
+                textposition="top left",
+                showlegend=False,
+            ),
+            go.Scatter(
+                x=velocity_interior_harray,
+                y=h_array / 1e3,
+                mode="lines",
+                line=dict(width=3, color="rgba(129, 216, 208, 1)"),
+                showlegend=False,
+                name="P_min interior",
+            ),
+            go.Scatter(
+                x=[velocity_maxthrust],
+                y=[maxthrust_h / 1e3],
+                mode="markers",
+                marker=dict(size=7, color="rgba(129, 216, 208, 1)"),
+                name="Max Thrust Optimum",
+                showlegend=False,
+            ),
+        ],
+    )
+
+    fig_final_flightenv.update_layout(
+        xaxis=dict(
+            title="V (m/s)",
+            range=[xy_lowerbound, atmos.a(0) + 15],
+            showgrid=True,
+            gridcolor="#515151",
+            gridwidth=1,
+        ),
+        yaxis=dict(
+            title="h (km)",
+            range=[xy_lowerbound, 20],
+            showgrid=True,
+            gridcolor="#515151",
+            gridwidth=1,
+        ),
+        title_text=active_selection["full_name"],
+        title_x=0.5,
+    )
+
+    mo.output.clear()
+    return (fig_final_flightenv,)
+
+
+@app.cell
+def _(fig_final_flightenv):
+    fig_final_flightenv
     return
 
 
