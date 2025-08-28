@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.13.8"
+__generated_with = "0.15.0"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -73,14 +73,6 @@ def _():
     A relation must be introduced with constraint equations, starting from the EoMS.
     These will define the problem properly.
     """
-    )
-    return
-
-
-@app.cell
-def _():
-    mo.md(
-        r"""- [ ] Plot a 2D chart with CL on x axis and dT on y axis, and a 3D chart with also V on Z axis (with nothing plotted on it). There is a selection menu for only one aircraft at a time, which is useless (but that's the point). Two sliders allow to pick a value of Cl and dT. The chart shows only the one point in the domain corresponding to the chosen values."""
     )
     return
 
@@ -254,7 +246,9 @@ def _():
 
 @app.cell
 def _():
-    _defaults.nav_footer("AerodynamicEfficiency.py", "Aerodynamic Efficiency", "", "")
+    _defaults.nav_footer(
+        "AerodynamicEfficiency.py", "Aerodynamic Efficiency", "", ""
+    )
     return
 
 
@@ -264,7 +258,6 @@ def _():
     from plotly.subplots import make_subplots
     import plotly.express as px
     import numpy as np
-
     return go, make_subplots
 
 

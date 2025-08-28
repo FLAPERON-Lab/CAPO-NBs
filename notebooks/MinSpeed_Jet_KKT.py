@@ -285,12 +285,6 @@ def _(
     return constraint, velocity_surface, velocity_user_selected
 
 
-@app.cell
-def _(velocity_surface):
-    velocity_surface
-    return
-
-
 @app.cell(hide_code=True)
 def _(
     CL_array,
@@ -379,7 +373,9 @@ def _(
 
 @app.cell(hide_code=True)
 def _(CL_slider, dT_slider, mo):
-    mo.md(f"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}""")
+    mo.md(
+        f"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}"""
+    )
     return
 
 
@@ -1526,6 +1522,12 @@ def _(mo):
     |Thrust-limited    | $\displaystyle \frac{W}{\sigma^\beta} \le  T_{a0} E_\mathrm{max}$ | $\displaystyle \frac{T_{a0}\sigma^\beta}{2KW} \left[1+\sqrt{1-\left(\frac{W}{E_\mathrm{max}T_{a0}\sigma^\beta}\right)^2}\right]$ | $1$ | $\displaystyle V_s \sqrt{\frac{2KWC_{L_\mathrm{max}}/T_{a0}\sigma^\beta}{1+\sqrt{1-\left(\frac{W}{E_\mathrm{max}T_{a0}\sigma^\beta}\right)^2}}}$ |
     """
     )
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""Summarizing all the flight envelopes derived so far we obtain:""")
     return
 
 
