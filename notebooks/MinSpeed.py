@@ -7,6 +7,11 @@ with app.setup:
     # Initialization code that runs before all other cells
     import marimo as mo
     from core import _defaults
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+    import plotly.express as px
+    import numpy as np
+    from core import aircraft as ac
 
     _defaults.FILEURL = _defaults.get_url()
 
@@ -79,26 +84,7 @@ def _():
 
 @app.cell(hide_code=True)
 def _():
-    from core import aircraft as ac
-
-    data = ac.available_aircrafts(data_dir).round(decimals=4)
-
-    cols_4dec = [
-        "CD0",
-        "K",
-        "beta",
-        "CLmax_cl",
-        "CLmax_to",
-        "CLmax_ld",
-        "cT",
-        "cP",
-        "MMO",
-    ]
-
-    data[cols_4dec] = data[cols_4dec].round(4)
-
-    other_cols = data.columns.difference(cols_4dec)
-    data[other_cols] = data[other_cols].round(1)
+    data = ac.available_aircrafts(data_dir)
 
     ac_table = mo.ui.table(
         data=data,
@@ -115,7 +101,7 @@ def _():
 
 
 @app.cell(hide_code=True)
-def _(CL_maxld, CL_slider, ac_table, dT_slider, go, make_subplots):
+def _(CL_maxld, CL_slider, ac_table, dT_slider):
     fig = make_subplots(
         rows=1, cols=2, specs=[[{"type": "Scatter"}, {"type": "Surface"}]]
     )
@@ -235,7 +221,7 @@ def _():
 
     Before that, we notice that the expression of $c_2^\mathrm{eq}$ depends on the type of powertrain of the aircraft, and therefore we must proceed diffently for each powertrain architecture.
 
-    1. [Simplified Jet -  Monotonicity Analysis](/?file=MinSpeed_Jet_MonoAn.py)
+    1. ~~[Simplified Jet -  Monotonicity Analysis](/?file=MinSpeed_Jet_MonoAn.py)~~
     1. [Simplified Jet -  Karush-Kuhn-Tucker Analyis](/?file=MinSpeed_Jet_KKT.py)
     1. ~~[Simplified Piston-Prop -  Monotonicity Analysis](/?file=MinSpeed_Prop_MonoAn.py)~~
     1. [Simplified Piston-Prop -  Karush-Kuhn-Tucker Analysis](/?file=MinSpeed_Prop_KKT.py)
@@ -247,18 +233,12 @@ def _():
 @app.cell
 def _():
     _defaults.nav_footer(
-        "AerodynamicEfficiency.py", "Aerodynamic Efficiency", "", ""
+        "AerodynamicEfficiency.py",
+        "Aerodynamic Efficiency",
+        "MinPower.py",
+        "Minimum Power",
     )
     return
-
-
-@app.cell
-def _():
-    import plotly.graph_objects as go
-    from plotly.subplots import make_subplots
-    import plotly.express as px
-    import numpy as np
-    return go, make_subplots
 
 
 if __name__ == "__main__":
