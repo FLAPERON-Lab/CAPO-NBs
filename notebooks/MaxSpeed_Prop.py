@@ -359,9 +359,7 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""In the interactive graph below, select a simplified propeller aircraft of your choice and experiment in finding an optimum by changing the control variables, $C_L$ and $\delta_T$. The design point is marked in white in the 3D velocity surface."""
-    )
+    mo.md(r"""In the interactive graph below, select a simplified propeller aircraft of your choice and experiment in finding an optimum by changing the control variables, $C_L$ and $\delta_T$. The design point is marked in white in the 3D velocity surface.""")
     return
 
 
@@ -387,9 +385,7 @@ def _(ac, data_dir, mo):
 
 @app.cell
 def _(CL_slider, dT_slider, mo):
-    mo.md(
-        f"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}"""
-    )
+    mo.md(f"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}""")
     return
 
 
@@ -1154,9 +1150,7 @@ def _(fig_maxlift_thrust_optimum):
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""Now after deriving all the optima for each condition we can summarize the flight envelopes in one graph, as shown below. Experiment with the weight of the aircrarft to understand how the theoretical ceiling for maximum speed moves in the graph."""
-    )
+    mo.md(r"""Now after deriving all the optima for each condition we can summarize the flight envelopes in one graph, as shown below. Experiment with the weight of the aircrarft to understand how the theoretical ceiling for maximum speed moves in the graph.""")
     return
 
 
@@ -1166,12 +1160,6 @@ def _(velocity_maxthrust_harray):
 
     final_velocity_flightenvelope = velocity_maxthrust_harray
     return (final_velocity_flightenvelope,)
-
-
-@app.cell
-def _(velocity_maxlift_thrust_selected):
-    velocity_maxlift_thrust_selected
-    return
 
 
 @app.cell
