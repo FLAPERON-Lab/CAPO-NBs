@@ -299,9 +299,7 @@ def _(CD0, CL_grid, K, Pa0, S, W_selected, atmos, dT_grid, np):
 
 @app.cell(hide_code=True)
 def _(CL_slider, dT_slider, mo):
-    mo.md(
-        rf"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}"""
-    )
+    mo.md(rf"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}""")
     return
 
 
@@ -530,7 +528,7 @@ def _(atmos, np):
     def maxthrust_altitude(W, beta, Pa0, CL_P, S, E_P):
         sigma_exp = (W**1.5) / Pa0 / E_P / np.sqrt(0.5 * atmos.rho0 * S * CL_P)
         sigma = sigma_exp ** (1 / (beta + 0.5))
-
+        print(sigma)
         h = atmos.altitude(sigma)
         return np.where(h > 0, h, np.nan)
     return (maxthrust_altitude,)

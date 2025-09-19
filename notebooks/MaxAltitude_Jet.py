@@ -16,6 +16,7 @@ def _():
     import numpy as np
     from core import atmos
     from core import aircraft as ac
+    from core.aircraft import velocity
 
     # Set local/online filepath
     _defaults.FILEURL = _defaults.get_url()
@@ -25,7 +26,7 @@ def _():
 
     # Data directory
     data_dir = str(mo.notebook_location() / "public" / "AircraftDB_Standard.csv")
-    return ac, atmos, data_dir, go, make_subplots, mo, np
+    return ac, atmos, data_dir, go, make_subplots, mo, np, velocity
 
 
 @app.cell
@@ -302,9 +303,7 @@ def _(CD0, CL_grid, K, Ta0, W_selected, dT_grid, np):
 
 @app.cell(hide_code=True)
 def _(CL_slider, dT_slider, mo):
-    mo.md(
-        rf"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}"""
-    )
+    mo.md(rf"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}""")
     return
 
 
@@ -539,7 +538,6 @@ def _(atmos, np):
         out = sigma_exp ** (1 / beta)
 
         return np.where((CL_star < CLmax) & (out > atmos.rhoratio(20e3)), out, np.nan)
-
     return (maxthrust_altitude,)
 
 
@@ -809,7 +807,6 @@ def _(atmos, np):
         return np.where(
             (CLmax < np.sqrt(CD0 / K)) & (out > atmos.rhoratio(20e3)), out, np.nan
         )
-
     return (maxlift_thrust_altitude,)
 
 
