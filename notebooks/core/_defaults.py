@@ -49,6 +49,7 @@ def set_sidebar():
                     f"{FILEURL}MinSpeed.py": "Minimum Speed",
                     f"{FILEURL}MinPower.py": "Minimum Power",
                     f"{FILEURL}MinDrag.py": "Minimum Drag",
+                    f"{FILEURL}MaxAltitude.py": "Maximum Altitude",
                 },
             },
             orientation="vertical",
