@@ -15,9 +15,16 @@ def _():
     import plotly.graph_objects as go
     import plotly.express as px
     import numpy as np
+    from scipy.optimize import root_scalar
     from core import atmos
     from core import aircraft as ac
-    from core.aircraft import velocity, horizontal_constraint, power, drag
+    from core.aircraft import (
+        velocity,
+        horizontal_constraint,
+        power,
+        drag,
+        endurance,
+    )
 
     # Set local/online filepath
     _defaults.FILEURL = _defaults.get_url()
@@ -27,7 +34,19 @@ def _():
 
     # Data directory
     data_dir = str(mo.notebook_location() / "public" / "AircraftDB_Standard.csv")
-    return (mo,)
+    return (
+        ac,
+        atmos,
+        data_dir,
+        drag,
+        endurance,
+        go,
+        make_subplots,
+        mo,
+        np,
+        root_scalar,
+        velocity,
+    )
 
 
 @app.cell
@@ -38,6 +57,137 @@ def _():
 
 
 @app.cell
+def _(CL_slider, active_selection, atmos, endurance, h_slider, m_slider, np):
+    # Variables declared
+    meshgrid_n = 101
+    xy_lowerbound = -0.1
+
+    CL_array = np.linspace(0, active_selection["CLmax_ld"], meshgrid_n)  # -
+    CL_array = np.where(CL_array < 5e-3, np.nan, CL_array)
+    dT_array = np.linspace(0, 1, meshgrid_n)  # -
+    h_array = np.linspace(0, 20e3, meshgrid_n)  # meters
+    # Retrieve selected values
+    # Compute selected weight
+    W_selected = (
+        active_selection["OEM"]
+        + (active_selection["MTOM"] - active_selection["OEM"]) * m_slider.value
+    ) * atmos.g0  # Netwons
+
+    h_selected = int(h_slider.value * 1e3)  # meters
+    step = h_array[1] - h_array[0]  # here it's 200
+    idx_selected = int((h_selected - h_array[0]) / step)
+
+
+    a = atmos.a(h_selected)
+    a_harray = atmos.a(h_array)
+    CD0 = active_selection["CD0"]
+    S = active_selection["S"]
+    K = active_selection["K"]
+    CLmax = active_selection["CLmax_ld"]
+    Pa0 = active_selection["Pa0"] * 1e3  # Watts
+    beta = active_selection["beta"]
+    OEM = active_selection["OEM"]
+    MTOM = active_selection["MTOM"]
+    CL_P = np.sqrt(3 * CD0 / K)
+    CL_E = np.sqrt(CD0 / K)
+    E_max = endurance(K, CD0, "max")
+    E_P = (np.sqrt(3) / 2) * E_max
+    E_S = CLmax / (CD0 + K * CLmax)
+    idx_CL_selected = int(CL_slider.value / 0.5)
+    return (
+        CD0,
+        CL_E,
+        CL_P,
+        CL_array,
+        CLmax,
+        E_max,
+        K,
+        Pa0,
+        S,
+        W_selected,
+        a_harray,
+        beta,
+        dT_array,
+        h_array,
+        h_selected,
+        idx_selected,
+        xy_lowerbound,
+    )
+
+
+@app.cell
+def _(
+    CL_E,
+    CL_P,
+    CL_array,
+    CLmax,
+    S,
+    W_selected,
+    h_array,
+    h_selected,
+    velocity,
+):
+    velocity_CL_E = float(velocity(W_selected, h_selected, CL_E, S, False))
+    velocity_CL_P = float(velocity(W_selected, h_selected, CL_P, S, False))
+    velocity_stall_selected = float(velocity(W_selected, h_selected, CLmax, S))
+    velocity_CLarray = velocity(W_selected, h_selected, CL_array, S, False)
+    velocity_stall_harray = velocity(W_selected, h_array, CLmax, S)
+    return velocity_CLarray, velocity_stall_harray
+
+
+@app.cell
+def _(ac_table, data, mo):
+    # Interactive elements (1)
+
+    # Handle deselected row from table
+    if ac_table.value is not None and ac_table.value.any().any():
+        active_selection = ac_table.value.iloc[0]
+    else:
+        active_selection = data.iloc[0]
+
+    # Interactive CL and \delta_T sliders
+    CL_slider = mo.ui.slider(
+        start=0,
+        stop=active_selection["CLmax_ld"],
+        step=0.2,
+        label=r"$C_L$",
+        value=0.5,
+    )
+
+    dT_slider = mo.ui.slider(
+        start=0, stop=1, step=0.1, label=r"$\delta_T$", value=0.5
+    )
+
+    m_slider = mo.ui.slider(start=0, stop=1, step=0.1, label=r"", show_value=True)
+
+    h_slider = h_slider = mo.ui.slider(
+        start=0,
+        stop=20,
+        label=r"Altitude (km)",
+        value=10,
+        show_value=True,
+    )
+
+    # Create stacks
+    mass_stack = mo.hstack(
+        [mo.md("**OEW**"), m_slider, mo.md("**MTOW**")],
+        align="start",
+        justify="start",
+    )
+
+    variables_stack = mo.hstack([mass_stack, h_slider])
+    return (
+        CL_slider,
+        active_selection,
+        dT_slider,
+        h_slider,
+        m_slider,
+        mass_stack,
+        variables_stack,
+    )
+
+
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
@@ -64,7 +214,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
@@ -76,7 +226,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
@@ -98,7 +248,191 @@ def _(mo):
     return
 
 
+@app.cell(hide_code=True)
+def _(ac, data_dir, mo):
+    # Database cell
+    data = ac.available_aircrafts(data_dir, ac_type="Propeller")[:8]
+
+    ac_table = mo.ui.table(
+        data=data,
+        pagination=True,
+        show_column_summaries=False,
+        selection="single",
+        initial_selection=[0],
+        page_size=4,
+        show_data_types=False,
+    )
+
+    ac_table
+    return ac_table, data
+
+
 @app.cell
+def _(CL_slider, dT_slider, mo):
+    mo.md(
+        rf"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}"""
+    )
+    return
+
+
+@app.cell
+def _(atmos, np):
+    def g1_constraint(W, h, Pa0, beta, S, CD0, K, CL):
+        numerator = W / CL * (CD0 + K * CL**2)
+
+        sigma = atmos.rhoratio(h)
+        rho = atmos.rho(h)
+
+        denominator = Pa0 * sigma**beta * np.sqrt(S / W * rho / 2 * CL)
+
+        return np.divide(
+            numerator,
+            denominator,
+            out=np.zeros_like(CL),
+            where=CL != 0,
+        )
+    return (g1_constraint,)
+
+
+@app.cell
+def _(
+    CD0,
+    CL_array,
+    CL_slider,
+    K,
+    Pa0,
+    S,
+    W_selected,
+    beta,
+    drag,
+    g1_constraint,
+    h_selected,
+    np,
+    velocity,
+    velocity_CLarray,
+):
+    variables_stackvelocity_user_selected = velocity(
+        W_selected, h_selected, CL_slider.value, S, cap=False
+    )
+
+    drag_curve = drag(
+        h_selected,
+        S,
+        CD0,
+        K,
+        CL_array,
+        velocity_CLarray,
+    )
+
+
+    constraint = g1_constraint(
+        W_selected, h_selected, Pa0, beta, S, CD0, K, CL_array
+    )
+
+    drag_surface = np.tile(drag_curve, (len(CL_array), 1))
+
+    drag_selected = drag(
+        h_selected,
+        S,
+        CD0,
+        K,
+        CL_slider.value,
+        velocity(W_selected, h_selected, CL_slider.value, S),
+    )
+    return constraint, drag_curve, drag_selected, drag_surface
+
+
+@app.cell
+def _(
+    CL_array,
+    CL_slider,
+    active_selection,
+    constraint,
+    dT_array,
+    dT_slider,
+    drag_selected,
+    drag_surface,
+    go,
+    mo,
+    xy_lowerbound,
+):
+    # Create go.Figure() object
+    fig_initial = go.Figure()
+
+    # Minimum velocity surface
+    fig_initial.add_traces(
+        [
+            go.Surface(
+                x=CL_array,
+                y=dT_array,
+                z=drag_surface,
+                opacity=0.9,
+                name="Drag",
+                colorscale="cividis",
+            ),
+            go.Scatter3d(
+                x=CL_array,
+                y=constraint,
+                z=drag_surface[0],
+                opacity=0.7,
+                mode="lines",
+                showlegend=False,
+                line=dict(color="rgba(255, 0, 0, 0.1)", width=10),
+                name="g1 constraint",
+            ),
+            go.Scatter3d(
+                x=[CL_array[-15]],
+                y=[constraint[-15]],
+                z=[drag_surface[0, -15]],
+                opacity=1,
+                textposition="middle left",
+                mode="markers+text",
+                text=["g<sub>1</sub>"],
+                marker=dict(size=1, color="rgba(255, 0, 0, 0.0)"),
+                showlegend=False,
+                name="g1 constraint",
+            ),
+            go.Scatter3d(
+                x=[CL_slider.value],
+                y=[dT_slider.value],
+                z=[drag_selected],
+                mode="markers",
+                showlegend=False,
+                marker=dict(
+                    size=3,
+                    color="white",
+                    symbol="circle",
+                ),
+                name="Design Point",
+                hovertemplate="C<sub>L</sub>: %{x}<br>δ<sub>T</sub> : %{y}<br>D: %{z}<extra>%{fullData.name}</extra>",
+            ),
+        ]
+    )
+
+    fig_initial.update_layout(
+        scene=dict(
+            xaxis=dict(
+                title="C<sub>L</sub> (-)",
+                range=[xy_lowerbound, active_selection["CLmax_ld"]],
+            ),
+            yaxis=dict(title="δ<sub>T</sub> (-)", range=[xy_lowerbound, 1]),
+            zaxis=dict(title="D (N)"),
+        ),
+        title_text=active_selection["full_name"],
+        title_x=0.5,
+    )
+
+    mo.output.clear()
+    return (fig_initial,)
+
+
+@app.cell
+def _(fig_initial):
+    fig_initial
+    return
+
+
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
@@ -123,7 +457,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
@@ -140,7 +474,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
@@ -156,7 +490,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
@@ -168,7 +502,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
@@ -183,7 +517,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
@@ -201,7 +535,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
@@ -220,7 +554,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
@@ -243,13 +577,27 @@ def _(mo):
     $$
 
     Notice how the optimal $C_L^*$ has the **same value** for maximum aerodynamic efficiency, or maximum $C_L/C_D$, for 
-    $0\lt C_L \lt  C_{L_{max}} \wedge 0 \lt \delta_T \lt 1$, as shown in ... (insert link of the page).
+    $0\lt C_L \lt  C_{L_{max}} \wedge 0 \lt \delta_T \lt 1$, as shown in [aerodynamic efficiency](/?file=AerodynamicEfficiency.py).
     """
     )
     return
 
 
 @app.cell
+def _(atmos, np):
+    def interior_condition(W, h, beta, S, Pa0, CD0, K, CLmax, CL_E):
+        sigma = atmos.rhoratio(h)
+        rho = atmos.rho(h)
+        condition = (
+            (W**1.5 / (sigma**beta) / (rho**0.5))
+            < np.sqrt(S / 2) * (Pa0 / (2 * (CD0**0.25) * (K**0.75)))
+        ) & (CL_E < CLmax)
+
+        return condition
+    return (interior_condition,)
+
+
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
@@ -276,7 +624,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
@@ -292,6 +640,285 @@ def _(mo):
 
 
 @app.cell
+def _(
+    CD0,
+    CL_E,
+    CLmax,
+    E_max,
+    K,
+    Pa0,
+    S,
+    W_selected,
+    atmos,
+    beta,
+    h_array,
+    h_selected,
+    idx_selected,
+    interior_condition,
+    np,
+    velocity,
+):
+    interior_mask = interior_condition(
+        W_selected, h_array, beta, S, Pa0, CD0, K, CLmax, CL_E
+    )
+
+    CLopt_interior = np.where(interior_mask, CL_E, np.nan)
+
+    velocity_interior_harray = velocity(
+        W_selected, h_array, CLopt_interior, S, cap=False
+    )
+
+    drag_interior_harray = np.where(interior_mask, W_selected / E_max, np.nan)
+
+
+    dTopt_interior = (
+        W_selected
+        / Pa0
+        / (atmos.rhoratio(h_array) ** beta)
+        * 2
+        * (CD0**0.25)
+        * (K**0.75)
+        / np.sqrt(atmos.rho(h_selected) * S / 2 / W_selected)
+    )
+
+    CLopt_interior_selected = CLopt_interior[idx_selected]
+    dTopt_interior_selected = dTopt_interior[idx_selected]
+
+    velocity_interior_selected = velocity_interior_harray[idx_selected]
+
+    drag_interior_selected = drag_interior_harray[idx_selected]
+    return (
+        CLopt_interior,
+        CLopt_interior_selected,
+        dTopt_interior,
+        dTopt_interior_selected,
+        drag_interior_harray,
+        drag_interior_selected,
+        velocity_interior_harray,
+        velocity_interior_selected,
+    )
+
+
+@app.cell
+def _(
+    CL_array,
+    CLopt_interior,
+    CLopt_interior_selected,
+    a_harray,
+    active_selection,
+    constraint,
+    dT_array,
+    dTopt_interior,
+    dTopt_interior_selected,
+    drag_curve,
+    drag_interior_harray,
+    drag_interior_selected,
+    drag_surface,
+    go,
+    h_array,
+    h_selected,
+    make_subplots,
+    mo,
+    np,
+    velocity_interior_harray,
+    velocity_interior_selected,
+    velocity_stall_harray,
+    xy_lowerbound,
+):
+    fig_interior_optimum = make_subplots(
+        rows=1, cols=2, specs=[[{"type": "scene"}, {"type": "xy"}]]
+    )
+
+    # Traces on the 3D plot, first four are template
+    fig_interior_optimum.add_traces(
+        [
+            go.Surface(
+                x=CL_array,
+                y=dT_array,
+                z=drag_surface,
+                opacity=0.9,
+                name="Drag",
+                colorscale="cividis",
+            ),
+            go.Scatter3d(
+                x=CL_array,
+                y=constraint,
+                z=drag_curve,
+                opacity=0.7,
+                mode="lines",
+                showlegend=False,
+                line=dict(color="rgba(255, 0, 0, 0.1)", width=10),
+                name="g1 constraint",
+            ),
+            go.Scatter3d(
+                x=[CL_array[-15]],
+                y=[constraint[-15]],
+                z=[drag_surface[0, -15]],
+                opacity=1,
+                textposition="middle left",
+                mode="markers+text",
+                text=["g<sub>1</sub>"],
+                marker=dict(size=1, color="rgba(255, 0, 0, 0.0)"),
+                showlegend=False,
+                name="g1 constraint",
+            ),
+            go.Scatter3d(
+                x=[CLopt_interior_selected],
+                y=[dTopt_interior_selected],
+                z=[drag_interior_selected],
+                mode="markers",
+                showlegend=False,
+                marker=dict(
+                    size=3,
+                    color="white",
+                    symbol="circle",
+                ),
+                name="Interior Optimum",
+                hovertemplate="C<sub>L</sub>: %{x}<br>δ<sub>T</sub> : %{y}<br>D: %{z}<extra>%{fullData.name}</extra>",
+            ),
+            go.Scatter3d(
+                x=[CLopt_interior_selected, CLopt_interior_selected],
+                y=[dTopt_interior_selected, xy_lowerbound],
+                z=[
+                    drag_interior_selected,
+                    drag_interior_selected,
+                ],
+                mode="lines",
+                showlegend=False,
+                line=dict(color="grey", width=2),
+            ),
+            go.Scatter3d(
+                x=[xy_lowerbound, CLopt_interior_selected],
+                y=[dTopt_interior_selected, dTopt_interior_selected],
+                z=[
+                    drag_interior_selected,
+                    drag_interior_selected,
+                ],
+                mode="lines",
+                showlegend=False,
+                line=dict(color="grey", width=2),
+            ),
+            go.Scatter3d(
+                x=CLopt_interior,
+                y=np.ones(len(dT_array)) * xy_lowerbound,
+                z=np.tile(drag_interior_harray, len(CLopt_interior)),
+                mode="lines",
+                showlegend=False,
+                line=dict(color="rgba(129, 216, 208, 1)", width=8),
+            ),
+            go.Scatter3d(
+                x=np.ones(len(CLopt_interior)) * xy_lowerbound,
+                y=dTopt_interior,
+                z=np.tile(drag_interior_harray, len(CLopt_interior)),
+                mode="lines",
+                showlegend=False,
+                line=dict(color="rgba(129, 216, 208, 1)", width=8),
+            ),
+        ],
+        cols=1,
+        rows=1,
+    )
+
+    # Traces on the flight envelope, first four traces are template
+    fig_interior_optimum.add_traces(
+        [
+            go.Scatter(
+                x=velocity_stall_harray,
+                y=h_array / 1e3,
+                mode="lines",
+                line=dict(width=1, color="rgba(255, 0, 0, 1)", dash="dash"),
+                name="V<sub>stall</sub>",
+                showlegend=False,
+            ),
+            go.Scatter(
+                x=[velocity_stall_harray[-8]],
+                y=[h_array[-8] / 1e3],
+                mode="markers+text",
+                marker=dict(size=1, color="rgba(255, 0, 0, 0)"),
+                text=["V<sub>stall</sub>"],
+                hoverinfo="skip",
+                textposition="top left",
+                showlegend=False,
+            ),
+            go.Scatter(
+                x=a_harray,
+                y=h_array / 1e3,
+                mode="lines",
+                line=dict(color="rgba(255, 180, 90, 1)", width=2, dash="dash"),
+                name="M1.0",
+                showlegend=False,
+            ),
+            go.Scatter(
+                x=[a_harray[-8]],
+                y=[h_array[-8] / 1e3],
+                mode="markers+text",
+                marker=dict(size=1, color="rgba(0, 0, 0, 0.0)"),
+                text=["M1.0"],
+                hoverinfo="skip",
+                textposition="top left",
+                showlegend=False,
+            ),
+            go.Scatter(
+                x=velocity_interior_harray,
+                y=h_array / 1e3,
+                mode="lines",
+                line=dict(width=3, color="rgba(129, 216, 208, 1)"),
+                showlegend=False,
+                name="D_min",
+            ),
+            go.Scatter(
+                x=[velocity_interior_selected],
+                y=[h_selected / 1e3],
+                mode="markers+text",
+                marker=dict(size=5, color="white"),
+                name="Interior Optimum",
+                showlegend=False,
+            ),
+        ],
+        cols=2,
+        rows=1,
+    )
+
+    fig_interior_optimum.update_layout(
+        scene=dict(
+            xaxis=dict(
+                title="C<sub>L</sub> (-)",
+                range=[xy_lowerbound, active_selection["CLmax_ld"]],
+            ),
+            yaxis=dict(title="δ<sub>T</sub> (-)", range=[xy_lowerbound, 1]),
+            zaxis=dict(
+                title="D (N)",
+            ),
+        ),
+        xaxis=dict(
+            title="V (m/s)",
+            range=[xy_lowerbound, np.nanmax(velocity_interior_harray) + 15],
+            showgrid=True,
+            gridcolor="#515151",
+            gridwidth=1,
+        ),
+        yaxis=dict(
+            title="h (km)",
+            range=[xy_lowerbound, 20],
+            showgrid=True,
+            gridcolor="#515151",
+            gridwidth=1,
+        ),
+        title_text=active_selection["full_name"],
+        title_x=0.5,
+    )
+
+    mo.output.clear()
+    return (fig_interior_optimum,)
+
+
+@app.cell
+def _(fig_interior_optimum):
+    fig_interior_optimum
+    return
+
+
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
@@ -313,20 +940,534 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
     ###_Thrust-limited minimum drag_
-
 
     $C_L \lt C_{L_\mathrm{max}} \quad \Rightarrow \quad \mu_1 = 0$ 
 
     $\delta_T = 1 \quad \Rightarrow \quad \mu_3 \gt 0$ 
 
     From stationarity condition (2) obtain:
+
+    $$
+    \mu_3 = -\lambda_1 P_{a0}\sigma^\beta A\sqrt{C_L} \gt 0, \quad \Rightarrow \quad \lambda_1 \lt 0 
+    $$
+
+    Thus, $(1-\lambda_1) \gt 0$. Conclude from stationarity condition (1):
+
+    $$
+    W \frac{KC_L^2-C_{D_0}}{C_L^2} \gt 0, \quad \Rightarrow \quad C_L\gt \sqrt{\frac{C_{D_0}}{K}} = C_{L_E}
+    $$
+
+    This means that $C_L^*$ is bounded by both $C_{L_E}$ and $C_{L_\mathrm{max}}$: 
+
+
+    $$
+    C_{L_E} \lt C_L^* \lt C_{L_\mathrm{max}}
+    $$
+
+    Having $\delta_T = 1$, by inspecting the primal feasibility constraint (3) it is clear this cannot be solved analytically, thus we proceed to a numerical solution for $C_L^*$, which also yields the operational condition.
+
+    $$
+    \text{solve numerically for } C_L^* :\quad  \frac{P_{a0}\sigma^\beta A \sqrt{C_L}}{W} - \frac{C_{D_0} +K C_L^2}{C_L} = 0 
+    $$
+
+    Thus the results from the thrust-limited analysis yield: 
+
+    $$
+    \boxed{\delta_T = 1}, \quad \boxed{C_L^* = \text{numerical}}, \quad {\frac{W^{3/2}}{\sigma^{\beta + 0.5}} \gt \text{numerical}}, \quad {C_{L_E}\lt C_L \lt C_{L_\mathrm{max}}}
+    $$
     """
     )
+    return
+
+
+@app.cell
+def _(CD0, K, Pa0, S, atmos, beta, np):
+    def maxthrust_solver(W, h):
+        sigma = atmos.rhoratio(h)
+        A = np.sqrt(atmos.rho(h) * S / (2 * W))
+        function = lambda CL: Pa0 * sigma**beta * A * np.sqrt(CL) / W - (
+            CD0 + K * CL**2
+        ) / (CL)
+
+        return function
+
+
+    def maxthrust_condition(CD0, K, CLstar, CLmax):
+        condition = (CLstar > np.sqrt(CD0 / K)) & (CLstar < CLmax)
+
+        return condition
+    return maxthrust_condition, maxthrust_solver
+
+
+@app.cell
+def _(W_selected, h_array, maxthrust_solver, root_scalar):
+    CL_maxthrust_star = []
+
+    for h in h_array:
+        func = maxthrust_solver(W_selected, h)
+        CL_sol = root_scalar(func, x0=0.14).root
+        CL_maxthrust_star.append(CL_sol)
+    return (CL_maxthrust_star,)
+
+
+@app.cell
+def _(
+    CD0,
+    CL_maxthrust_star,
+    CLmax,
+    K,
+    S,
+    W_selected,
+    drag,
+    h_array,
+    idx_selected,
+    maxthrust_condition,
+    np,
+    velocity,
+):
+    maxthrust_mask = maxthrust_condition(CD0, K, CL_maxthrust_star, CLmax)
+
+    CLopt_maxthrust = np.where(maxthrust_mask, CL_maxthrust_star, np.nan)
+
+    velocity_maxthrust_harray = velocity(
+        W_selected, h_array, CLopt_maxthrust, S, cap=False
+    )
+
+    dTopt_maxthrust = np.where(
+        maxthrust_mask,
+        1,
+        np.nan,
+    )
+
+    drag_maxthrust_harray = drag(
+        h_array, S, CD0, K, CLopt_maxthrust, velocity_maxthrust_harray
+    )
+
+    drag_maxthrust_selected = drag_maxthrust_harray[idx_selected]
+
+    CLopt_maxthrust_selected = CLopt_maxthrust[idx_selected]
+    dTopt_maxthrust_selected = dTopt_maxthrust[idx_selected]
+
+    velocity_maxthrust_selected = velocity_maxthrust_harray[idx_selected]
+    return (
+        CLopt_maxthrust,
+        CLopt_maxthrust_selected,
+        dTopt_maxthrust,
+        dTopt_maxthrust_selected,
+        drag_maxthrust_harray,
+        drag_maxthrust_selected,
+        velocity_maxthrust_harray,
+        velocity_maxthrust_selected,
+    )
+
+
+@app.cell
+def _(
+    CL_array,
+    CLopt_maxthrust,
+    CLopt_maxthrust_selected,
+    a_harray,
+    active_selection,
+    constraint,
+    dT_array,
+    dTopt_maxthrust,
+    dTopt_maxthrust_selected,
+    drag_curve,
+    drag_maxthrust_harray,
+    drag_maxthrust_selected,
+    drag_surface,
+    go,
+    h_array,
+    h_selected,
+    make_subplots,
+    mo,
+    np,
+    velocity_maxthrust_harray,
+    velocity_maxthrust_selected,
+    velocity_stall_harray,
+    xy_lowerbound,
+):
+    fig_maxthrust_optimum = make_subplots(
+        rows=1, cols=2, specs=[[{"type": "scene"}, {"type": "xy"}]]
+    )
+
+    # Traces on the 3D plot, first four are template
+    fig_maxthrust_optimum.add_traces(
+        [
+            go.Surface(
+                x=CL_array,
+                y=dT_array,
+                z=drag_surface,
+                opacity=0.9,
+                name="Drag",
+                colorscale="cividis",
+            ),
+            go.Scatter3d(
+                x=CL_array,
+                y=constraint,
+                z=drag_curve,
+                opacity=0.7,
+                mode="lines",
+                showlegend=False,
+                line=dict(color="rgba(255, 0, 0, 0.1)", width=10),
+                name="g1 constraint",
+            ),
+            go.Scatter3d(
+                x=[CL_array[-15]],
+                y=[constraint[-15]],
+                z=[drag_surface[0, -15]],
+                opacity=1,
+                textposition="middle left",
+                mode="markers+text",
+                text=["g<sub>1</sub>"],
+                marker=dict(size=1, color="rgba(255, 0, 0, 0.0)"),
+                showlegend=False,
+                name="g1 constraint",
+            ),
+            go.Scatter3d(
+                x=[CLopt_maxthrust_selected],
+                y=[dTopt_maxthrust_selected],
+                z=[drag_maxthrust_selected],
+                mode="markers",
+                showlegend=False,
+                marker=dict(
+                    size=3,
+                    color="white",
+                    symbol="circle",
+                ),
+                name="maxthrust Optimum",
+                hovertemplate="C<sub>L</sub>: %{x}<br>δ<sub>T</sub> : %{y}<br>D: %{z}<extra>%{fullData.name}</extra>",
+            ),
+            go.Scatter3d(
+                x=[CLopt_maxthrust_selected, CLopt_maxthrust_selected],
+                y=[dTopt_maxthrust_selected, xy_lowerbound],
+                z=[
+                    drag_maxthrust_selected,
+                    drag_maxthrust_selected,
+                ],
+                mode="lines",
+                showlegend=False,
+                line=dict(color="grey", width=2),
+            ),
+            go.Scatter3d(
+                x=[xy_lowerbound, CLopt_maxthrust_selected],
+                y=[dTopt_maxthrust_selected, dTopt_maxthrust_selected],
+                z=[
+                    drag_maxthrust_selected,
+                    drag_maxthrust_selected,
+                ],
+                mode="lines",
+                showlegend=False,
+                line=dict(color="grey", width=2),
+            ),
+            go.Scatter3d(
+                x=CLopt_maxthrust,
+                y=np.ones(len(dT_array)) * xy_lowerbound,
+                z=np.tile(drag_maxthrust_harray, len(CLopt_maxthrust)),
+                mode="lines",
+                showlegend=False,
+                line=dict(color="rgba(129, 216, 208, 1)", width=8),
+            ),
+            go.Scatter3d(
+                x=np.ones(len(CLopt_maxthrust)) * xy_lowerbound,
+                y=dTopt_maxthrust,
+                z=np.tile(drag_maxthrust_harray, len(CLopt_maxthrust)),
+                mode="lines",
+                showlegend=False,
+                line=dict(color="rgba(129, 216, 208, 1)", width=8),
+            ),
+        ],
+        cols=1,
+        rows=1,
+    )
+
+    # Traces on the flight envelope, first four traces are template
+    fig_maxthrust_optimum.add_traces(
+        [
+            go.Scatter(
+                x=velocity_stall_harray,
+                y=h_array / 1e3,
+                mode="lines",
+                line=dict(width=1, color="rgba(255, 0, 0, 1)", dash="dash"),
+                name="V<sub>stall</sub>",
+                showlegend=False,
+            ),
+            go.Scatter(
+                x=[velocity_stall_harray[-8]],
+                y=[h_array[-8] / 1e3],
+                mode="markers+text",
+                marker=dict(size=1, color="rgba(255, 0, 0, 0)"),
+                text=["V<sub>stall</sub>"],
+                hoverinfo="skip",
+                textposition="top left",
+                showlegend=False,
+            ),
+            go.Scatter(
+                x=a_harray,
+                y=h_array / 1e3,
+                mode="lines",
+                line=dict(color="rgba(255, 180, 90, 1)", width=2, dash="dash"),
+                name="M1.0",
+                showlegend=False,
+            ),
+            go.Scatter(
+                x=[a_harray[-8]],
+                y=[h_array[-8] / 1e3],
+                mode="markers+text",
+                marker=dict(size=1, color="rgba(0, 0, 0, 0.0)"),
+                text=["M1.0"],
+                hoverinfo="skip",
+                textposition="top left",
+                showlegend=False,
+            ),
+            go.Scatter(
+                x=velocity_maxthrust_harray,
+                y=h_array / 1e3,
+                mode="lines",
+                line=dict(width=3, color="rgba(129, 216, 208, 1)"),
+                showlegend=False,
+                name="D_min",
+            ),
+            go.Scatter(
+                x=[velocity_maxthrust_selected],
+                y=[h_selected / 1e3],
+                mode="markers+text",
+                marker=dict(size=5, color="white"),
+                name="maxthrust Optimum",
+                showlegend=False,
+            ),
+        ],
+        cols=2,
+        rows=1,
+    )
+
+    fig_maxthrust_optimum.update_layout(
+        scene=dict(
+            xaxis=dict(
+                title="C<sub>L</sub> (-)",
+                range=[xy_lowerbound, active_selection["CLmax_ld"]],
+            ),
+            yaxis=dict(title="δ<sub>T</sub> (-)", range=[xy_lowerbound, 1]),
+            zaxis=dict(
+                title="D (N)",
+            ),
+        ),
+        xaxis=dict(
+            title="V (m/s)",
+            range=[xy_lowerbound, np.nanmax(velocity_maxthrust_harray) + 15],
+            showgrid=True,
+            gridcolor="#515151",
+            gridwidth=1,
+        ),
+        yaxis=dict(
+            title="h (km)",
+            range=[xy_lowerbound, 20],
+            showgrid=True,
+            gridcolor="#515151",
+            gridwidth=1,
+        ),
+        title_text=active_selection["full_name"],
+        title_x=0.5,
+    )
+
+    mo.output.clear()
+    return (fig_maxthrust_optimum,)
+
+
+@app.cell
+def _(variables_stack):
+    variables_stack
+    return
+
+
+@app.cell
+def _(fig_maxthrust_optimum):
+    fig_maxthrust_optimum
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(
+        r"""
+    _Thrust-lift limited minimum drag_
+
+
+    $C_L = C_{L_\mathrm{max}} \quad \Rightarrow \quad \mu_1 \gt 0$ 
+
+    $\delta_T = 1 \quad \Rightarrow \quad \mu_3 \gt 0$ 
+
+    From stationarity condition (2) obtain:
+
+    $$
+    \mu_3 = -\lambda_1 P_{a0}\sigma^\beta A\sqrt{C_L} \gt 0, \quad \Rightarrow \quad \lambda_1 \lt 0 
+    $$
+
+    Thus, $(1-\lambda_1) \gt 0$. Have a look at stationarity condition (1):
+
+    $$
+    \mu_1 = -  \frac{1}{2} \lambda_1\delta_T P_{a0}\sigma^\beta A \frac{1}{\sqrt{C_L}}-W\frac{K C_L^2 - C_{D_0}}{C_L^2} (1 -\lambda_1)  \gt 0
+    $$
+
+    Multiply both sides by $-1$ for simplicity, obtain: 
+
+    $$
+    -\mu_1 = \frac{1}{2} \lambda_1\delta_T P_{a0}\sigma^\beta A \frac{1}{\sqrt{C_L}}+W\boxed{\frac{K C_L^2 - C_{D_0}}{C_L^2}}(1 -\lambda_1)  \lt 0
+    $$
+
+    Here, the first term: 
+
+    $$
+    \frac{1}{2} \lambda_1\delta_T P_{a0}\sigma^\beta A \frac{1}{\sqrt{C_L}} \lt 0
+    $$
+
+    always, as every constant is positive but $\lambda_1$ ($\lt 0$).
+
+    Come back to the boxed term in the previous equation, now have two cases, as shown below: 
+
+    $$
+    \frac{KC_L^2 - C_{D_0}}{C_L^2} \le 0, \quad \text{or} \quad \frac{KC_L^2 - C_{D_0}}{C_L^2} \ge 0 
+    $$
+    """
+    )
+    return
+
+
+@app.cell
+def _(mass_stack):
+    mass_stack
+    return
+
+
+@app.cell
+def _(idx_selected, np, velocity_interior_harray, velocity_maxthrust_harray):
+    final_vel_mindrag = np.where(
+        np.isnan(velocity_interior_harray),
+        velocity_maxthrust_harray,
+        velocity_interior_harray,
+    )
+
+    final_vel_selected = final_vel_mindrag[idx_selected]
+    return final_vel_mindrag, final_vel_selected
+
+
+@app.cell
+def _(
+    a_harray,
+    active_selection,
+    final_vel_mindrag,
+    final_vel_selected,
+    go,
+    h_array,
+    mo,
+    velocity_maxthrust_harray,
+    velocity_stall_harray,
+    xy_lowerbound,
+):
+    fig_final_flightenv = go.Figure()
+
+    fig_final_flightenv.add_traces(
+        [
+            go.Scatter(
+                x=velocity_stall_harray,
+                y=h_array / 1e3,
+                mode="lines",
+                line=dict(width=1, color="rgba(255, 0, 0, 1)", dash="dash"),
+                name="V<sub>stall</sub>",
+                showlegend=False,
+            ),
+            go.Scatter(
+                x=[velocity_stall_harray[-8]],
+                y=[h_array[-8] / 1e3],
+                mode="markers+text",
+                marker=dict(size=1, color="rgba(255, 0, 0, 0)"),
+                text=["V<sub>stall</sub>"],
+                hoverinfo="skip",
+                textposition="top left",
+                showlegend=False,
+            ),
+            go.Scatter(
+                x=a_harray,
+                y=h_array / 1e3,
+                mode="lines",
+                line=dict(color="rgba(255, 180, 90, 1)", width=2, dash="dash"),
+                name="M1.0",
+                showlegend=False,
+            ),
+            go.Scatter(
+                x=[a_harray[-8] - 5],
+                y=[h_array[-8] / 1e3],
+                mode="markers+text",
+                marker=dict(size=1, color="rgba(0, 0, 0, 0.0)"),
+                text=["M1.0"],
+                hoverinfo="skip",
+                textposition="top left",
+                showlegend=False,
+            ),
+            go.Scatter(
+                x=final_vel_mindrag,
+                y=h_array / 1e3,
+                mode="lines",
+                line=dict(width=3, color="rgba(129, 216, 208, 1)"),
+                showlegend=False,
+                name="P_min interior",
+            ),
+            go.Scatter(
+                x=[final_vel_selected],
+                y=[h_array / 1e3],
+                mode="markers",
+                marker=dict(size=7, color="rgba(129, 216, 208, 1)"),
+                name="Max Thrust Optimum",
+                showlegend=False,
+            ),
+        ],
+    )
+
+    fig_final_flightenv.update_layout(
+        xaxis=dict(
+            title="V (m/s)",
+            range=[xy_lowerbound, velocity_maxthrust_harray.max() + 15],
+            showgrid=True,
+            gridcolor="#515151",
+            gridwidth=1,
+        ),
+        yaxis=dict(
+            title="h (km)",
+            range=[xy_lowerbound, 20],
+            showgrid=True,
+            gridcolor="#515151",
+            gridwidth=1,
+        ),
+        title_text=active_selection["full_name"],
+        title_x=0.5,
+    )
+
+    mo.output.clear()
+    return (fig_final_flightenv,)
+
+
+@app.cell
+def _(mo):
+    mo.md(
+        r"""This concludes the minimum drag derivation, find below the flight envelope showing the operational conditions where the simplified propeller aircraft can fly at minimum drag. The graph below simply concatenates all the solutions explored in this notebook!"""
+    )
+    return
+
+
+@app.cell
+def _(mass_stack):
+    mass_stack
+    return
+
+
+@app.cell
+def _(fig_final_flightenv):
+    fig_final_flightenv
     return
 
 
