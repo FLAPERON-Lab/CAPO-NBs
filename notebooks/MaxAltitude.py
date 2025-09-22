@@ -236,7 +236,7 @@ def _():
 
 @app.cell
 def _():
-    _defaults.nav_footer("MinPower.py", "Minimum Power", "", "")
+    _defaults.nav_footer("MinDrag.py", "Minimum Drag", "MaxSpeed.py", "Maximum Speed")
     return
 
 

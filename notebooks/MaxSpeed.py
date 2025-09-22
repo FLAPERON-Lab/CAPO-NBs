@@ -232,7 +232,7 @@ def _():
 
 @app.cell
 def _():
-    _defaults.nav_footer("MinPower.py", "Maximum Power", "", "")
+    _defaults.nav_footer("MaxAltitude.py", "Maximum Altitude", "", "")
     return
 
 

@@ -239,9 +239,7 @@ def _():
 
 @app.cell
 def _():
-    _defaults.nav_footer(
-        "MinSpeed.py", "Minimum Speed", "", ""
-    )
+    _defaults.nav_footer("MinSpeed.py", "Minimum Speed", "", "")
     return
 
 
