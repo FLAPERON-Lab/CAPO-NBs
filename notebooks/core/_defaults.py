@@ -27,7 +27,7 @@ def set_plotly_template():
 # Navigation sidebar
 def set_sidebar():
     sidebar = [
-        mo.md("# FPAO-CC"),
+        mo.md(f"# [FPAO-CC]({FILEURL}Homepage.py)"),
         mo.nav_menu(
             {
                 f"{FILEURL}Scope.py": "Scope",
