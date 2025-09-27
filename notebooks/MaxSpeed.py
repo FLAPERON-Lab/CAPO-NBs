@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.15.0"
+__generated_with = "0.15.2"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -11,11 +11,7 @@ with app.setup:
     from core import _defaults
     from plotly.subplots import make_subplots
     import plotly.graph_objects as go
-    import plotly.express as px
-    import numpy as np
-    from core import atmos
     from core import aircraft as ac
-    from core.aircraft import velocity, horizontal_constraint, power, drag
 
     # Set local/online filepath
     _defaults.FILEURL = _defaults.get_url()
@@ -36,7 +32,7 @@ def _():
 
 @app.cell
 def _():
-    mo.md(r"""# Minimum power""")
+    mo.md(r"""# Maximum speed""")
     return
 
 
@@ -51,12 +47,12 @@ def _():
     mo.callout(
         mo.md(
             r"""
-        Find the minimum power by changing the lift coefficient and throttle within certain limits:
+        Find the maximum velocityby changing the lift coefficient and throttle within certain limits:
 
     $$
     \begin{aligned}
-        \min_{C_L, \delta_T} 
-        & \quad P \\
+        \max_{C_L, \delta_T} 
+        & \quad V \\
         % \text{subject to} 
         % & \quad \bm{c}_\mathrm{eq}(\bm{x},\bm{u}; \bm{p}) = 0 \\
         % & \quad \bm{c_\mathrm{ineq}}(\bm{x},\bm{u}; \bm{p}) \le 0 \\
@@ -77,12 +73,9 @@ def _():
         r"""
     This problem is ill posed, and it does not make sense to solve it.
 
-    There is no functional relation between the objective function $P$ and the controls $C_L, \delta_T$.
-    In other words, there is no equation that specifies how $P$ can change with respect to the controls.
+    There is no functional relation between the objective function $V$ and the controls $C_L, \delta_T$.
+    In other words, there is no equation that specifies how $V$ can change with respect to the controls.
     It does not make sense to optimize Flight Performance if the flight dynamics is not controlled.
-
-    For example, the minimum power achievable could be 0, if the aircraft is standing still on the runway.
-    It could even be negative, if someone is pushing the aircraft back, or there is tailwind.
 
     A relation must be introduced with constraint equations, starting from the EoMS.
     These will define the problem properly.
@@ -164,7 +157,7 @@ def _(CL_maxld, CL_slider, ac_table, dT_slider):
         scene1=dict(
             xaxis=dict(title=r"C<sub>L</sub> (-)"),
             yaxis=dict(title=r"δ<sub>T</sub> (-)"),
-            zaxis=dict(title=r"P (m/s)"),
+            zaxis=dict(title=r"V (m/s)"),
         ),
     )
     fig.update_xaxes(range=[-0.5, CL_maxld], row=1, col=1)
@@ -200,12 +193,12 @@ def _():
 def _():
     mo.callout(
         mo.md(r"""
-        Find the minimum airspeed that can be maintained in Steady Level Flight by changing the lift coefficient and throttle within certain limits
+        Find the maximum airspeed that can be maintained in Steady Level Flight by changing the lift coefficient and throttle within certain limits
 
     $$
     \begin{aligned}
-        \min_{C_L, \delta_T} 
-        & \quad P = DV = \frac{1}{2}\rho V^2S(C_{D_0}+KC_L^2)V \\
+        \max_{C_L, \delta_T} 
+        & \quad V \\
         \text{subject to} 
         & \quad c_1^\mathrm{eq} = L-W = \frac{1}{2}\rho V^2 S C_L - W = 0 \\
         & \quad c_2^\mathrm{eq} = T-D = \delta_T T_a(V,h) - \frac{1}{2} \rho V^2 S (C_{D_0}+K C_L^2) =0 \\
@@ -223,15 +216,15 @@ def _():
 def _():
     mo.md(
         r"""
-    The introduction of the constraints for vertical ($c_1^\mathrm{eq}$) and horizontal equilibrium ($c_2^\mathrm{eq}$) restricts the scope to only a certain type of optimal powers we are looking for. 
+    The introduction of the constraints for vertical ($c_1^\mathrm{eq}$) and horizontal equilibrium ($c_2^\mathrm{eq}$) restricts the scope to only a certain type of optimal velocities we are looking for. 
 
     The constraint equations introduce a functional dependency between the objective function and the controls.
     We are going to use them to reformulate the problem in order to analyse its properties.
 
     Before that, we notice that the expression of $c_2^\mathrm{eq}$ depends on the type of powertrain of the aircraft, and therefore we must proceed diffently for each powertrain architecture.
 
-    1. [Simplified Jet -  Karush-Kuhn-Tucker Analyis](/?file=MinPower_Jet.py)
-    1. [Simplified Piston-Prop -  Karush-Kuhn-Tucker Analysis](/?file=MinPower_Prop.py)
+    1. [Simplified Jet -  Karush-Kuhn-Tucker Analyis](/?file=MaxSpeed_Jet.py)
+    1. [Simplified Piston-Prop -  Karush-Kuhn-Tucker Analysis](/?file=MaxSpeed_Prop.py)
     """
     )
     return
@@ -239,7 +232,7 @@ def _():
 
 @app.cell
 def _():
-    _defaults.nav_footer("MinSpeed.py", "Minimum Speed", "", "")
+    _defaults.nav_footer("MaxAltitude.py", "Maximum Altitude", "", "")
     return
 
 
