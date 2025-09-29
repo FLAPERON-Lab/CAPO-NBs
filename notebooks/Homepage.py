@@ -32,7 +32,7 @@ def _():
 
 @app.cell
 def _(mo):
-    mo.md("# FPAO-CC \n").center()
+    mo.md('<h1 style="font-size: 100px">FPAO-CC</h1>').center()
     return
 
 
@@ -46,7 +46,7 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    mo.md(r"""## The open education stimulation fund (OESF)""")
+    mo.md(r"""# The open education stimulation fund (OESF)""")
     return
 
 
@@ -66,7 +66,7 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    mo.md(r"""## About the project""")
+    mo.md(r"""# About the project""")
     return
 
 
@@ -93,7 +93,7 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    mo.md(r"""## About the authors""")
+    mo.md(r"""# About the authors""")
     return
 
 
@@ -180,7 +180,7 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    mo.md(r"""## Getting Started""")
+    mo.md(r"""# Getting Started""")
     return
 
 
