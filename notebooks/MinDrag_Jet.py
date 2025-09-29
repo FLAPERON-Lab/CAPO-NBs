@@ -75,7 +75,6 @@ def _(CL_slider, active_selection, atmos, endurance, h_slider, m_slider, np):
     step = h_array[1] - h_array[0]  # here it's 200
     idx_selected = int((h_selected - h_array[0]) / step)
 
-
     a = atmos.a(h_selected)
     a_harray = atmos.a(h_array)
     CD0 = active_selection["CD0"]
@@ -153,9 +152,7 @@ def _(ac_table, data, mo):
         value=0.5,
     )
 
-    dT_slider = mo.ui.slider(
-        start=0, stop=1, step=0.1, label=r"$\delta_T$", value=0.5
-    )
+    dT_slider = mo.ui.slider(start=0, stop=1, step=0.1, label=r"$\delta_T$", value=0.5)
 
     m_slider = mo.ui.slider(start=0, stop=1, step=0.1, label=r"", show_value=True)
 
@@ -314,7 +311,6 @@ def _(
         CL_array,
         velocity_CLarray,
     )
-
 
     constraint = horizontal_constraint(
         W_selected,
@@ -599,6 +595,9 @@ def _(mo):
     $$
     \delta_T^* = \frac{2W}{T_{a0}\sigma^\beta}\sqrt{C_{D_0}K} \lt 1 \Leftrightarrow \frac{W}{\sigma^\beta} \lt \frac{T_{a0}}{2\sqrt{C_{D_0}K}} = \frac{W}{\sigma^\beta} \lt T_{a0}E_{max}$$
 
+    which tells us that it is possible to achieve this optimal condition only when the combination of aircraft weight and altitude respect the above inequality.
+
+
     The corresponding minimum drag is found by first computing $V^*$ and $C_D^*$: 
 
     $$
@@ -635,6 +634,7 @@ def _(atmos):
         condition = ((W / (sigma**beta)) < (E_max * Ta0)) & (CL_E < CLmax)
 
         return condition
+
     return (interior_condition,)
 
 
@@ -923,31 +923,33 @@ def _(mo):
 
     From stationarity condition (2): $\lambda_1 = 0$.
 
-    From stationarity condition (1): $\displaystyle \mu_1 = W\frac{C_{D_0} - KC_{L_\mathrm{max}}^2}{C_{L_\mathrm{max}}^2} \gt 0$, which results to:
+    From stationarity condition (1): $\displaystyle \mu_1 = W\frac{C_{D_0} - KC_{L_\mathrm{max}}^2}{C_{L_\mathrm{max}}^2} \gt 0$, which results in: $\displaystyle  C_{L_\mathrm{max}} < \sqrt{\frac{C_{D_0}}{K}} = C_{L_E}$
 
-    $$
-    \sqrt{\frac{C_{D_0}}{K}} = C_{L_E} \gt C_{L_\mathrm{max}}
+    This means that, in order for aerodynamic drag to have a minimum at $C_L = C_{L_\mathrm{max}}$, the aircraft must have been designed to have a higher lift coefficient for maximum efficiency than its stall lift coefficient.
+    In other words, the aircraft would only be able to fly on the right branch of the performance diagram, and the stall speed would be higher than the speed for maximum efficiency, therefore representing the speed for minimum drag.
+
+    In the rare occasion this condition would be verified, the corresponding throttle could be once again calculated frmo stationarity condition (3):
+
     $$ 
-
-    This means the aircraft will stall at a speed higher than the one for minimum aerodynamic efficiency, and thus minimum drag. Continuing the derivation, from primal feasibility constraint (3), obtain:
-
-    $$
-    \delta_T^* = \frac{W}{T_{a0}\sigma^\beta}\frac{C_{D_0} + KC_{L_\mathrm{max}}^2}{C_{L_\mathrm{max}}} = \frac{W}{T_{a0}\sigma^\beta} \frac{1}{E_S}
+    \displaystyle \delta_T^* = \frac{C_{D_\mathrm{max}}}{C_{L_\mathrm{max}}}\frac{W}{T_{a0}\sigma^\beta} = \frac{W}{E_S T_{a0}\sigma^\beta}
     $$
 
-    The operational condition can be found by setting $\delta_T \lt 1$, obtaining: 
+    This value is compliant with the primal feasibility constraint if:
 
     $$
-    \frac{W}{\sigma^\beta} \lt T_{a0}E_S
+    \delta_T^* < 1 \Leftrightarrow \frac{W}{\sigma^\beta} < T_{a0}E_S
     $$
 
-    Thus the results for minimum drag of a simplified jet at max-lift condition are: 
+    which gives us the conditions to achieve minimum drag in terms of aircraft weight and altitude.
+
+
+    The valu of the objective function, minimum drag, is calculated in a straightforward way as:
 
     $$
-    \boxed{C_L^* = C_{L_\mathrm{max}}}, \quad \boxed{\delta_T = \frac{W}{T_{a0}\sigma^\beta} \frac{1}{E_S}}, \quad \frac{W}{\sigma^\beta} \lt T_{a0}E_S, \quad C_{L_\mathrm{max}} \lt \sqrt{\frac{3C_{D_0}}{K}}
+    D_{min}^* =  \frac{1}{2}\rho V_s^2 S C_{D_s} = \frac{W}{E_s}
     $$
 
-    Which results in the following optima and flight envelope:
+    This is a higher value than the unconstrained one, and therefore operating in this scenario should be avoided if minimum drag is a goal.
     """
     )
     return
@@ -957,10 +959,9 @@ def _(mo):
 def _(atmos, np):
     def maxlift_condition(W, h, E_S, beta, Ta0, CLmax, CD0, K):
         sigma = atmos.rhoratio(h)
-        condition = ((W / (sigma**beta)) < (Ta0 * E_S)) & (
-            CLmax < np.sqrt(3 * CD0 / K)
-        )
+        condition = ((W / (sigma**beta)) < (Ta0 * E_S)) & (CLmax < np.sqrt(3 * CD0 / K))
         return condition
+
     return (maxlift_condition,)
 
 
@@ -983,15 +984,11 @@ def _(
     np,
     velocity,
 ):
-    maxlift_mask = maxlift_condition(
-        W_selected, h_array, E_S, beta, Ta0, CLmax, CD0, K
-    )
+    maxlift_mask = maxlift_condition(W_selected, h_array, E_S, beta, Ta0, CLmax, CD0, K)
 
     CLopt_maxlift = np.where(maxlift_mask, CL_E, np.nan)
 
-    velocity_maxlift_harray = velocity(
-        W_selected, h_array, CLopt_maxlift, S, cap=False
-    )
+    velocity_maxlift_harray = velocity(W_selected, h_array, CLopt_maxlift, S, cap=False)
 
     drag_maxlift_harray = np.where(maxlift_mask, W_selected / E_max, np.nan)
 
@@ -1263,17 +1260,13 @@ def _(mo):
     and from stationarity condition (1): 
 
     $$
-    \displaystyle \left(\frac{KC_L^2 - C_{D_0}}{C_L^2}\right)(1-\lambda_1) = 0 \Rightarrow (1-\lambda_1) \gt 0
-    $$
-
-    $$
-    \frac{KC_L^2 - C_{D_0}}{C_L^2} = 0
+    \displaystyle \left(\frac{KC_L^2 - C_{D_0}}{C_L^2}\right)(1-\lambda_1) = 0 \Rightarrow \frac{KC_L^2 - C_{D_0}}{C_L^2} = 0
     $$
 
     Which yields the folowing optima:
 
     $$ 
-    C_L^* = \sqrt{C_{D_0}}{K} = C_{L_E} \quad  \land \quad \delta_T^* = 1 
+    C_L^* = \sqrt{\frac{C_{D_0}}{K}} = C_{L_E} \quad  \land \quad \delta_T^* = 1 
     $$
 
     This optimum is continuous with the interior optimum, thus yielding the same result for $D_{min}$:
@@ -1290,7 +1283,7 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-    The operational condition is found form (3), with $\delta_T = 1$, obtaining:
+    The operational condition is found from (3), with $\delta_T = 1$, obtaining:
 
     $$
     \frac{W}{\sigma^\beta} = T_{a0}E_{\mathrm{max}}
@@ -1317,6 +1310,7 @@ def _(atmos, np):
         return np.where(
             ((h > 0) & (h < 20e3) & ((np.sqrt(CD0 / K)) < CLmax)), h, np.nan
         )
+
     return (maxthrust_altitude,)
 
 
@@ -1360,7 +1354,6 @@ def _(
     )
 
     drag_maxthrust_surface = np.tile(drag_maxthrust_h_curve, (len(CL_array), 1))
-
 
     drag_maxthrust_selected = drag(
         maxthrust_h, S, CD0, K, CLopt_maxthrust, velocity_maxthrust_selected
@@ -1576,31 +1569,20 @@ def _(mo):
     \lambda_1= -\frac{\mu_3 }{T_{a0}\sigma^{\beta}} \lt 0
     $$
 
-    from stationarity condition (1): 
+    and from stationarity condition (1): 
 
     $$
-    \displaystyle W (\lambda_1 - 1) \left( \frac{KC_{L_\mathrm{max}}^2 - C_{D_0}}{C_{L_\mathrm{max}}^2}\right) \gt 0 \Rightarrow (\lambda_1 - 1) \lt 0
+    \displaystyle \mu_1 = W \left( \frac{C_{D_0} - KC_{L_\mathrm{max}}^2}{C_{L_\mathrm{max}}^2}\right)(1 - \lambda_1) \gt 0 
     $$
 
-    yielding: 
+    Combining the two yields the condition that needs to be veerified in order for a minimum to exist when both boundaries are active at the same time: 
 
     $$
-    C_{L_\mathrm{max}} \lt \sqrt{\frac{C_{D_0}}{K}} = C_{L_E}
+    C_{L_\mathrm{max}} \lt \sqrt{\frac{C_{D_0}}{K}} = C_{L_E} \Rightarrow \text{impossible}
     $$ 
 
 
-    Once again, the aircraft would have to stall at a higher speed than the one for minimum drag. Continuing with primal feasibility condition (3), obtain the operational condition: 
-
-
-    $$
-    \frac{W}{\sigma^\beta} = T_{a0}E_S
-    $$
-
-    Thus, summarizing the results for minimum drag for a simplified jet, obtain the following: 
-
-    $$
-    \boxed{C_L = C_{L_\mathrm{max}}}, \quad \boxed{\delta_T = 1 }, \quad \frac{W}{\sigma^\beta} = T_{a0}E_S, \quad C_{L_\mathrm{max}} \lt \sqrt{\frac{C_{D_0}}{K}}
-    $$
+    The same considerations hold for the case of the lift-limited analysis, with the only difference that now $\delta_T^* = 1$
     """
     )
     return
@@ -1617,6 +1599,7 @@ def _(atmos, np):
         return np.where(
             ((h > 0) & (h < 20e3) & ((np.sqrt(CD0 / K)) > CLmax)), h, np.nan
         )
+
     return (maxlift_thrust_altitude,)
 
 
@@ -1664,7 +1647,6 @@ def _(
     drag_maxlift_thrust_surface = np.tile(
         drag_maxlift_thrust_h_curve, (len(CL_array), 1)
     )
-
 
     drag_maxlift_thrust_selected = drag(
         maxlift_thrust_h,
