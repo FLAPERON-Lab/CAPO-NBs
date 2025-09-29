@@ -1103,9 +1103,6 @@ def _(fig_thrust_limited):
 def _(mo):
     mo.md(
         r"""
-    
-
-
     The corresponding minimum speed is obtained by solving the following equation: 
 
     $$
