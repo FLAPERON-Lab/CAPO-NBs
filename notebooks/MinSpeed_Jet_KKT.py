@@ -34,7 +34,6 @@ def _():
     # Data directory
     data_dir = str(mo.notebook_location() / "public" / "AircraftDB_Standard.csv")
 
-
     def CL_from_horizontal_constraint(W, h, S, CD0, K, Ta0, beta, ac_type):
         E_max = endurance(K, CD0, "max")
         sigma = atmos.rhoratio(h)
@@ -57,6 +56,7 @@ def _():
             minus_solution = np.where(condition, multiplier * (1 - root), np.nan)
 
         return [plus_solution, minus_solution]
+
     return (
         CL_from_horizontal_constraint,
         ac,
@@ -124,9 +124,7 @@ def _(ac_table, data, mo):
         value=0.5,
     )
 
-    dT_slider = mo.ui.slider(
-        start=0, stop=1, step=0.1, label=r"$\delta_T$", value=0.5
-    )
+    dT_slider = mo.ui.slider(start=0, stop=1, step=0.1, label=r"$\delta_T$", value=0.5)
 
     m_slider = mo.ui.slider(start=0, stop=1, step=0.1, label=r"", show_value=True)
 
@@ -322,9 +320,7 @@ def _(
             go.Scatter3d(
                 x=[CL_slider.value],
                 y=[dT_slider.value],
-                z=[
-                    velocity_user_selected + 5
-                ],  # Slightly elevate to show the full marker
+                z=[velocity_user_selected],
                 mode="markers",
                 showlegend=False,
                 marker=dict(
@@ -399,7 +395,9 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    mo.md(r"""In the interactive graph below, select a simplified jet aircraft of your choice and experiment in finding an optimum by changing the control variables, $C_L$ and $\delta_T$. The design point is marked in white in the 3D velocity surface.""")
+    mo.md(
+        r"""In the interactive graph below, select a simplified jet aircraft of your choice and experiment in finding an optimum by changing the control variables, $C_L$ and $\delta_T$. The design point is marked in white in the 3D velocity surface."""
+    )
     return
 
 
@@ -425,7 +423,9 @@ def _(ac, data_dir, mo):
 
 @app.cell(hide_code=True)
 def _(CL_slider, dT_slider, mo):
-    mo.md(f"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}""")
+    mo.md(
+        f"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}"""
+    )
     return
 
 
@@ -643,6 +643,7 @@ def _(atmos):
         condition = ((W / (sigma**beta)) <= (E_max * Ta0)) & (CLstar < CLmax)
 
         return condition
+
     return (maxthrust_condition,)
 
 
@@ -959,6 +960,7 @@ def _(atmos):
         condition = (W / (sigma**beta)) < (E_s * Ta0)
 
         return condition
+
     return (maxlift_condition,)
 
 
@@ -1258,6 +1260,7 @@ def _(atmos, np):
 
         h = atmos.altitude(sigma)
         return np.where(h > 0, h, np.nan)
+
     return (maxlift_thrust_altitude,)
 
 
@@ -1525,7 +1528,9 @@ def _(fig_maxlift_thrust_optimum):
 
 @app.cell
 def _(mo):
-    mo.md(r"""Now after deriving all the optima for each condition we can summarize the flight envelopes in one graph, as shown below. Experiment with the weight of the aircrarft to understand how the theoretical ceiling for minimum speed moves in the graph.""")
+    mo.md(
+        r"""Now after deriving all the optima for each condition we can summarize the flight envelopes in one graph, as shown below. Experiment with the weight of the aircrarft to understand how the theoretical ceiling for minimum speed moves in the graph."""
+    )
     return
 
 
