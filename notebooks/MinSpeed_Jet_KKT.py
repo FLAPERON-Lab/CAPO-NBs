@@ -34,6 +34,7 @@ def _():
     # Data directory
     data_dir = str(mo.notebook_location() / "public" / "AircraftDB_Standard.csv")
 
+
     def CL_from_horizontal_constraint(W, h, S, CD0, K, Ta0, beta, ac_type):
         E_max = endurance(K, CD0, "max")
         sigma = atmos.rhoratio(h)
@@ -56,7 +57,6 @@ def _():
             minus_solution = np.where(condition, multiplier * (1 - root), np.nan)
 
         return [plus_solution, minus_solution]
-
     return (
         CL_from_horizontal_constraint,
         ac,
@@ -124,7 +124,9 @@ def _(ac_table, data, mo):
         value=0.5,
     )
 
-    dT_slider = mo.ui.slider(start=0, stop=1, step=0.1, label=r"$\delta_T$", value=0.5)
+    dT_slider = mo.ui.slider(
+        start=0, stop=1, step=0.1, label=r"$\delta_T$", value=0.5
+    )
 
     m_slider = mo.ui.slider(start=0, stop=1, step=0.1, label=r"", show_value=True)
 
@@ -230,6 +232,10 @@ def _(
     # Computation cell (1)
     velocity_CLarray = velocity(W_selected, h_selected, CL_array, S, cap=False)
 
+    velocity_CLarray = np.where(
+        np.isnan(velocity_CLarray), np.nanmax(velocity_CLarray), velocity_CLarray
+    )
+
     velocity_user_selected = velocity(
         W_selected, h_selected, CL_slider.value, S, cap=False
     )
@@ -298,10 +304,10 @@ def _(
                 x=CL_array,
                 y=constraint,
                 z=velocity_surface[0],
-                opacity=0.7,
+                opacity=1,
                 mode="lines",
                 showlegend=False,
-                line=dict(color="rgba(255, 0, 0, 0.1)", width=10),
+                line=dict(color="rgba(255, 0, 0, 0.35)", width=10),
                 name="g1 constraint",
             ),
             go.Scatter3d(
@@ -643,7 +649,6 @@ def _(atmos):
         condition = ((W / (sigma**beta)) <= (E_max * Ta0)) & (CLstar < CLmax)
 
         return condition
-
     return (maxthrust_condition,)
 
 
@@ -773,7 +778,8 @@ def _(
                     symbol="circle",
                 ),
                 name="V<sub>min</sub>",
-                hovertemplate="C<sub>L</sub>: %{x}<br>δ<sub>T</sub> : %{y}<br>V: %{z}<extra>%{fullData.name}</extra>",
+                customdata=[velocity_maxthrust_selected],
+                hovertemplate="C<sub>L</sub>: %{x}<br>δ<sub>T</sub>: 1 <br>V: %{customdata}<extra></extra>",
             ),
         ],
         cols=1,
@@ -881,7 +887,7 @@ def _(
 
     fig_maxthrust_optimum.update_layout(
         title={
-            "text": f"Thrust-limited minimum velocity for {active_selection.full_name}",
+            "text": f"Thrust-limited minimum airspeed for {active_selection.full_name}",
             "font": {"size": 25},
             "xanchor": "center",
             "yanchor": "top",
@@ -960,7 +966,6 @@ def _(atmos):
         condition = (W / (sigma**beta)) < (E_s * Ta0)
 
         return condition
-
     return (maxlift_condition,)
 
 
@@ -1075,7 +1080,8 @@ def _(
                     symbol="circle",
                 ),
                 name="V<sub>min</sub>",
-                hovertemplate="C<sub>L</sub>: %{x}<br>δ<sub>T</sub> : %{y}<br>V: %{z}<extra>%{fullData.name}</extra>",
+                customdata=[velocity_maxlift_selected],
+                hovertemplate="C<sub>L</sub>: %{x}<br>δ<sub>T</sub>: 1 <br>V: %{customdata}<extra></extra>",
             ),
         ],
         cols=1,
@@ -1183,7 +1189,7 @@ def _(
 
     fig_maxlift_optimum.update_layout(
         title={
-            "text": f"Lift-limited minimum velocity for {active_selection.full_name}",
+            "text": f"Lift-limited minimum airspeed for {active_selection.full_name}",
             "font": {"size": 25},
             "xanchor": "center",
             "yanchor": "top",
@@ -1260,7 +1266,6 @@ def _(atmos, np):
 
         h = atmos.altitude(sigma)
         return np.where(h > 0, h, np.nan)
-
     return (maxlift_thrust_altitude,)
 
 
@@ -1402,7 +1407,8 @@ def _(
                     symbol="circle",
                 ),
                 name="V<sub>min</sub>",
-                hovertemplate="C<sub>L</sub>: %{x}<br>δ<sub>T</sub> : %{y}<br>V: %{z}<extra>%{fullData.name}</extra>",
+                customdata=[velocity_maxlift_thrust_selected],
+                hovertemplate="C<sub>L</sub>: %{x}<br>δ<sub>T</sub>: 1 <br>V: %{customdata}<extra></extra>",
             ),
         ],
         cols=1,
@@ -1502,7 +1508,7 @@ def _(
 
     fig_maxlift_thrust_optimum.update_layout(
         title={
-            "text": f"Thrust-lift limited minimum velocity for {active_selection.full_name}",
+            "text": f"Thrust-lift limited minimum airspeed for {active_selection.full_name}",
             "font": {"size": 25},
             "xanchor": "center",
             "yanchor": "top",
@@ -1638,7 +1644,7 @@ def _(
 
     fig_final_flightenv.update_layout(
         title={
-            "text": f"Flight envelope for minimum velocity for {active_selection.full_name}",
+            "text": f"Flight envelope for minimum airspeed for {active_selection.full_name}",
             "font": {"size": 25},
             "xanchor": "center",
             "yanchor": "top",
