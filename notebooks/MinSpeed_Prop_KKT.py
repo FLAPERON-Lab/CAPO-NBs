@@ -75,9 +75,7 @@ def _(ac_table, data, mo):
         value=0.5,
     )
 
-    dT_slider = mo.ui.slider(
-        start=0, stop=1, step=0.1, label=r"$\delta_T$", value=0.5
-    )
+    dT_slider = mo.ui.slider(start=0, stop=1, step=0.1, label=r"$\delta_T$", value=0.5)
 
     m_slider = mo.ui.slider(start=0, stop=1, step=0.1, label=r"", show_value=True)
 
@@ -325,6 +323,7 @@ def _(atmos, np):
             where=V != 0,
         )
         return deltaT
+
     return (horizontal_constraint_minspeed,)
 
 
@@ -425,7 +424,7 @@ def _(
                 colorscale="viridis",
                 cmax=a,
                 cmin=0,
-                colorbar={"title": "Velocity"},
+                colorbar={"title": "Velocity (m/s)"},
             ),
             go.Scatter3d(
                 x=constraint,
@@ -497,7 +496,9 @@ def _(
 
 @app.cell(hide_code=True)
 def _(V_slider, dT_slider, mo):
-    mo.md(f"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([V_slider, dT_slider])}""")
+    mo.md(
+        f"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([V_slider, dT_slider])}"""
+    )
     return
 
 
@@ -653,6 +654,7 @@ def _(atmos, np):
             np.sqrt(0.5 * atmos.rho0 * S * CLmax) * Pa0 * E_S
         )
         return condition
+
     return (maxlift_condition,)
 
 
@@ -680,9 +682,7 @@ def _(
 
     CLopt_maxlift = np.where(maxlift_mask, CLmax, np.nan)
 
-    velocity_maxlift_harray = velocity(
-        W_selected, h_array, CLopt_maxlift, S, cap=False
-    )
+    velocity_maxlift_harray = velocity(W_selected, h_array, CLopt_maxlift, S, cap=False)
 
     dTopt_maxlift = horizontal_constraint_minspeed(
         W_selected, h_array, CD0, K, velocity_maxlift_harray, S, Pa0, beta
@@ -737,7 +737,7 @@ def _(
                 colorscale="viridis",
                 zmin=0,
                 zmax=a_sl,
-                colorbar={"title": "Velocity"},
+                colorbar={"title": "Velocity (m/s)"},
             ),
             go.Scatter(
                 y=constraint,
@@ -867,7 +867,6 @@ def _(
         row=1,
         col=1,
     )
-
 
     # Second subplot: V vs h
     fig_maxlift_optimum.update_xaxes(
@@ -1220,7 +1219,7 @@ def _(
                 colorscale="viridis",
                 zmin=0,
                 zmax=a_sl,
-                colorbar={"title": "Velocity"},
+                colorbar={"title": "Velocity (m/s)"},
             ),
             go.Scatter(
                 y=constraint,
@@ -1351,7 +1350,6 @@ def _(
         col=1,
     )
 
-
     # Second subplot: V vs h
     fig_maxthrust_optimum.update_xaxes(
         title_text=r"$V\:(\text{m/s})$",
@@ -1442,6 +1440,7 @@ def _(atmos, np):
 
         h = atmos.altitude(sigma)
         return np.where(h > 0, h, np.nan)
+
     return (maxlift_thrust_altitude,)
 
 
@@ -1479,7 +1478,6 @@ def _(
         np.nanmax(velocity_CLarray_maxlift_thrust_h),
         velocity_CLarray_maxlift_thrust_h,
     )[::-1]
-
 
     dTopt_maxlift_thrust = 1
 
@@ -1546,7 +1544,7 @@ def _(
                 colorscale="viridis",
                 zmin=0,
                 zmax=a,
-                colorbar={"title": "Velocity"},
+                colorbar={"title": "Velocity (m/s)"},
             ),
             go.Scatter(
                 y=constraint_maxlift_thrust,
@@ -1716,7 +1714,9 @@ def _(fig_maxlift_thrust_optimum):
 
 @app.cell
 def _(mo):
-    mo.md(r"""Now after deriving all the optima for each condition we can summarize the flight envelopes in one graph, as shown below. Experiment with the weight of the aircrarft to understand how the theoretical ceiling for minimum speed moves in the graph.""")
+    mo.md(
+        r"""Now after deriving all the optima for each condition we can summarize the flight envelopes in one graph, as shown below. Experiment with the weight of the aircrarft to understand how the theoretical ceiling for minimum speed moves in the graph."""
+    )
     return
 
 

@@ -298,7 +298,7 @@ def _(
                 colorscale="viridis",
                 cmax=a,
                 cmin=0,
-                colorbar={"title": "Velocity"},
+                colorbar={"title": "Velocity (m/s)"},
             ),
             go.Scatter3d(
                 x=CL_array,
@@ -339,6 +339,7 @@ def _(
             ),
         ]
     )
+    camera = dict(eye=dict(x=1.35, y=1.35, z=1.35))
 
     fig_initial.update_layout(
         scene=dict(
@@ -352,13 +353,14 @@ def _(
     )
 
     fig_initial.update_layout(
+        scene_camera=camera,
         title={
-            "text": f"Minimum velocity domain for {active_selection.full_name}",
+            "text": f"Minimum airspeed domain for {active_selection.full_name}",
             "font": {"size": 25},
             "xanchor": "center",
             "yanchor": "top",
             "x": 0.5,
-        }
+        },
     )
 
     mo.output.clear()
@@ -746,7 +748,7 @@ def _(
                 zsmooth="best",
                 zmin=0,
                 zmax=a,
-                colorbar={"title": "Velocity"},
+                colorbar={"title": "Velocity (m/s)"},
             ),
             go.Scatter(
                 x=CL_array,
@@ -1048,7 +1050,7 @@ def _(
                 colorscale="viridis",
                 zmin=0,
                 zmax=a,
-                colorbar={"title": "Velocity"},
+                colorbar={"title": "Velocity (m/s)"},
             ),
             go.Scatter(
                 x=CL_array,
@@ -1375,7 +1377,7 @@ def _(
                 colorscale="viridis",
                 zmin=0,
                 zmax=a,
-                colorbar={"title": "Velocity"},
+                colorbar={"title": "Velocity (m/s)"},
             ),
             go.Scatter(
                 x=CL_array,
@@ -1552,7 +1554,7 @@ def _(np, velocity_maxlift_harray, velocity_maxthrust_harray):
     return (final_velocity_flightenvelope,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(
     a_harray,
     active_selection,
