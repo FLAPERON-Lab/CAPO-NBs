@@ -151,6 +151,20 @@ def _(mo):
     return
 
 
+@app.cell
+def _(CD0, CL_grid, K, Ta0, W_selected, beta, dT_grid, np):
+    rhoratio_surface = (
+        W_selected
+        / (dT_grid * Ta0)
+        * ((CD0 + K * CL_grid**2)
+        / CL_grid)
+    )**(1/beta)
+
+    min_colorbar = np.nanmin(rhoratio_surface ** beta)
+    max_colorbar = 1
+    return max_colorbar, min_colorbar, rhoratio_surface
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
@@ -188,11 +202,14 @@ def _(
     CL_array,
     CL_slider,
     active_selection,
+    beta,
     dT_array,
     dT_slider,
     go,
     idx_CL,
     idx_dT,
+    max_colorbar,
+    min_colorbar,
     mo,
     rhoratio_surface,
     xy_lowerbound,
@@ -206,18 +223,18 @@ def _(
             go.Surface(
                 x=CL_array,
                 y=dT_array,
-                z=rhoratio_surface,
+                z=rhoratio_surface ** beta,
                 opacity=0.9,
                 name="σ<sup>β</sup>",
                 colorscale="viridis",
-                cmin=0,
-                cmax=1,
+                cmin=min_colorbar,
+                cmax=max_colorbar,
                 colorbar={"title": "σ (-)"},
             ),
             go.Scatter3d(
                 x=[CL_slider.value],
                 y=[dT_slider.value],
-                z=[rhoratio_surface[idx_dT, idx_CL]],
+                z=[rhoratio_surface[idx_dT, idx_CL] ** beta],
                 mode="markers",
                 showlegend=False,
                 marker=dict(
@@ -378,20 +395,6 @@ def _(active_selection, atmos, m_slider):
         + (active_selection["MTOM"] - active_selection["OEM"]) * m_slider.value
     ) * atmos.g0  # Netwons
     return (W_selected,)
-
-
-@app.cell
-def _(CD0, CL_grid, K, Ta0, W_selected, dT_grid, np):
-    eps = 1e-5
-    rhoratio_surface = (
-        W_selected
-        / (np.maximum(dT_grid, eps) * Ta0)
-        * (CD0 + K * CL_grid**2)
-        / np.maximum(CL_grid, eps)
-    )
-
-    # rhoratio_surface = np.where(rhoratio_surface > 3, np.nan, rhoratio_surface)
-    return eps, rhoratio_surface
 
 
 @app.cell(hide_code=True)
@@ -581,7 +584,6 @@ def _(
     atmos,
     beta,
     dT_grid,
-    eps,
     maxthrust_altitude,
     np,
     velocity,
@@ -606,19 +608,23 @@ def _(
 
     rhoratio_surface_maxthrust = (
         W_selected
-        / (np.maximum(dT_grid, eps) * Ta0)
-        * (CD0 + K * CL_grid**2)
-        / np.maximum(CL_grid, eps)
-    )
+        / (dT_grid * Ta0)
+        * ((CD0 + K * CL_grid**2)
+        / CL_grid)
+    )**(1/beta)
 
     if np.isnan(maxthrust_sigma):
         CLopt_maxthrust = np.nan
-    
+
+    max_colorbar_maxthrust = 1
+    min_colorbar_maxthrust = np.nanmin(rhoratio_surface_maxthrust ** beta)
     return (
         CLopt_maxthrust,
         dTopt_maxthrust,
+        max_colorbar_maxthrust,
         maxthrust_h,
         maxthrust_sigma,
+        min_colorbar_maxthrust,
         rhoratio_surface_maxthrust,
         velocity_maxthrust_selected,
     )
@@ -637,8 +643,10 @@ def _(
     go,
     h_array,
     make_subplots,
+    max_colorbar_maxthrust,
     maxthrust_h,
     maxthrust_sigma,
+    min_colorbar_maxthrust,
     mo,
     rhoratio_surface_maxthrust,
     velocity_maxthrust_selected,
@@ -655,13 +663,13 @@ def _(
             go.Heatmap(
                 x=CL_array,
                 y=dT_array,
-                z=rhoratio_surface_maxthrust,
+                z=rhoratio_surface_maxthrust ** beta,
                 opacity=0.9,
                 name="σ<sup>β</sup> (-)",
                 colorscale="viridis",
                 zsmooth="best",
-                zmin=0,
-                zmax=1,
+                zmin=min_colorbar_maxthrust,
+                zmax=max_colorbar_maxthrust,
                 colorbar={"title": "σ<sup>β</sup> (-)"},
             ),
             go.Scatter(
@@ -874,7 +882,6 @@ def _(
     atmos,
     beta,
     dT_grid,
-    eps,
     maxlift_thrust_altitude,
     np,
     velocity,
@@ -899,18 +906,24 @@ def _(
 
     rhoratio_surface_maxlift_thrust = (
         W_selected
-        / (np.maximum(dT_grid, eps) * Ta0)
+        / (dT_grid * Ta0)
         * (CD0 + K * CL_grid**2)
-        / np.maximum(CL_grid, eps)
-    )
+        / CL_grid
+    )**(1/beta)
 
     if np.isnan(maxlift_thrust_sigma):
         CLopt_maxlift_thrust = np.nan
+
+    min_colorbar_maxlift_thrust = np.nanmin(rhoratio_surface_maxlift_thrust ** beta)
+
+    max_colorbar_maxlift_thrust = 1
     return (
         CLopt_maxlift_thrust,
         dTopt_maxlift_thrust,
+        max_colorbar_maxlift_thrust,
         maxlift_thrust_h,
         maxlift_thrust_sigma,
+        min_colorbar_maxlift_thrust,
         rhoratio_surface_maxlift_thrust,
         velocity_maxlift_thrust_selected,
     )
@@ -929,8 +942,10 @@ def _(
     go,
     h_array,
     make_subplots,
+    max_colorbar_maxlift_thrust,
     maxlift_thrust_h,
     maxlift_thrust_sigma,
+    min_colorbar_maxlift_thrust,
     mo,
     rhoratio_surface_maxlift_thrust,
     velocity_maxlift_thrust_selected,
@@ -947,13 +962,13 @@ def _(
             go.Heatmap(
                 x=CL_array,
                 y=dT_array,
-                z=rhoratio_surface_maxlift_thrust,
+                z=rhoratio_surface_maxlift_thrust ** beta,
                 opacity=0.9,
                 name="σ<sup>β</sup> (-)",
                 colorscale="viridis",
                 zsmooth='best',
-                zmin=0,
-                zmax=1,
+                zmin=min_colorbar_maxlift_thrust,
+                zmax=max_colorbar_maxlift_thrust,
                 colorbar={'title' : "σ<sup>β</sup> (-)"}
             ),
             go.Scatter(
