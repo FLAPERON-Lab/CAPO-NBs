@@ -4,6 +4,7 @@ from functools import cache
 from core import atmos
 import numpy as np
 import polars as pl
+from path import Path
 
 
 # Compute velocity as a function of C_L
@@ -160,12 +161,20 @@ def available_aircrafts(data_dir, verbose=False, round=True, ac_type=None):
 
 
 class Aircraft:
-    def __init__(self, data_dir, ac_ID):
-        df_aircrafts = pl.read_csv(data_dir).to_pandas()
+    def __init__(self, data_dir, ac_ID, custom=False):
+        if custom:
+            self.df_dictionary = {}
+            custom_dir = Path(data_dir)
+            for item in custom_dir.iterdir():
+                if item.is_file():
+                    df = pl.read_csv(item).to_pandas()
+                    self.df_dictionary[f"{item.name.strip('.csv')}"] = df
 
-        self.ac_data = df_aircrafts[df_aircrafts["ID"] == ac_ID]
-        self.ac_ID = ac_ID
-        self.ac_type = self.ac_data["type"].values
+        else:
+            df_aircrafts = pl.read_csv(data_dir).to_pandas()
+            self.ac_data = df_aircrafts[df_aircrafts["ID"] == ac_ID]
+            self.ac_ID = ac_ID
+            self.ac_type = self.ac_data["type"].values
 
     def thrust(self, V, h, deltaT):
         beta = self.ac_data["beta"]
