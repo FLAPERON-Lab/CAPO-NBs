@@ -42,6 +42,10 @@ def drag(h, S, CD0, K, CL, V):
     return 0.5 * rho * V**2 * S * CD
 
 
+def drag_polar(CD0, K, CL):
+    return CD0 + K * np.pow(CL, 2)
+
+
 def horizontal_constraint(
     W, h, CD0, K, CL, plant_parameter, beta, V=0, S=0, D=0, type="jet"
 ):
@@ -207,11 +211,6 @@ class Aircraft:
             P = deltaT * Pa
 
             return Pa, P
-
-    def drag_polar(self, CL):
-        cd0 = self.ac_data["CD0"].item()
-        k = self.ac_data["K"].item()
-        return cd0 + k * CL**2
 
     def fuel_flow(self, V, h, deltaT):
         if self.ac_type == "Simplified Jet":

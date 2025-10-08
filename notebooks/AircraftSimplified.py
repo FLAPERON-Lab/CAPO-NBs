@@ -1,12 +1,19 @@
 import marimo
 
-__generated_with = "0.14.16"
+__generated_with = "0.16.5"
 app = marimo.App(width="medium")
 
 with app.setup:
     # Initialization code that runs before all other cells
     import marimo as mo
     from core import _defaults
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+    import plotly.express as px
+    import numpy as np
+    from core import aircraft as ac
+    from core.aircraft import drag_polar
+    from core import atmos
 
     _defaults.FILEURL = _defaults.get_url()
 
@@ -88,7 +95,7 @@ def _():
 
 
 @app.cell(hide_code=True)
-def _(ac):
+def _():
     data = ac.available_aircrafts(data_dir, verbose=True).round(decimals=4)
 
     cols_4dec = [
@@ -142,13 +149,13 @@ def _():
 
 
 @app.cell
-def _(ac, aircraft_list):
+def _(aircraft_list):
     fleet = {ID: ac.Aircraft(data_dir, ac_ID=ID) for ID in aircraft_list}
     return (fleet,)
 
 
 @app.cell
-def _(make_subplots):
+def _():
     fig = make_subplots(rows=1, cols=2, shared_xaxes=True)
     return (fig,)
 
@@ -226,20 +233,16 @@ def _(show_available, show_required):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(
-    atmos,
     axis_limits,
     delta_t,
     drag_condition,
     fig,
     fix_yaxis,
     fleet,
-    go,
     h_slider,
     m_slider,
-    np,
-    px,
     show_available,
     show_required,
     speed,
@@ -354,7 +357,10 @@ def _(
             elif drag_condition.value == "Landing":
                 CL = obj.ac_data["CLmax_ld"].values
 
-            CD = obj.drag_polar(CL=CL)
+            CD0 = obj.ac_data['CD0'].values
+            K = obj.ac_data['K'].values
+
+            CD = drag_polar(CD0, K, CL)
 
             drag = CD * 0.5 * atmos.rho(h) * TAS**2 * obj.ac_data["S"].values / 1e3
 
@@ -435,18 +441,6 @@ def _():
         "Atmosphere.py", "Atmosphere", "AircraftCustom.py", "Custom Aircraft Models"
     )
     return
-
-
-@app.cell
-def _():
-    import plotly.graph_objects as go
-    from plotly.subplots import make_subplots
-    import plotly.express as px
-    import numpy as np
-    from core import aircraft as ac
-    from core import atmos
-    import polars as pl
-    return ac, atmos, go, make_subplots, np, px
 
 
 if __name__ == "__main__":
