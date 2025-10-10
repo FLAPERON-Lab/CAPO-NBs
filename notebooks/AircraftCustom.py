@@ -128,7 +128,7 @@ def _(ac_dict, meshgrid):
     M_range_KvsM = np.linspace(np.nanmin(M_KvsM), np.nanmax(M_KvsM), meshgrid)
     K_grid = ac_dict["KvsM"].pivot(index="CL", columns="M", values="K").values
     CL_range_KvsM = np.linspace(np.nanmin(CL_KvsM), np.nanmax(CL_KvsM), meshgrid)
-
+    CD0_max = np.max(CD0_CD0vsM)
     # Create interpolator
     compute_K_from_CL_M = RegularGridInterpolator(
         (CL_KvsM, M_KvsM), K_grid, method="linear"
@@ -163,6 +163,7 @@ def _(ac_dict, meshgrid):
 
         plot_list_KvsM.append(curve_KvsM)
     return (
+        CD0_max,
         CL_range_KvsM,
         M_range_KvsM,
         compute_CD0_from_M,
@@ -174,6 +175,7 @@ def _(ac_dict, meshgrid):
 
 @app.cell
 def _(
+    CD0_max,
     CL_range_KvsM,
     CL_slider,
     M_range_KvsM,
@@ -195,13 +197,19 @@ def _(
 
     K_funcM_CL_const = compute_K_from_CL_M(CL_const_M_domain)
     K_funcCL_M_const = compute_K_from_CL_M(M_const_CL_domain)
+    K_with_M_max = compute_K_from_CL_M(
+        (np.max(CL_range_KvsM), np.max(M_range_KvsM))
+    )
 
     CD = drag_polar(
         np.repeat(CD0_selected, len(K_funcCL_M_const)),
         K_funcCL_M_const,
         CL_range_KvsM,
     )
-    return CD, CL_selected, K_funcM_CL_const
+
+
+    CD_max = drag_polar(CD0_max, K_with_M_max, np.max(CL_range_KvsM))
+    return CD, CD_max, CL_selected, K_funcM_CL_const, M_selected
 
 
 @app.cell
@@ -288,16 +296,58 @@ def _(fig_KvsM):
 
 
 @app.cell
+def _(CD, CD_max, CL_range_KvsM, M_selected, ac_id):
+    fig_CDvsCL = go.Figure()
+
+    fig_CDvsCL.add_trace(
+        go.Scatter(
+            x=CL_range_KvsM,
+            y=CD,
+            name="𝑪<sub>𝑫₀</sub> for M = " + f"{M_selected}",
+            showlegend=True
+        )
+    )
+
+    fig_CDvsCL.update_xaxes(
+        title_text=r"$C_L \: 	\text{(-)}$",
+        showgrid=True,
+        gridcolor="#515151",
+        gridwidth=1,
+    )
+
+    fig_CDvsCL.update_yaxes(
+        title_text=r"$C_{D_0} \: 	\text{(-)}$",
+        showgrid=True,
+        gridcolor="#515151",
+        gridwidth=1,
+        range=[0, CD_max],
+    )
+
+    fig_CDvsCL.update_layout(
+        title={
+            "text": f"𝑪<sub>𝑫₀</sub> versus 𝑪<sub>𝑳</sub> for {ac_id.replace('_', ' ')}",
+            "font": {"size": 25},
+            "xanchor": "center",
+            "yanchor": "top",
+            "x": 0.5,
+        },
+    )
+
+    fig_CDvsCL.update_legends()
+
+    mo.output.clear()
+    return (fig_CDvsCL,)
+
+
+@app.cell
 def _(M_slider):
     M_slider
     return
 
 
 @app.cell
-def _(CD, CL_range_KvsM):
-    fig_CDvsCL = go.Figure()
-
-    fig_CDvsCL.add_trace(go.Scatter(x=CL_range_KvsM, y=CD))
+def _(fig_CDvsCL):
+    fig_CDvsCL
     return
 
 
