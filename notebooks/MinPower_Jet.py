@@ -1047,10 +1047,10 @@ def _():
     This concludes the analysis for the minimum power of a simplified jet aircraft in the lift-limited case. Below is a summary of the optima:
 
     $$
-    \boxed{C_L^* = C_{L_\mathrm{max}}}, \quad \boxed{\delta_T = \frac{W}{T_{a0}\sigma^\beta} \frac{1}{E_S}}, \quad \text{for} \quad C_{L_\mathrm{max}} \lt \sqrt{\frac{3C_{D_0}}{K}} \quad \text{and}\quad \frac{W}{\sigma^\beta} \lt T_{a0}E_S
+    \boxed{C_L^* = C_{L_\mathrm{max}}}, \quad \boxed{\delta_T^* = \frac{W}{T_{a0}\sigma^\beta} \frac{1}{E_S}}, \quad \text{for} \quad C_{L_\mathrm{max}} \lt \sqrt{\frac{3C_{D_0}}{K}} \quad \text{and}\quad \frac{W}{\sigma^\beta} \lt T_{a0}E_S
     $$
 
-    With the optimal value for minimum drag: 
+    With the optimal value for minimum power: 
 
     $$
     P^*_{\mathrm{min}} = DV = \frac{W^{3/2}}{\sigma^{1/2}}\frac{1}{E_S}\sqrt{\frac{2}{\rho_0SC_{L_\mathrm{max}}}}
@@ -1739,10 +1739,10 @@ def _():
     This concludes the analysis for the minimum power of a simplified jet aircraft in the thrust-limited case. Below is a summary of the optima:
 
     $$
-    \boxed{C_L^* = \frac{T_{a0}\sigma^\beta}{2KW}\left[1 +\sqrt{1- \left(\frac{W}{T_{a0}\sigma^\beta E_{\mathrm{max}}}\right)^2}\right]}, \quad \boxed{\delta_T = 1}, \quad \text{for} \quad \sqrt{\frac{C_{D_0}}{K}}\lt C_L^* \lt \sqrt{3} \sqrt{\frac{C_{D_0}}{K}} \quad \text{and}\quad \frac{\sqrt{3}}{2} T_{a0} E_{\mathrm{max}} \lt \frac{W}{\sigma^\beta} \lt T_{a0} E_{\mathrm{max}}
+    \boxed{C_L^* = \frac{T_{a0}\sigma^\beta}{2KW}\left[1 +\sqrt{1- \left(\frac{W}{T_{a0}\sigma^\beta E_{\mathrm{max}}}\right)^2}\right]}, \quad \boxed{\delta_T^* = 1}, \quad \text{for} \quad \sqrt{\frac{C_{D_0}}{K}}\lt C_L^* \lt \sqrt{3} \sqrt{\frac{C_{D_0}}{K}} \quad \text{and}\quad \frac{\sqrt{3}}{2} T_{a0} E_{\mathrm{max}} \lt \frac{W}{\sigma^\beta} \lt T_{a0} E_{\mathrm{max}}
     $$
 
-    With the optimal value for minimum drag: 
+    With the optimal value for minimum power: 
 
     $$
     P^*_{\mathrm{min}} = DV = \frac{W^{3/2}}{\sigma^{1/2}}\left(\frac{C_{D_0}+ K C_L^{*2}}{C_L^{*}}\right)\sqrt{\frac{2}{\rho_0 S C_L^*}}
@@ -2113,10 +2113,10 @@ def _():
     This concludes the analysis for the minimum power of a simplified jet aircraft in the lift-thrust limited case. Below is a summary of the optima:
 
     $$
-    \boxed{C_L^* = C_{L_\mathrm{max}}}, \quad \boxed{\delta_T = 1}, \quad \text{for} \quad \boxed{\text{FILL IN NEW DERIVATION}}
+    \boxed{C_L^* = C_{L_\mathrm{max}}}, \quad \boxed{\delta_T^* = 1}, \quad \text{for} \quad \boxed{\text{FILL IN NEW DERIVATION}}
     $$
 
-    With the optimal value for minimum drag: 
+    With the optimal value for minimum power: 
 
     $$
     P^*_{\mathrm{min}} = DV = \frac{W^{3/2}}{\sigma^{1/2}}\frac{1}{E_S}\sqrt{\frac{2}{\rho_0SC_{L_\mathrm{max}}}}
@@ -2543,9 +2543,9 @@ def _():
         r"""
     | Name | Condition | $C_L^*$ | $\delta_T^*$ | $D^*$ |
     |:-|:-------|:-------:|:------------:|:-------|
-    |Interior-optima    | $\displaystyle \quad C_L^* \lt C_{L_\mathrm{max}} \quad \text{and} \quad \frac{W}{\sigma^\beta} < T_{a0} E_\mathrm{max}$ | $\sqrt{\frac{C_{D_0}}{K}}$ | $\displaystyle \frac{2W}{T_{a0}\sigma^\beta}\sqrt{C_{D_0}K}$ | $\displaystyle 4 \sqrt{\frac{2W^3}{S\sigma\rho_0}}\sqrt[4]{\frac{C_{D_0} K^3}{27}}$ |
+    |Interior-optima    | $\displaystyle \quad C_L^* \lt C_{L_\mathrm{max}} \quad \text{and} \quad \frac{W}{\sigma^\beta} < T_{a0} E_\mathrm{max}$ | $\sqrt{\frac{3C_{D_0}}{K}}$ | $\displaystyle \frac{W}{E_{\mathrm{P}}}\frac{1}{T_{a0}\sigma^\beta}$ | $\displaystyle 4 \sqrt{\frac{2W^3}{S\sigma\rho_0}}\sqrt[4]{\frac{C_{D_0} K^3}{27}}$ |
     |Lift-limited    |  $\displaystyle C_{L_\mathrm{max}} \lt \sqrt{\frac{3C_{D_0}}{K}} \quad \text{and}\quad \frac{W}{\sigma^\beta} \lt T_{a0}E_S$ | $C_{L_\mathrm{max}}$ | $\displaystyle \frac{W}{T_{a0}\sigma^\beta} \frac{1}{E_S}$ | $\displaystyle \frac{W^{3/2}}{\sigma^{1/2}}\frac{1}{E_S}\sqrt{\frac{2}{\rho_0SC_{L_\mathrm{max}}}}$|
-    |Thrust-limited    | $\displaystyle \sqrt{\frac{C_{D_0}}{K}}\lt C_L^* \lt \sqrt{3} \sqrt{\frac{C_{D_0}}{K}} \quad \text{and}\quad \frac{\sqrt{3}}{2} T_{a0} E_{\mathrm{max}} \lt \frac{W}{\sigma^\beta} \lt T_{a0} E_{\mathrm{max}}$ | $\displaystyle \frac{T_{a0}\sigma^\beta}{2KW}\left[1 +\sqrt{1- \left(\frac{W}{T_{a0}\sigma^\beta E_{\mathrm{max}}}\right)^2}\right]$ | $1$ | $\displaystyle 2W\sqrt{KC_{D_0}}=\frac{W}{E_{\mathrm{max}}}$ |
+    |Thrust-limited    | $\displaystyle \sqrt{\frac{C_{D_0}}{K}}\lt C_L^* \lt \sqrt{3} \sqrt{\frac{C_{D_0}}{K}} \quad \text{and}\quad \frac{\sqrt{3}}{2} T_{a0} E_{\mathrm{max}} \lt \frac{W}{\sigma^\beta} \lt T_{a0} E_{\mathrm{max}}$ | $\displaystyle \frac{T_{a0}\sigma^\beta}{2KW}\left[1 +\sqrt{1- \left(\frac{W}{T_{a0}\sigma^\beta E_{\mathrm{max}}}\right)^2}\right]$ | $1$ | $\displaystyle \frac{W^{3/2}}{\sigma^{1/2}}\left(\frac{C_{D_0}+ K C_L^{*2}}{C_L^{*}}\right)\sqrt{\frac{2}{\rho_0 S C_L^*}}$ |
     |Thrust-lift limited    |  $\displaystyle \text{NEW DERIVATION}$ | $C_{L_\mathrm{max}}$ | $1$ | $\displaystyle \frac{W^{3/2}}{\sigma^{1/2}}\frac{1}{E_S}\sqrt{\frac{2}{\rho_0SC_{L_\mathrm{max}}}}$|
     """
     ).center()

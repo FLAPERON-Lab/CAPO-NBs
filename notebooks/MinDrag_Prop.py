@@ -253,7 +253,9 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    mo.md(r"""Below you can see the graph of the domain $0 \lt C_L \lt C_{L_{\mathrm{max}}}$ and $0 \lt \delta_T \lt 1$, with the surface $D$ and the contraint $g_1$ in red. Choose a simplified jet aircraft of your liking in the database below.""")
+    mo.md(
+        r"""Below you can see the graph of the domain $0 \leq C_L \leq C_{L_{\mathrm{max}}}$ and $0 \leq \delta_T \leq 1$, with the surface $D$ and the contraint $g_1$ in red. Choose a simplified jet aircraft of your liking in the database below."""
+    )
     return
 
 
@@ -278,7 +280,9 @@ def _(ac, data_dir, mo):
 
 @app.cell
 def _(CL_slider, dT_slider, mo):
-    mo.md(rf"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}""")
+    mo.md(
+        rf"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}"""
+    )
     return
 
 
@@ -1377,7 +1381,16 @@ def _(CD0, K, Pa0, S, W_selected, atmos, beta, h_array, np):
     def maxthrust_condition(CD0, K, CLstar, CLmax):
         CLstar = np.array(CLstar)  # ensure CLstar is an array
         sigma = atmos.rhoratio(h_array)
-        condition = (K*CLstar ** 2 - Pa0 * sigma**(beta+ 0.5) / (2 * W_selected **1.5) * np.sqrt(atmos.rho0 * S / 2) * CLstar**1.5 - CD0 < 0) & (CLstar < CLmax)
+        condition = (
+            K * CLstar**2
+            - Pa0
+            * sigma ** (beta + 0.5)
+            / (2 * W_selected**1.5)
+            * np.sqrt(atmos.rho0 * S / 2)
+            * CLstar**1.5
+            - CD0
+            < 0
+        ) & (CLstar < CLmax)
 
         return condition
     return maxthrust_condition, maxthrust_solver
@@ -2053,7 +2066,9 @@ def _(fig_maxlift_thrust_optimum):
 
 @app.cell
 def _(mo):
-    mo.md(r"""Now after deriving all the optima for each condition we can summarize the flight envelopes in one graph, as shown below. Experiment with the weight of the aircrarft to understand how the theoretical ceiling for minimum power moves in the graph.""")
+    mo.md(
+        r"""Now after deriving all the optima for each condition we can summarize the flight envelopes in one graph, as shown below. Experiment with the weight of the aircrarft to understand how the theoretical ceiling for minimum power moves in the graph."""
+    )
     return
 
 
@@ -2177,7 +2192,7 @@ def _(
 
     fig_final_flightenv.update_layout(
         xaxis=dict(
-             title=r"$V \: \text{(m/s)}$",
+            title=r"$V \: \text{(m/s)}$",
             range=[xy_lowerbound, atmos.a(0) + 15],
             showgrid=True,
             gridcolor="#515151",
@@ -2214,7 +2229,9 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    mo.md(r"""This concludes the minimum drag derivation, find below the flight envelope showing the operational conditions where the simplified propeller aircraft can fly at minimum drag. The graph below simply concatenates all the solutions explored in this notebook!""")
+    mo.md(
+        r"""This concludes the minimum drag derivation, find below the flight envelope showing the operational conditions where the simplified propeller aircraft can fly at minimum drag. The graph below simply concatenates all the solutions explored in this notebook!"""
+    )
     return
 
 

@@ -122,26 +122,6 @@ def _():
 
 
 @app.cell(hide_code=True)
-def _():
-    # Database cell (1)
-
-    data = ac.available_aircrafts(data_dir, ac_type="Propeller")
-
-    ac_table = mo.ui.table(
-        data=data,
-        pagination=True,
-        show_column_summaries=False,
-        selection="single",
-        initial_selection=[0],
-        page_size=4,
-        show_data_types=False,
-    )
-
-    ac_table
-    return ac_table, data
-
-
-@app.cell(hide_code=True)
 def _(ac_table, data):
     # Interactive elements
 
@@ -160,7 +140,9 @@ def _(ac_table, data):
         value=0.5,
     )
 
-    dT_slider = mo.ui.slider(start=0, stop=1, step=0.1, label=r"$\delta_T$", value=0.5)
+    dT_slider = mo.ui.slider(
+        start=0, stop=1, step=0.1, label=r"$\delta_T$", value=0.5
+    )
 
     m_slider = mo.ui.slider(start=0, stop=1, step=0.1, label=r"", show_value=True)
 
@@ -367,24 +349,6 @@ def _(
 
 
 @app.cell(hide_code=True)
-def _(CL_slider, dT_slider):
-    mo.md(rf"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}""")
-    return
-
-
-@app.cell
-def _(variables_stack):
-    variables_stack
-    return
-
-
-@app.cell
-def _(fig_initial):
-    fig_initial
-    return
-
-
-@app.cell(hide_code=True)
 def _():
     mo.md(
         r"""
@@ -398,7 +362,7 @@ def _():
     Moreover, in previous analyses we found $\delta_T=C_L=0$ does not correspond to a sensible solution, thus we can write:
 
     $$
-    0\lt \delta_T \le 1 \quad \land \quad  0\lt C_L\le C_{L_{\mathrm{max}}}
+    0\lt \delta_T \le 1 \quad \text{and} \quad  0\lt C_L\le C_{L_{\mathrm{max}}}
     $$
 
     Notice the open interval in the lower bounds.
@@ -423,8 +387,50 @@ def _():
         & \quad h_2 = \delta_T - 1 \le 0 \\
     \end{aligned}
     $$
+
+    Below you can see the graph of the domain $0 \lt C_L \leq C_{L_{\mathrm{max}}}$ and $0 \lt \delta_T \leq 1$, with the surface $P$ and the constraint $g_1$ in red. Choose a simplified jet aircraft of your liking in the database below.
     """
     )
+    return
+
+
+@app.cell(hide_code=True)
+def _():
+    # Database cell (1)
+
+    data = ac.available_aircrafts(data_dir, ac_type="Propeller")
+
+    ac_table = mo.ui.table(
+        data=data,
+        pagination=True,
+        show_column_summaries=False,
+        selection="single",
+        initial_selection=[0],
+        page_size=4,
+        show_data_types=False,
+    )
+
+    ac_table
+    return ac_table, data
+
+
+@app.cell(hide_code=True)
+def _(CL_slider, dT_slider):
+    mo.md(
+        rf"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}"""
+    )
+    return
+
+
+@app.cell
+def _(variables_stack):
+    variables_stack
+    return
+
+
+@app.cell
+def _(fig_initial):
+    fig_initial
     return
 
 
@@ -434,7 +440,7 @@ def _():
         r"""
     ### Lagrangian function and KKT conditions
 
-    The Lagrangian function combines the objective function with eqaulity constraints using Lagrange multipliers ($\lambda_i$) and inequality constraints using KKT multipliers ($\mu_j$).
+    The Lagrangian function combines the objective function with equality constraints using Lagrange multipliers ($\lambda_i$) and inequality constraints using KKT multipliers ($\mu_j$).
 
     $$
     \begin{aligned}
@@ -454,7 +460,7 @@ def _():
 def _():
     mo.md(
         r"""
-    A necessary condition for an optimal solution of the optimization problem $(C_L^*, \delta_T^*)$ to exist, the multipliers $\lambda_1, \mu_1, \mu_2$ have to meet the following conditions:
+    The multipliers $\lambda_1, \mu_1, \mu_2$ have to meet the following conditions for an optimal solution of the optimization problem $(C_L^*, \delta_T^*)$ to exist.
 
     **A. Stationarity ($\nabla L = 0$):** the gradient of the Lagrangian with respect to each decision variable must be zero
 
@@ -511,7 +517,7 @@ def _():
         r"""
     ## KKT analysis
 
-    We can now proceed to systematically examine the conditions where various inequality constraints are active 
+    We can now proceed to examine systematically the conditions where various inequality constraints are active 
     or inactive.
 
     ### _Interior solutions_ 
@@ -541,7 +547,7 @@ def _():
     $$
 
 
-    The optimum $\delta_T$ value is obtained from primal feasibility constraint (3), using the velocity for minimum power we find:
+    The optimum $\delta_T$ value is obtained from primal feasibility constraint (3). Using the velocity for minimum power, we find:
 
     $$
     \delta_T^* = \frac{W}{E_P}\frac{V_P}{P_{a0}\sigma^\beta}
@@ -552,7 +558,7 @@ def _():
     This is valid for:  
 
     $$
-    \delta_T^*\lt 1 \Leftrightarrow \frac{W^{3/2}}{\sigma^{\beta+1/2}} \lt P_{a0} E_P \sqrt{\frac{\rho_0SC_{L_P}}{2}} \;  = P_{a0} E_P \sqrt{\frac{\rho_0 S}{2}} \sqrt[4]{\frac{3 C_{D_0}}{K}}
+    \delta_T^*\lt 1 \quad \Leftrightarrow\quad  \frac{W^{3/2}}{\sigma^{\beta+1/2}} \lt P_{a0} E_P \sqrt{\frac{\rho_0SC_{L_P}}{2}} \;  = P_{a0} E_P \sqrt{\frac{\rho_0 S}{2}} \sqrt[4]{\frac{3 C_{D_0}}{K}}
     $$
     """
     )
@@ -563,11 +569,25 @@ def _():
 def _():
     mo.md(
         r"""
-    Finally, the optimum for the interior of the domain is thus:
+    The value of the objective function, power, is calculated as:
 
     $$
-    \boxed{C_L^* = \sqrt{\frac{3C_{D_0}}{K}} = \sqrt{3}C_{L_E}} \quad \land \quad \boxed{\delta_T^* = \frac{W}{E_P}\frac{V_P}{P_{a0}\sigma^\beta}} \qquad \mathrm{with} \quad V_P = \sqrt{\frac{2W}{\rho S}}\sqrt[4]{\frac{K}{3C_{D_0}}} \qquad \mathrm{for} \quad \frac{W^{3/2}}{\sigma^{\beta+1/2}} \lt P_{a0} E_P \sqrt{\frac{\rho_0 S}{2}} \sqrt[4]{\frac{3 C_{D_0}}{K}}
+    P^*_{\mathrm{min}} = DV = 4 \sqrt{\frac{2W^3}{S\sigma\rho_0}}\sqrt[4]{\frac{C_{D_0} K^3}{27}}
     $$
+
+    This concludes the analysis for the minimum power of a simplified propeller aircraft in the interior case. Below is a summary of the optima:
+
+    $$
+    \boxed{C_L^* =  \sqrt{\frac{3C_{D_0}}{K}}}, \quad \boxed{\delta_T^* = \frac{W}{E_P}\frac{V_P}{P_{a0}\sigma^\beta}}, \quad \text{with} \quad V_P = \sqrt{\frac{2W}{\rho S}}\sqrt[4]{\frac{K}{3C_{D_0}}} \quad \text{for} \quad C_{L}^* \lt C_{L_\mathrm{max}} \quad \text{and}\quad \frac{W^{3/2}}{\sigma^{\beta+1/2}} \lt P_{a0} E_P \sqrt{\frac{\rho_0 S}{2}} \sqrt[4]{\frac{3 C_{D_0}}{K}}
+    $$
+
+    With the optimal value for minimum power: 
+
+    $$
+    P^*_{\mathrm{min}} = DV = 4 \sqrt{\frac{2W^3}{S\sigma\rho_0}}\sqrt[4]{\frac{C_{D_0} K^3}{27}}
+    $$
+
+    Below is the performance diagram for power and drag, the optimization domain with the objective function as a surface plot, and finally, on the bottom right, the flight envelope where the optima can be achieved.
     """
     )
     return
@@ -638,7 +658,7 @@ def _(
     )
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(
     CL_array,
     CLopt_interior_selected,
@@ -872,7 +892,7 @@ def _():
 def _():
     mo.md(
         r"""
-    This means that, if we design an aircraft such that its $C_{L_P}$ is lower than its stall lift coefficient, then we  the minimum power required will be obtained at stall, because the aircraft is not able to fly at $C_{L_P}$ in steady level flight.
+    This means that, if we design an aircraft such that its $C_{L_P}$ is lower than its stall lift coefficient, then the minimum power required will be obtained at stall, because the aircraft is not able to fly at $C_{L_P}$ in steady level flight.
     In other words, an aircraft so designed would only be able to fly on the right branch of the power performance diagram, because the stall speed would be higher than the speed for minimum power. Therefore, the effective minimum power flyable in steady level flight would be obtained at the stall speed.
     """
     )
@@ -909,11 +929,25 @@ def _():
 def _():
     mo.md(
         r"""
-    Finally, the optimum for the lift-limited case is:
+    The value of the objective function, power, is calculated as:
 
     $$
-    \boxed{C_L^* = C_{L_{\mathrm{max}}}} \quad \land \quad \boxed{\delta_T^* = \frac{W}{E_S}\frac{V_S}{P_{a0}\sigma^\beta}} \qquad \mathrm{with} \quad V_S= \sqrt{\frac{2W}{\rho S C_{L_{\mathrm{max}}}}} \qquad \mathrm{for} \quad \frac{W^{3/2}}{\sigma^{\beta+1/2}} \lt  \; P_{a0} \,E_S\sqrt{\frac{1}{2}\rho_0SC_{L_{\mathrm{max}}}}
+    P^*_{\mathrm{min}} = DV = \frac{W}{E_S}V_S
     $$
+
+    This concludes the analysis for the minimum power of a simplified propeller aircraft in the lift-limited case. Below is a summary of the optima:
+
+    $$
+    \boxed{C_L^* = C_{L_{\mathrm{max}}}}, \quad \boxed{\delta_T^* = \frac{W}{E_S}\frac{V_S}{P_{a0}\sigma^\beta}}, \quad \text{for} \quad C_{L}^* \lt \sqrt{\frac{3C_{D_0}}{K}} \quad \text{and}\quad \frac{W^{3/2}}{\sigma^{\beta+1/2}} \lt  \; P_{a0} \,E_S\sqrt{\frac{1}{2}\rho_0SC_{L_{\mathrm{max}}}}
+    $$
+
+    With the optimal value for minimum power: 
+
+    $$
+    P^*_{\mathrm{min}}= \frac{W^{3/2}}{\sigma^{1/2}E_S}\sqrt{\frac{2}{\rho_0 S C_{L_\mathrm{max}}}}
+    $$
+
+    Below is the performance diagram for power and drag, the optimization domain with the objective function as a surface plot, and finally, on the bottom right, the flight envelope where the optima can be achieved.
     """
     )
     return
@@ -1204,22 +1238,14 @@ def _():
     $$
     C_L^* = \sqrt{\frac{3C_{D_0}}{K}} = \sqrt{3}C_{L_E} = C_{L_P}
     $$
-    """
-    )
-    return
 
-
-@app.cell(hide_code=True)
-def _():
-    mo.md(
-        r"""
     The condition for which this is true is found using the primal feasibility constraint (3). 
 
     $$
     \frac{W^{3/2}}{\sigma^{\beta+1/2}} = P_{a0} E_P \sqrt{\frac{\rho_0SC_{L_P}}{2}} \;  = P_{a0} E_P \sqrt{\frac{\rho_0 S}{2}} \sqrt[4]{\frac{3 C_{D_0}}{K}}
     $$
 
-    This can be compared with what we found in the interior of the domain, showing the thrust limited case represents the limit case of the interior optima.
+    This can be compared with what we found in the interior of the domain, showing the thrust-limited case represents the limit case of the interior optima.
     """
     )
     return
@@ -1229,11 +1255,25 @@ def _():
 def _():
     mo.md(
         r"""
-    Finally, the optimum for the thrust-limited case is:
+    The value of the objective function, power, is calculated as:
 
     $$
-    \boxed{C_L^* = C_{L_P}} \quad \land \quad \boxed{\delta_T^* = 1} \qquad  \mathrm{for} \quad \frac{W^{3/2}}{\sigma^{\beta+1/2}} = \sqrt{\frac{3}{2}\rho_0 S \frac{C_{D_0}}{K}} \; P_{a0} \,E_P
+    P^*_{\mathrm{min}} = DV = \frac{W}{E_P}\sqrt{\frac{W}{S}\frac{2}{\rho}\frac{1}{C_{L_P}}} = \frac{W^{3/2}}{E_P\sigma^{1/2}}\sqrt[4]{\frac{K}{3C_{D_0}}}\sqrt{\frac{2}{\rho_0S}}
     $$
+
+    This concludes the analysis for the minimum power of a simplified propeller aircraft in the thrust-limited case. Below is a summary of the optima:
+
+    $$
+    \boxed{C_L^* = \sqrt{\frac{3C_{D_0}}{K}}}, \quad \boxed{\delta_T^* =1}, \quad \text{for} \quad C_{L}^* \lt C_{L_\mathrm{max}} \quad \text{and}\quad \frac{W^{3/2}}{\sigma^{\beta+1/2}} = P_{a0} E_P \sqrt{\frac{\rho_0 S}{2}} \sqrt[4]{\frac{3 C_{D_0}}{K}}
+    $$
+
+    With the optimal value for minimum power: 
+
+    $$
+    P^*_{\mathrm{min}}= \frac{W^{3/2}}{E_P\sigma^{1/2}}\sqrt[4]{\frac{K}{3C_{D_0}}}\sqrt{\frac{2}{\rho_0S}}
+    $$
+
+    Below is the performance diagram for power and drag, the optimization domain with the objective function as a surface plot, and finally, on the bottom right, the flight envelope where the optima can be achieved.
     """
     )
     return
@@ -1519,43 +1559,41 @@ def _():
     $$
 
     $$
-    \Rightarrow 3 C_{D_0}C_{L_{\mathrm{max}}}^{-2} - K \gt 0
+    \Rightarrow \quad  3 C_{D_0}C_{L_{\mathrm{max}}}^{-2} - K \gt 0
     $$
 
 
     $$
-    \Rightarrow C_{L_{\mathrm{max}}} \lt \sqrt{\frac{3C_{D_0}}{K}} = \sqrt{3}C_{L_E} = C_{L_P}
+    \Rightarrow \quad  C_{L_{\mathrm{max}}} \lt \sqrt{\frac{3C_{D_0}}{K}} = \sqrt{3}C_{L_E} = C_{L_P}
     $$
 
-    which shows once again that the necessary condition to obtain minimum power in stall conditions and maximum throttle. If it was otherwise ($C_{L_{\mathrm{max}}} > C_{L_P}$), it would be impossible to minimise power at stall and maximum thrust as the aircraft would reach the unconstrained minium power before stalling.
-    """
-    )
-    return
+    which shows once again that the necessary condition to obtain minimum power in stall conditions and maximum throttle. If it were otherwise ($C_{L_{\mathrm{max}}} > C_{L_P}$), it would be impossible to minimise power at stall and maximum thrust as the aircraft would reach the unconstrained minimum power before stalling.
 
-
-@app.cell(hide_code=True)
-def _():
-    mo.md(
-        r"""
     The condition for which this is true is found using the primal feasibility constraint (3). 
 
     $$
     \frac{W^{3/2}}{\sigma^{\beta+1/2}} = P_{a0}E_S \sqrt{\frac{1}{2}\rho_0SC_{L_{\mathrm{max}}}}
     $$
-    """
-    )
-    return
 
-
-@app.cell(hide_code=True)
-def _():
-    mo.md(
-        r"""
-    Finally, the optimum for the thrust-limited and lift-limited case is:
+    The value of the objective function, power, is calculated as:
 
     $$
-    \boxed{C_L^* = C_{L_\mathrm{max}}} \quad \land \quad \boxed{\delta_T^* = 1} \qquad  \mathrm{for} \quad \frac{W^{3/2}}{\sigma^{\beta+1/2}} = P_{a0}E_S \sqrt{\frac{1}{2}\rho_0SC_{L_{\mathrm{max}}}}
+    P^*_{\mathrm{min}} = DV = \frac{W}{E_S}V_S
     $$
+
+    This concludes the analysis for the minimum power of a simplified propeller aircraft in the lift-thrust limited case. Below is a summary of the optima:
+
+    $$
+    \boxed{C_L^* = C_{L_\mathrm{max}}}, \quad \boxed{\delta_T^* =1}, \quad \text{for} \quad C_{L_{\mathrm{max}}} \lt \sqrt{\frac{3C_{D_0}}{K}} \quad \text{and}\quad \frac{W^{3/2}}{\sigma^{\beta+1/2}} = P_{a0} E_S \sqrt{\frac{\rho_0 S C_{L_\mathrm{max}}}{2}}
+    $$
+
+    With the optimal value for minimum power: 
+
+    $$
+    P^*_{\mathrm{min}}= \frac{W^{3/2}}{\sigma^{1/2}E_S}\sqrt{\frac{2}{\rho_0 S C_{L_\mathrm{max}}}}
+    $$
+
+    Below is the performance diagram for power and drag, the optimization domain with the objective function as a surface plot, and finally, on the bottom right, the flight envelope where the optima can be achieved.
     """
     )
     return
@@ -1610,7 +1648,9 @@ def _(CD0, CL_array, CLmax, E_S, K, Pa0, S, W_selected, beta):
 
     power_maxlift_thrust_curve = np.where(
         ~np.isnan(constraint_maxlift_thrust),
-        power(maxlift_thrust_h, S, CD0, K, CL_array, velocity_CLarray_maxlift_thrust_h),
+        power(
+            maxlift_thrust_h, S, CD0, K, CL_array, velocity_CLarray_maxlift_thrust_h
+        ),
         np.nan,
     )
 
@@ -1835,13 +1875,15 @@ def _(fig_maxlift_thrust_optimum):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""Summarizing all the flight envelopes derived so far we obtain:""")
+    mo.md(r"""## Final flight Envelope""")
     return
 
 
 @app.cell
 def _():
-    mo.md(r"""Now after deriving all the optima for each condition we can summarize the flight envelopes in one graph, as shown below. Experiment with the weight of the aircrarft to understand how the theoretical ceiling for minimum speed moves in the graph.""")
+    mo.md(
+        r"""Now after deriving all the optima for each condition we can summarize the flight envelopes in one graph, as shown below. Experiment with the weight of the aircrarft to understand how the theoretical ceiling for minimum speed moves in the graph."""
+    )
     return
 
 
@@ -1996,7 +2038,34 @@ def _(fig_final_flightenv):
 
 @app.cell
 def _():
-    _defaults.nav_footer(before_file="MinPower_Prop.py", before_title="Minimum Power Simplified Jet", above_file="MinPower.py", above_title="Minimum Power Homepage", above_before=False)
+    mo.md(r"""## Summary""")
+    return
+
+
+@app.cell
+def _():
+    mo.md(
+        r"""
+    | Name | Condition | $C_L^*$ | $\delta_T^*$ | $P^*$ |
+    |:-|:-------|:-------:|:------------:|:-------|
+    |Interior-optima    | $\displaystyle \quad C_L^* \lt C_{L_\mathrm{max}} \quad \text{and} \quad\frac{W^{3/2}}{\sigma^{\beta+1/2}} \lt P_{a0} E_P \sqrt{\frac{\rho_0 S}{2}} \sqrt[4]{\frac{3 C_{D_0}}{K}}$ | $\displaystyle \sqrt{\frac{3C_{D_0}}{K}}$ | $\displaystyle \frac{W}{E_P}\frac{V_P}{P_{a0}\sigma^\beta}$ | $\displaystyle 4 \sqrt{\frac{2W^3}{S\sigma\rho_0}}\sqrt[4]{\frac{C_{D_0} K^3}{27}}$ |
+    |Lift-limited    |  $\displaystyle C_{L_\mathrm{max}} \lt \sqrt{\frac{3C_{D_0}}{K}} \quad \text{and}\quad \frac{W^{3/2}}{\sigma^{\beta+1/2}} \lt  \; P_{a0} \,E_S\sqrt{\frac{\rho_0SC_{L_{\mathrm{max}}}}{2}}$ | $C_{L_\mathrm{max}}$ | $\displaystyle \frac{W}{E_S}\frac{V_S}{P_{a0}\sigma^\beta}$ | $\displaystyle \frac{W^{3/2}}{\sigma^{1/2}E_S}\sqrt{\frac{2}{\rho_0 S C_{L_\mathrm{max}}}}$|
+    |Thrust-limited    | $\displaystyle C_L^* \lt C_{L_\mathrm{max}} \quad \text{and}\quad \frac{W^{3/2}}{\sigma^{\beta+1/2}} = P_{a0} E_P \sqrt{\frac{\rho_0 S}{2}} \sqrt[4]{\frac{3 C_{D_0}}{K}}$ | $\displaystyle \sqrt{\frac{3C_{D_0}}{K}}$ | $1$ | $\displaystyle \frac{W^{3/2}}{E_P\sigma^{1/2}}\sqrt[4]{\frac{K}{3C_{D_0}}}\sqrt{\frac{2}{\rho_0S}}$ |
+    |Thrust-lift limited    |  $\displaystyle \quad C_{L_{\mathrm{max}}} \lt \sqrt{\frac{3C_{D_0}}{K}} \quad \text{and} \quad \frac{W^{3/2}}{\sigma^{\beta+1/2}} = P_{a0} E_S \sqrt{\frac{\rho_0 S C_{L_\mathrm{max}}}{2}}$ | $C_{L_\mathrm{max}}$ | $1$ | $\displaystyle \frac{W^{3/2}}{\sigma^{1/2}E_S}\sqrt{\frac{2}{\rho_0 S C_{L_\mathrm{max}}}}$|
+    """
+    ).center()
+    return
+
+
+@app.cell
+def _():
+    _defaults.nav_footer(
+        before_file="MinPower_Prop.py",
+        before_title="Minimum Power Simplified Jet",
+        above_file="MinPower.py",
+        above_title="Minimum Power Homepage",
+        above_before=False,
+    )
     return
 
 

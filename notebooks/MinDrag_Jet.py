@@ -257,9 +257,7 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""Below you can see the graph of the domain $0 \leqq C_L \leq C_{L_{\mathrm{max}}}$ and $0 \leq \delta_T \leq 1$, with the surface $D$ and the contraint $g_1$ in red. Choose a simplified jet aircraft of your liking in the database below."""
-    )
+    mo.md(r"""Below you can see the graph of the domain $0 \leq C_L \leq C_{L_{\mathrm{max}}}$ and $0 \leq \delta_T \leq 1$, with the surface $D$ and the contraint $g_1$ in red. Choose a simplified jet aircraft of your liking in the database below.""")
     return
 
 
