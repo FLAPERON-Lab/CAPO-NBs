@@ -639,15 +639,7 @@ def _():
     $$
     \displaystyle P^*_{\mathrm{min}} = 4 \sqrt{\frac{2W^3}{S\sigma\rho_0}}\sqrt[4]{\frac{C_{D_0} K^3}{27}}
     $$
-    """
-    )
-    return
 
-
-@app.cell
-def _():
-    mo.md(
-        r"""
     This concludes the analysis for the minimum power of a simplified jet aircraft in the domain's interior. Below is a summary of the optima:
 
     $$

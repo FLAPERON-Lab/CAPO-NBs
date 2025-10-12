@@ -416,9 +416,7 @@ def _():
 
 @app.cell(hide_code=True)
 def _(CL_slider, dT_slider):
-    mo.md(
-        rf"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}"""
-    )
+    mo.md(rf"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}""")
     return
 
 
@@ -1881,9 +1879,7 @@ def _():
 
 @app.cell
 def _():
-    mo.md(
-        r"""Now after deriving all the optima for each condition we can summarize the flight envelopes in one graph, as shown below. Experiment with the weight of the aircrarft to understand how the theoretical ceiling for minimum speed moves in the graph."""
-    )
+    mo.md(r"""Now after deriving all the optima for each condition we can summarize the flight envelopes in one graph, as shown below. Experiment with the weight of the aircrarft to understand how the theoretical ceiling for minimum speed moves in the graph.""")
     return
 
 

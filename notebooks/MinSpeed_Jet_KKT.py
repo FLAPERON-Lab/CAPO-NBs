@@ -84,7 +84,7 @@ def _():
 def _(mo):
     mo.md(
         r"""
-    # Minimum airspeed: simplfied jet aircraft
+    # Minimum airspeed: simplified jet aircraft
 
     $$
     \begin{aligned}
@@ -410,7 +410,9 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    mo.md(r"""In the interactive graph below, select a simplified jet aircraft of your choice and experiment in finding an optimum by changing the control variables, $C_L$ and $\delta_T$. The design point is marked in white in the 3D velocity surface.""")
+    mo.md(
+        r"""In the interactive graph below, select a simplified jet aircraft of your choice and experiment in finding an optimum by changing the control variables, $C_L$ and $\delta_T$. The design point is marked in white in the 3D velocity surface."""
+    )
     return
 
 
@@ -436,7 +438,9 @@ def _(ac, data_dir, mo):
 
 @app.cell(hide_code=True)
 def _(CL_slider, dT_slider, mo):
-    mo.md(f"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}""")
+    mo.md(
+        f"""Here you can modify the control variables to understand how it affects the design: {mo.hstack([dT_slider, CL_slider])}"""
+    )
     return
 
 
@@ -481,7 +485,7 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-    A necessary condition for an optimal solution of the optimization problem $(C_L^*, \delta_T^*)$ to exist, the multipliers $\lambda_1, \mu_1, \mu_2, \mu_3, \mu_4$ have to meet the following conditions:
+    The multipliers $\lambda_1, \mu_1, \mu_2, \mu_3, \mu_4$ have to meet the following conditions for an optimal solution of the optimization problem $(C_L^*, \delta_T^*)$ to exist.
 
     **A. Stationarity ($\nabla L = 0$):** the gradient of the Lagrangian with respect to each decision variable must be zero
 
@@ -566,7 +570,7 @@ def _(mo):
     mo.md(
         r"""
     ### _Lower boundary solutions_
-    The case where $C_L=0$ and the case where $\delta_T=0$ can be immediately discaded because of the primal feasibility conditions.
+    The case where $C_L=0$ and the case where $\delta_T=0$ can be immediately discarded because of the primal feasibility conditions.
     This means that $\mu_2=\mu_4=0$ in all cases.
 
     We can then proceed with the analysis of the cases where the boundaries $C_L = C_{L_\mathrm{max}}$ and $\delta_T = 1$ are active in any of the three possible combinations.
@@ -598,10 +602,10 @@ def _(mo):
     \quad \text{and } \quad 
     \mu_3>0 
     \quad \Rightarrow \quad 
-    C_L > \sqrt{\frac{C_{D_0}}{K}} = C_{L_E}
+    C_L^* > \sqrt{\frac{C_{D_0}}{K}} = C_{L_E}
     $$
 
-    and implies that the thrust-limited minimum airspeed is obtained strictly on the left branch of the drag performance diagram, at a lift-coefficient strictly higher than the one for maximum aerodynamic efficiency.
+    and implies that the thrust-limited minimum airspeed is obtained strictly on the left branch of the drag performance diagram, at a lift coefficient strictly higher than the one for maximum aerodynamic efficiency.
     """
     )
     return
@@ -611,7 +615,7 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-    The corresponding optimum value of the $C_L$ is obtained by solving the primal feasibiliy condition (3) and taking the highest of the two solutions:
+    The corresponding optimum value of the $C_L$ is obtained by solving the primal feasibility condition (3) and taking the highest of the two solutions:
 
     $$
     C_L^* = \frac{T_{a0}\sigma^\beta}{2KW} \left[1+\sqrt{1-\left(\frac{W}{E_\mathrm{max}T_{a0}\sigma^\beta}\right)^2}\right]
@@ -619,7 +623,7 @@ def _(mo):
 
     It has still to be verified that $C_L^* < C_{L_\mathrm{max}}$, which depends on the numerical values of the design parameters, and on the current values of the weight and altitude.
 
-    First, this optimum value of the lift-coefficient is achievable for 
+    First, this optimum value of the lift coefficient is achievable for 
 
     $$
     1-\left(\frac{W}{E_\mathrm{max}T_{a0}\sigma^\beta}\right)^2 \ge 0
@@ -627,7 +631,7 @@ def _(mo):
     \frac{W}{\sigma^\beta} \le  T_{a0} E_\mathrm{max}
     $$
 
-    The limit equality can be used to calculate the corresponding limit altitude at which the minimum speed is limited by thrust, for a given weight. This is called the _theoretcal ceiling_.
+    The limit equality can be used to calculate the corresponding limit altitude at which the minimum speed is limited by thrust, for a given weight. This is called the _theoretical ceiling_.
 
     Second, the optimum value is lower than $C_{L_\mathrm{max}}$ if
 
@@ -635,13 +639,20 @@ def _(mo):
     \frac{W}{\sigma^\beta} > T_{a0} E_\mathrm{S}
     $$
 
-    If both of these conditions are verified, the corresponding minimum airspeed is:
+    This concludes the analysis for the minimum airspeed of a simplified jet aircraft in the thrust-limited case. Below is a summary of the optima:
 
     $$
-    V^* = 
-    \sqrt{\frac{4KW^2/\rho S T_{a0}\sigma^\beta}{1+\sqrt{1-\left(\frac{W}{E_\mathrm{max}T_{a0}\sigma^\beta}\right)^2}}}
+    \boxed{C_L^* = \frac{T_{a0}\sigma^\beta}{2KW} \left[1+\sqrt{1-\left(\frac{W}{E_\mathrm{max}T_{a0}\sigma^\beta}\right)^2}\right]}, \quad \boxed{\delta_T^*=1}, \quad \text{for} \quad C_L^* > \sqrt{\frac{C_{D_0}}{K}}\quad \text{and} \quad \frac{W}{\sigma^\beta} > T_{a0} E_\mathrm{S}
+    $$
+
+    If the conditions stated above are satisfied, the objective function $V$ takes the value: 
+
+    $$
+    V_{\mathrm{min}}^* = \sqrt{\frac{4KW^2/\rho S T_{a0}\sigma^\beta}{1+\sqrt{1-\left(\frac{W}{E_\mathrm{max}T_{a0}\sigma^\beta}\right)^2}}}
     = V_s \sqrt{\frac{2KWC_{L_\mathrm{max}}/T_{a0}\sigma^\beta}{1+\sqrt{1-\left(\frac{W}{E_\mathrm{max}T_{a0}\sigma^\beta}\right)^2}}}
     $$
+
+    Below is the performance diagram for power and drag, the optimization domain with the objective function as a surface plot, and finally, on the bottom right, the flight envelope where the optima can be achieved.
     """
     )
     return
@@ -711,7 +722,7 @@ def _(
     )
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(
     CL_array,
     CLopt_maxthrust_selected,
@@ -929,7 +940,7 @@ def _(mo):
 
     From stationarity condition (2): $\lambda_1 = 0$.
 
-    From stationarity condition (1): $\mu_1 = \frac{2W}{\rho S C_{L_\mathrm{max}}^2}>0$, which does not depend on the value of $\delta_T$, and is always verified.
+    From stationarity condition (1): $\displaystyle \mu_1 = \frac{2W}{\rho S C_{L_\mathrm{max}}^2}>0$, which does not depend on the value of $\delta_T$, and is always verified.
     """
     )
     return
@@ -942,12 +953,12 @@ def _(mo):
     The corresponding value of the throttle is calculated from the primal feasibility condition (3):
 
     $$
-    \delta_T 
+    \delta_T^*
     = \frac{W}{T_{a0}\sigma^\beta} \frac{C_{D_0} + K C^2_{L_\mathrm{max}}}{C_{L_\mathrm{max}}} 
     = \frac{W}{T_{a0}\sigma^\beta} \frac{1}{E_S} 
     $$
 
-    This is valid only if the calculated $\delta_T$ is strictly lower than the maximum allowed, which corresponds to:
+    This is valid only if the calculated $\delta_T^*$ is strictly lower than the maximum allowed, which corresponds to:
 
     $$
     \frac{W}{\sigma^\beta} < T_{a0} E_S
@@ -960,6 +971,20 @@ def _(mo):
     $$
     V^* = \sqrt{\frac{2W}{\rho S C_{L_\mathrm{max}}}}
     $$
+
+    This concludes the analysis for the minimum airspeed of a simplified jet aircraft in the lift-limited case. Below is a summary of the optima:
+
+    $$
+    \boxed{C_L^* = C_{L_\mathrm{max}}}, \quad \boxed{\delta_T^*= \frac{W}{T_{a0}\sigma^\beta} \frac{1}{E_S}}, \quad \text{for} \quad \frac{W}{\sigma^\beta} < T_{a0} E_S
+    $$
+
+    If the conditions stated above are satisfied, the objective function $V$ takes the value: 
+
+    $$
+    V_{\mathrm{min}}^* = \sqrt{\frac{2W}{\rho S C_{L_\mathrm{max}}}}
+    $$
+
+    Below is the performance diagram for power and drag, the optimization domain with the objective function as a surface plot, and finally, on the bottom right, the flight envelope where the optima can be achieved.
     """
     )
     return
@@ -1220,7 +1245,7 @@ def _(fig_maxlift_optimum):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(
         r"""
@@ -1246,7 +1271,7 @@ def _(mo):
 
     In other words, this condition is reached only if the aircraft is designed in such a way that its maximum lift coefficient is lower than the one for maximum aerodynamic efficiency. 
     It is obvious then that, for the same combination of weight and altitude, its stall speed will be higher than the speed for maximum efficiency (and minimum drag), which would then be unreachable for the aircraft in Steady Level Flight.
-    This is of course an undesired situation to be in, and should not be resulting out of good aerodynamic design.
+    This is, of course, an undesired situation to be in, and should not be resulting out of good aerodynamic design.
 
     The primal feasibility equation (3) returns the expression of the condition where the minimum speed is limited by both thrust and lift capabilities of the aircraft.
 
@@ -1259,6 +1284,20 @@ def _(mo):
     $$
     V^* = \sqrt{\frac{2W}{\rho S C_{L_\mathrm{max}}}}
     $$
+
+    This concludes the analysis for the minimum airspeed of a simplified jet aircraft in the lift-thrust limited case. Below is a summary of the optima:
+
+    $$
+    \boxed{C_L^* = C_{L_\mathrm{max}}}, \quad \boxed{\delta_T^*= 1}, \quad \text{for} \quad \frac{W}{\sigma^\beta} = T_{a0} E_S
+    $$
+
+    If the conditions stated above are satisfied, the objective function $V$ takes the value: 
+
+    $$
+    V_{\mathrm{min}}^* = \sqrt{\frac{2W}{\rho S C_{L_\mathrm{max}}}}
+    $$
+
+    Below is the performance diagram for power and drag, the optimization domain with the objective function as a surface plot, and finally, on the bottom right, the flight envelope where the optima can be achieved.
     """
     )
     return
@@ -1542,7 +1581,15 @@ def _(fig_maxlift_thrust_optimum):
 
 @app.cell
 def _(mo):
-    mo.md(r"""Now after deriving all the optima for each condition we can summarize the flight envelopes in one graph, as shown below. Experiment with the weight of the aircrarft to understand how the theoretical ceiling for minimum speed moves in the graph.""")
+    mo.md(r"""## Final flight envelope""")
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(
+        r"""Now after deriving all the optima for each condition we can summarize the flight envelopes in one graph, as shown below. Experiment with the weight of the aircrarft to understand how the theoretical ceiling for minimum speed moves in the graph."""
+    )
     return
 
 
@@ -1659,7 +1706,7 @@ def _(
     )
 
     mo.output.clear()
-    return (fig_final_flightenv,)
+    return
 
 
 @app.cell
@@ -1669,8 +1716,14 @@ def _(mass_stack):
 
 
 @app.cell
-def _(fig_final_flightenv):
-    fig_final_flightenv
+def _(mo):
+    mo.md(r"""fig_final_flightenv""")
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""## Summary""")
     return
 
 
@@ -1678,21 +1731,26 @@ def _(fig_final_flightenv):
 def _(mo):
     mo.md(
         r"""
-    ## Summary
-
     | Name | Condition | $C_L^*$ | $\delta_T^*$ | $V^*$ |
     |:- |:----------|:-------:|:------------:|:------|
+    |Interior-optima|\ |\ |\ |\ ||
     |Lift-limited    | $\displaystyle \frac{W}{\sigma^\beta} < T_{a0} E_S$ | $C_{L_\mathrm{max}}$ | $\displaystyle \frac{W}{T_{a0}\sigma^\beta} \frac{1}{E_S}$ | $\displaystyle V_s = \sqrt{\frac{2W}{\rho S C_{L_\mathrm{max}}}}$ |
     |Thrust and Lift-limited    | $\displaystyle \frac{W}{\sigma^\beta} =  T_{a0} E_S$, $C_{L_\mathrm{max}} < \sqrt{\frac{C_{D_0}}{K}}$ | $C_{L_\mathrm{max}}$ | $1$ | $\displaystyle V_s =\sqrt{\frac{2W}{\rho S C_{L_\mathrm{max}}}}$ |
     |Thrust-limited    | $\displaystyle T_{a0} E_\mathrm{S} < \frac{W}{\sigma^\beta} \le  T_{a0} E_\mathrm{max}$ | $\displaystyle \frac{T_{a0}\sigma^\beta}{2KW} \left[1+\sqrt{1-\left(\frac{W}{E_\mathrm{max}T_{a0}\sigma^\beta}\right)^2}\right]$ | $1$ | $\displaystyle V_s \sqrt{\frac{2KWC_{L_\mathrm{max}}/T_{a0}\sigma^\beta}{1+\sqrt{1-\left(\frac{W}{E_\mathrm{max}T_{a0}\sigma^\beta}\right)^2}}}$ |
     """
-    )
+    ).center()
     return
 
 
 @app.cell
 def _():
-    _defaults.nav_footer(after_file="MinSpeed_Prop_KKT.py", after_title="Minimum Speed Simplified Propeller", above_file="MinSpeed.py", above_title="Minimum Speed Homepage", above_before=True)
+    _defaults.nav_footer(
+        after_file="MinSpeed_Prop_KKT.py",
+        after_title="Minimum Speed Simplified Propeller",
+        above_file="MinSpeed.py",
+        above_title="Minimum Speed Homepage",
+        above_before=True,
+    )
     return
 
 

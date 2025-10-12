@@ -84,7 +84,7 @@ def _():
 def _(mo):
     mo.md(
         r"""
-    # Maximum airspeed: simplfied jet aircraft
+    # Maximum airspeed: simplified jet aircraft
 
     $$
     \begin{aligned}
