@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.15.2"
+__generated_with = "0.17.0"
 app = marimo.App(width="medium")
 
 
@@ -101,34 +101,79 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
+    <style>
+    # body {
+    #   background-color: #f0f0f3; /* soft gray background */
+    #   font-family: Arial, sans-serif;
+    # }
 
-    <table>
-    <tr>
-        <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
-            <a href=https://github.com/CarmVarriale>
-                <img src=https://github.com/CarmVarriale.png width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=Carmine Varriale/>
-                <br />
-                <sub style="font-size:14px"><b>Carmine Varriale</b></sub>
-            </a>
-        </td>
-        <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
-            <a href=https://github.com/federicoangioni>
-                <img src=https://github.com/federicoangioni.png width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=Carmine Varriale/>
-                <br />
-                <sub style="font-size:14px"><b>Federico Angioni</b></sub>
-            </a>
-        </td>
-    </tr>
-    </table>
+    .profile-container {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 50px;
+      flex-wrap: wrap;
+    }
+
+    .profile-card {
+      text-align: center;
+      # background: #ffffff;
+      border-radius: 15px;
+      padding: 20px;
+      width: 150px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .profile-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .profile-card a {
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .profile-card img {
+      width: 100px;
+      border-radius: 50%;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .profile-card b {
+      color: #FFFFFF;
+      font-size: 14px;
+      text-align: center;
+    }
+    </style>
+
+    <div class="profile-container">
+      <div class="profile-card">
+        <a href="https://github.com/CarmVarriale" target="_blank">
+          <img src="https://github.com/CarmVarriale.png" alt="Carmine Varriale">
+          <b>Carmine Varriale</b>
+        </a>
+      </div>
+  
+      <div class="profile-card">
+        <a href="https://github.com/federicoangioni" target="_blank">
+          <img src="https://github.com/federicoangioni.png" alt="Federico Angioni">
+          <b>Federico Angioni</b>
+        </a>
+      </div>
+    </div>
+
 
     """
     ).center()
-    return
-
-
-@app.cell
-def _(mo):
-    mo.md(r"""### [Dr. Carmine Varriale](https://www.tudelft.nl/staff/c.varriale/)""")
     return
 
 
