@@ -37,9 +37,7 @@ def _():
 @app.cell
 def _():
     # Define constants, this cell runs once and is not dependent in any way on any interactive element (not even the ac database)
-    dT_slider = mo.ui.slider(
-        start=0, stop=1, step=0.1, label=r"$\delta_T$", value=0.5
-    )
+    dT_slider = mo.ui.slider(start=0, stop=1, step=0.1, label=r"$\delta_T$", value=0.5)
 
     meshgrid_n = 101
     xy_lowerbound = -0.1
@@ -139,12 +137,9 @@ def _(a_0, ac_table, dT_array, data, meshgrid_n, xy_lowerbound):
         20,
     ]
 
-
     interior_title = f"Interior minimum power for {active_selection.full_name}"
     maxlift_title = f"Lift-limited minimum power for {active_selection.full_name}"
-    maxthrust_title = (
-        f"Thrust-limited minimum power for {active_selection.full_name}"
-    )
+    maxthrust_title = f"Thrust-limited minimum power for {active_selection.full_name}"
     maxliftThrust_title = (
         f"Lift-thrust limited minimum power for {active_selection.full_name}"
     )
@@ -304,9 +299,7 @@ def _(
         W_selected, Ta0, beta, CL_P, CLmax, E_P, min_sigma, sigma_selected, h_array
     )
 
-    velocity_interior_harray = velocity(
-        W_selected, h_interior_array, CLopt_interior, S
-    )
+    velocity_interior_harray = velocity(W_selected, h_interior_array, CLopt_interior, S)
 
     power_interior_harray = W_selected / E_P * velocity_interior_harray
 
@@ -330,18 +323,14 @@ def _(
         sigma_selected,
     )
 
-    velocity_maxlift_harray = velocity(
-        W_selected, h_maxlift_array, CLopt_maxlift, S
-    )
+    velocity_maxlift_harray = velocity(W_selected, h_maxlift_array, CLopt_maxlift, S)
 
     power_maxlift_harray = W_selected / E_S * velocity_maxlift_harray
 
     velocity_maxlift_selected = _defaults.safe_index(
         velocity_maxlift_harray, idx_h_selected
     )
-    power_maxlift_selected = _defaults.safe_index(
-        power_maxlift_harray, idx_h_selected
-    )
+    power_maxlift_selected = _defaults.safe_index(power_maxlift_harray, idx_h_selected)
 
     # Maxthrust computation
     (
@@ -395,18 +384,14 @@ def _(
     )
     velocity_maxliftThrust_nonan = velocity_maxliftThrust_CLarray[-1]
     velocity_maxliftThrust_selected = (
-        velocity_maxliftThrust_CLarray[-1]
-        if ~np.isnan(CLopt_maxliftThrust)
-        else np.nan
+        velocity_maxliftThrust_CLarray[-1] if ~np.isnan(CLopt_maxliftThrust) else np.nan
     )
 
     power_maxliftThrust_curve = drag_curve * velocity_maxliftThrust_CLarray
 
     power_maxliftThrust_selected = drag_curve * velocity_maxliftThrust_selected
 
-    power_maxliftThrust_surface = np.tile(
-        power_maxliftThrust_curve, (len(CL_array), 1)
-    )
+    power_maxliftThrust_surface = np.tile(power_maxliftThrust_curve, (len(CL_array), 1))
 
     constraint_maxliftThrust = drag_curve / Ta0 / (sigma_maxliftThrust**beta)
 
@@ -619,7 +604,6 @@ def _(
     fig_maxlift_optimum = copy.deepcopy(fig_optimum_stencil)
     fig_maxthrust_optimum = copy.deepcopy(fig_optimum_stencil)
     fig_lift_limited = copy.deepcopy(combined_performance)
-
 
     plot_utils.draw_optima(
         fig_maxlift_optimum,
@@ -1509,8 +1493,8 @@ def maxthrust_condition(
         )
 
     else:
-        h_maxthrust_array, dT_maxthrust, CL_maxthrust, idx_maxthrust = (
-            np.asarray([[np.nan], [np.nan], [np.nan], [np.nan]])
+        h_maxthrust_array, dT_maxthrust, CL_maxthrust, idx_maxthrust = np.asarray(
+            [[np.nan], [np.nan], [np.nan], [np.nan]]
         )
     return (
         h_maxthrust_array,
@@ -1746,8 +1730,8 @@ def _():
         r"""
     | Name | Condition | $C_L^*$ | $\delta_T^*$ |
     |:-|:-------|:-------:|:-----:|
-    |Interior-optima    | $\displaystyle \quad  C_{L_\mathrm{max}} > C_{L_P} \quad \text{and} \quad \frac{W}{\sigma^\beta} < T_{a0} E_\mathrm{max}$ | $\sqrt{\frac{3C_{D_0}}{K}}$ | $\displaystyle \frac{W}{E_{\mathrm{P}}}\frac{1}{T_{a0}\sigma^\beta}$  |
-    |Lift-limited    |  $\displaystyle C_{L_\mathrm{max}} \lt {C_{L_P}} \quad \text{and}\quad \frac{W}{\sigma^\beta} \lt T_{a0}E_S$ | $C_{L_\mathrm{max}}$ | $\displaystyle \frac{W}{T_{a0}\sigma^\beta} \frac{1}{E_S}$ |
+    |Interior-optima    | $\displaystyle \quad  C_{L_\mathrm{max}} > C_{L_P} \quad \text{and} \quad \frac{W}{\sigma^\beta} < T_{a0} E_\mathrm{P}$ | $\sqrt{\frac{3C_{D_0}}{K}}$ | $\displaystyle \frac{W}{E_{\mathrm{P}}}\frac{1}{T_{a0}\sigma^\beta}$  |
+    |Lift-limited    |  $\displaystyle C_{L_\mathrm{max}} \lt {C_{L_P}} \quad \text{and}\quad \frac{W}{\sigma^\beta} \lt T_{a0}E_S$ | $C_{L_\mathrm{max}}$ | $\displaystyle \frac{W}{E_S} \frac{1}{T_{a0}\sigma^\beta}$ |
     |Thrust-limited    | $\displaystyle\quad T_{a0} E_{\mathrm{P}} \lt \frac{W}{\sigma^\beta} \lt T_{a0} E_{\mathrm{max}}$ | $\displaystyle \frac{T_{a0}\sigma^\beta}{2KW}\left[1 +\sqrt{1- \left(\frac{W}{T_{a0}\sigma^\beta E_{\mathrm{max}}}\right)^2}\right]$ | $1$ |
     |Thrust-lift limited    |  $\displaystyle {C_{L_\mathrm{max}} < C_{L_P},C_{L_\mathrm{max}} \neq C_{L_E}}, \quad \text{and} \quad \frac{W}{\sigma^\beta} = T_{a0} E_S$ | $C_{L_\mathrm{max}}$ | $1$ |
     """
