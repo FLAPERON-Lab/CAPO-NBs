@@ -444,10 +444,17 @@ class OptimumGridView:
         )
 
     def update_axes_ranges(self, variable_ranges):
+        if len(variable_ranges) > 3:
+            axes_max_speed = variable_ranges[3]
+        else:
+            axes_max_speed = atmos.a(0)
+
         self.figure.update_layout(
             yaxis1=dict(range=[-buffer_axes, variable_ranges[0] + buffer_axes]),
             yaxis2=dict(range=[-buffer_axes, variable_ranges[1] + buffer_axes]),
             xaxis3=dict(range=[-buffer_axes, variable_ranges[2] + buffer_axes]),
+            xaxis1=dict(range=[-buffer_axes, axes_max_speed]),
+            xaxis2=dict(range=[-buffer_axes, axes_max_speed]),
         )
 
 

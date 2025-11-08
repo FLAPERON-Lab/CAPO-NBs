@@ -53,7 +53,7 @@ def _():
         stop=20,
         step=0.5,
         label=r"Altitude (km)",
-        value=10,
+        value=0,
         show_value=True,
     )
 
@@ -207,9 +207,9 @@ def _(CD0, CLmax, E_array, K, MTOM, OEM, S, a_0, h_array, m_slider, rho_array):
     # Visual computations
     stall_trace = plot_utils.create_stall_trace(h_array, velocity_stall_harray)
 
-    CL_a0 = W_selected * 2 / (atmos.rho0 * S * a_0**2)
+    CL_a0 = OEM * atmos.g0 * 2 / (atmos.rho0 * S * a_0**2)
 
-    drag_yrange = 0.8 * W_selected * (CD0 + K * CL_a0**2) / CL_a0
+    drag_yrange = 0.8 * OEM * atmos.g0 * (CD0 + K * CL_a0**2) / CL_a0
     power_yrange = drag_yrange * a_0 / 1e3
     return (
         W_selected,
@@ -418,10 +418,10 @@ def _(CL_slider, dT_slider):
 
 @app.cell(hide_code=True)
 def _(variables_stack):
-    pause_checkbox = mo.ui.checkbox(label="Pause execution")
+    pause_initial = mo.ui.checkbox(label="Pause execution")
 
-    mo.hstack([variables_stack, pause_checkbox])
-    return (pause_checkbox,)
+    mo.hstack([variables_stack, pause_initial])
+    return (pause_initial,)
 
 
 @app.cell(hide_code=True)
@@ -434,12 +434,12 @@ def _(
     dT_slider,
     max_colorbar,
     min_colorbar,
-    pause_checkbox,
+    pause_initial,
     power_required_selected,
     power_surface,
     xy_lowerbound,
 ):
-    if pause_checkbox.value:
+    if pause_initial.value:
         mo.stop(mo.md(""))
 
     # Create go.Figure() object
@@ -686,11 +686,13 @@ def interior_condition(
 
 @app.cell
 def _(variables_stack):
-    variables_stack
-    return
+    pause_interior = mo.ui.checkbox(label="Pause execution")
+
+    mo.hstack([variables_stack, pause_interior])
+    return (pause_interior,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(
     CL_P,
     CLmax,
@@ -703,11 +705,16 @@ def _(
     h_array,
     h_selected,
     min_sigma,
+    pause_interior,
     range_performance_diagrams,
     rho_selected,
     sigma_selected,
     velocity_CL_P,
 ):
+    if pause_interior.value:
+        mo.stop(mo.md(""))
+
+
     # Interior computation
     h_interior_array, dTopt_interior, CLopt_interior, true_interior = interior_condition(
         W_selected, h_selected, Ta0, beta, CL_P, CLmax, E_P, min_sigma, sigma_selected, h_array
@@ -901,8 +908,10 @@ def maxlift_condition(
 
 @app.cell
 def _(variables_stack):
-    variables_stack
-    return
+    pause_maxlift = mo.ui.checkbox(label="Pause execution")
+
+    mo.hstack([variables_stack, pause_maxlift])
+    return (pause_maxlift,)
 
 
 @app.cell
@@ -918,11 +927,15 @@ def _(
     h_array,
     h_selected,
     min_sigma,
+    pause_maxlift,
     range_performance_diagrams,
     rho_selected,
     sigma_selected,
     velocity_CLarray,
 ):
+    if pause_maxlift.value:
+        mo.stop(mo.md(""))
+
     # Maxlift condition
     h_maxlift_array, dTopt_maxlift, CLopt_maxlift, true_maxlift = maxlift_condition(
         W_selected,
@@ -1317,8 +1330,10 @@ def _(sigma_array):
 
 @app.cell
 def _(variables_stack):
-    variables_stack
-    return
+    pause_maxthrust = mo.ui.checkbox(label="Pause execution")
+
+    mo.hstack([variables_stack, pause_maxthrust])
+    return (pause_maxthrust,)
 
 
 @app.cell
@@ -1337,10 +1352,14 @@ def _(
     h_selected,
     maxthrust_condition,
     min_sigma,
+    pause_maxthrust,
     range_performance_diagrams,
     rho_array,
     rho_selected,
 ):
+    if pause_maxthrust.value:
+        mo.stop(mo.md(""))
+
     # Maxthrust computations
     h_maxthrust_array, dTopt_maxthrust, CLopt_maxthrust, true_maxthrust = maxthrust_condition(
         W_selected, h_selected, K, E_max, E_P, h_array, Ta0, beta, min_sigma
@@ -1522,7 +1541,15 @@ def maxliftThrust_condition(W, Ta0, E_S, beta, CL_E, CL_P, CLmax):
 
 @app.cell
 def _(variables_stack):
-    variables_stack
+    pause_maxliftThrust = mo.ui.checkbox(label="Pause execution")
+
+    mo.hstack([variables_stack, pause_maxliftThrust])
+    return (pause_maxliftThrust,)
+
+
+@app.cell
+def _(velocity_maxliftThrust_selected):
+    velocity_maxliftThrust_selected
     return
 
 
@@ -1543,6 +1570,7 @@ def _(
     drag_yrange,
     h_selected,
     mach_trace,
+    pause_maxliftThrust,
     power_maxthrust_harray,
     power_yrange,
     rho_selected,
@@ -1552,8 +1580,11 @@ def _(
     velocity_CL_E,
     velocity_CL_P,
     velocity_CLarray,
-    velocity_stall_harray,
 ):
+    if pause_maxliftThrust.value:
+        mo.stop(mo.md(""))
+
+
     # Max lift Max thrust
     h_maxliftThrust, sigma_maxliftThrust, true_maxliftThrust = maxliftThrust_condition(
         W_selected, Ta0, E_S, beta, CL_E, CL_P, CLmax
@@ -1564,7 +1595,7 @@ def _(
 
     thrust_vector_maxliftThrust = thrust_vector * (sigma_maxliftThrust / sigma_selected) ** beta
     velocity_maxliftThrust_CLarray = velocity_CLarray * maxliftThrust_multiplier
-    velocity_maxliftThrust_selected = velocity_maxliftThrust_CLarray[-1] * true_maxliftThrust
+    velocity_maxliftThrust_selected = velocity_maxliftThrust_CLarray[-1]
 
     power_required_maxliftThrust = drag_curve * velocity_maxliftThrust_CLarray / 1e3
     power_maxliftThrust_selected = W_selected / E_S * velocity_maxliftThrust_selected / 1e3
@@ -1592,7 +1623,7 @@ def _(
         velocity_maxliftThrust_CLarray,
         velocity_CL_P * maxliftThrust_multiplier,
         velocity_CL_E * maxliftThrust_multiplier,
-        velocity_stall_harray,
+        velocity_maxliftThrust_selected,
         velocity_maxliftThrust_selected,
         (drag_yrange, power_yrange, CLmax),
         zcolorbar_maxliftThrust,
