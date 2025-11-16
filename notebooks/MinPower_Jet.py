@@ -1654,7 +1654,7 @@ def _(
 
     thrust_vector_maxliftThrust = thrust_vector * (sigma_maxliftThrust / sigma_selected) ** beta
     velocity_maxliftThrust_CLarray = velocity_CLarray * maxliftThrust_multiplier
-    velocity_maxliftThrust_selected = velocity_maxliftThrust_CLarray[-1]
+    velocity_maxliftThrust_selected = velocity_maxliftThrust_CLarray[-1] * true_maxliftThrust
 
     power_required_maxliftThrust = drag_curve * velocity_maxliftThrust_CLarray / 1e3
     power_maxliftThrust_selected = W_selected / E_S * velocity_maxliftThrust_selected / 1e3
@@ -1742,7 +1742,7 @@ def _(
         h_selected,
         (velocity_maxliftThrust_CLarray, velocity_maxliftThrust_selected),
         (power_maxthrust_harray, power_maxliftThrust_selected),
-        (h_maxliftThrust, 1, true_maxliftThrust, np.nan),
+        (h_maxliftThrust, 1*true_maxliftThrust, CLmax, true_maxliftThrust),
         f"Thrust-limited minimum power for {active_selection.full_name}",
         equality=True,
     )
@@ -1766,20 +1766,6 @@ def _():
 
 
 @app.cell
-def _(mass_stack):
-    mass_stack
-    return
-
-
-@app.cell
-def _():
-    mo.md(r"""
-    ## Summary
-    """)
-    return
-
-
-@app.cell
 def _(
     a_harray,
     h_array,
@@ -1787,13 +1773,14 @@ def _(
     h_maxliftThrust,
     h_maxlift_array,
     h_maxthrust_array,
+    mass_stack,
     velocity_interior_harray,
     velocity_maxliftThrust_selected,
     velocity_maxlift_harray,
     velocity_maxthrust_harray,
     velocity_stall_harray,
 ):
-    plot_utils.create_final_flightenvelope(
+    flight_envelope = plot_utils.create_final_flightenvelope(
         velocity_stall_harray,
         a_harray,
         h_array,
@@ -1806,6 +1793,16 @@ def _(
         (h_maxthrust_array, velocity_maxthrust_harray, True),
         (h_maxliftThrust, velocity_maxliftThrust_selected, False),
     )
+
+    mo.vstack([mass_stack, flight_envelope])
+    return
+
+
+@app.cell
+def _():
+    mo.md(r"""
+    ## Summary
+    """)
     return
 
 
@@ -1833,11 +1830,6 @@ def _():
         above_title="Minimum Power Homepage",
         above_before=True,
     )
-    return
-
-
-@app.cell
-def _():
     return
 
 

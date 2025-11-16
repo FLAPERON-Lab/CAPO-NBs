@@ -313,7 +313,6 @@ def _(
     velocity_CL_E = velocity_CLarray[-1] * np.sqrt(CLmax / CL_E)
     velocity_CL_P = velocity_CLarray[-1] * np.sqrt(CLmax / CL_P)
 
-
     thrust_vector = power_scalar / velocity_CLarray * 1e3
     power_required = drag_curve * velocity_CLarray / 1e3
 
@@ -990,7 +989,7 @@ def _(
     )
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(figure_optimum, mo, tab_value, title_keys, variables_stack):
     if tab_value != title_keys[1]:
         mo.stop(True)

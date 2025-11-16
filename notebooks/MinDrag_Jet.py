@@ -1399,12 +1399,6 @@ def _(
 
 
 @app.cell
-def _(mass_stack):
-    mass_stack
-    return
-
-
-@app.cell
 def _(mo):
     mo.md(r"""
     ## Final flight envelope
@@ -1434,6 +1428,8 @@ def _(
     h_maxliftThrust,
     h_maxlift_array,
     h_maxthrust,
+    mass_stack,
+    mo,
     np,
     plot_utils,
     velocity_interior_harray,
@@ -1442,7 +1438,7 @@ def _(
     velocity_maxthrust_selected,
     velocity_stall_harray,
 ):
-    plot_utils.create_final_flightenvelope(
+    flight_envelope = plot_utils.create_final_flightenvelope(
         velocity_stall_harray,
         a_harray,
         h_array,
@@ -1451,10 +1447,16 @@ def _(
             np.concat((velocity_interior_harray, [velocity_maxthrust_selected])),
             True,
         ),
-        (h_maxlift_array, velocity_maxlift_harray, True),
+        (
+            np.concat((h_maxlift_array, [h_maxliftThrust])),
+            np.concat((velocity_maxlift_harray, [velocity_maxliftThrust_selected])),
+            True,
+        ),
         (h_maxthrust, velocity_maxthrust_selected, False),
         (h_maxliftThrust, velocity_maxliftThrust_selected, False),
     )
+
+    mo.vstack([mass_stack, flight_envelope])
     return
 
 
