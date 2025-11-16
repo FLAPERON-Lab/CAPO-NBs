@@ -491,6 +491,7 @@ def create_final_flightenvelope(
                     y=[interior[0] / 1e3],
                     mode="markers",
                     marker=dict(size=10, color=SALMON),
+                    showlegend=False,
                 )
             )
 
@@ -556,7 +557,7 @@ def create_final_flightenvelope(
                     x=[maxliftThrust[1]],
                     y=[maxliftThrust[0] / 1e3],
                     mode="markers",
-                    marker=dict(color=SALMON),
+                    marker=dict(size=10, color=SALMON),
                     showlegend=False,
                 )
             )
