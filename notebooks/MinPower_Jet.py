@@ -31,8 +31,7 @@ with app.setup:
 @app.cell
 def _():
     # Set navbar on the right
-    multiple_tabs = mo.ui.switch(label="Multiple tabs?")
-    _defaults.set_sidebar(multiple_tabs)
+    _defaults.set_sidebar()
     return
 
 
@@ -315,7 +314,10 @@ def _(
     return (
         configTraces,
         constraint,
+        max_colorbar,
+        min_colorbar,
         power_required,
+        power_surface,
         range_performance_diagrams,
         velocity_CL_E,
         velocity_CL_P,
@@ -326,7 +328,7 @@ def _(
 @app.cell
 def _(idx_CL_selected, power_required):
     power_required_selected = power_required[idx_CL_selected]
-    return
+    return (power_required_selected,)
 
 
 @app.cell(hide_code=True)
@@ -415,99 +417,112 @@ def _(CL_slider, dT_slider):
 
 
 @app.cell(hide_code=True)
-def _():
-    # pause_initial = mo.ui.checkbox(label="Pause execution")
+def _(variables_stack):
+    pause_initial = mo.ui.checkbox(label="Pause execution")
 
-    # mo.hstack([variables_stack, pause_initial])
-    return
+    mo.hstack([variables_stack, pause_initial])
+    return (pause_initial,)
 
 
 @app.cell(hide_code=True)
-def _():
-    # if pause_initial.value:
-    #     mo.stop(mo.md(""))
+def _(
+    CL_array,
+    CL_slider,
+    active_selection,
+    constraint,
+    dT_array,
+    dT_slider,
+    max_colorbar,
+    min_colorbar,
+    pause_initial,
+    power_required_selected,
+    power_surface,
+    xy_lowerbound,
+):
+    if pause_initial.value:
+        mo.stop(mo.md(""))
 
-    # # Create go.Figure() object
-    # fig_initial = go.Figure()
+    # Create go.Figure() object
+    fig_initial = go.Figure()
 
-    # # Minimum velocity surface
-    # fig_initial.add_traces(
-    #     [
-    #         go.Surface(
-    #             x=CL_array,
-    #             y=dT_array,
-    #             z=power_surface,
-    #             opacity=0.9,
-    #             name="Power",
-    #             colorscale="viridis",
-    #             cmin=min_colorbar,
-    #             cmax=max_colorbar,
-    #             colorbar={"title": "Power (kW)"},
-    #         ),
-    #         go.Scatter3d(
-    #             x=CL_array,
-    #             y=constraint,
-    #             z=power_surface[0],
-    #             opacity=1,
-    #             mode="lines",
-    #             showlegend=False,
-    #             line=dict(color="rgba(255, 0, 0, 0.35)", width=10),
-    #             name="g1 constraint",
-    #         ),
-    #         go.Scatter3d(
-    #             x=[CL_array[-15]],
-    #             y=[constraint[-15]],
-    #             z=[power_surface[0, 0] + 450],
-    #             opacity=1,
-    #             textposition="middle left",
-    #             mode="markers+text",
-    #             text=["g<sub>1</sub>"],
-    #             marker=dict(size=1, color="rgba(255, 0, 0, 0.0)"),
-    #             textfont=dict(size=14, family="Arial"),
-    #             showlegend=False,
-    #             name="g1 constraint",
-    #         ),
-    #         go.Scatter3d(
-    #             x=[CL_slider.value],
-    #             y=[dT_slider.value],
-    #             z=[power_required_selected],
-    #             mode="markers",
-    #             showlegend=False,
-    #             marker=dict(
-    #                 size=3,
-    #                 color="white",
-    #                 symbol="circle",
-    #             ),
-    #             name="Design Point",
-    #             hovertemplate="C<sub>L</sub>: %{x}<br>δ<sub>T</sub> : %{y}<br>P: %{z}<extra>%{fullData.name}</extra>",
-    #         ),
-    #     ]
-    # )
-    # camera = dict(eye=dict(x=1.35, y=1.35, z=1.35))
+    # Minimum velocity surface
+    fig_initial.add_traces(
+        [
+            go.Surface(
+                x=CL_array,
+                y=dT_array,
+                z=power_surface,
+                opacity=0.9,
+                name="Power",
+                colorscale="viridis",
+                cmin=min_colorbar,
+                cmax=max_colorbar,
+                colorbar={"title": "Power (kW)"},
+            ),
+            go.Scatter3d(
+                x=CL_array,
+                y=constraint,
+                z=power_surface[0],
+                opacity=1,
+                mode="lines",
+                showlegend=False,
+                line=dict(color="rgba(255, 0, 0, 0.35)", width=10),
+                name="g1 constraint",
+            ),
+            go.Scatter3d(
+                x=[CL_array[-15]],
+                y=[constraint[-15]],
+                z=[power_surface[0, 0] + 450],
+                opacity=1,
+                textposition="middle left",
+                mode="markers+text",
+                text=["g<sub>1</sub>"],
+                marker=dict(size=1, color="rgba(255, 0, 0, 0.0)"),
+                textfont=dict(size=14, family="Arial"),
+                showlegend=False,
+                name="g1 constraint",
+            ),
+            go.Scatter3d(
+                x=[CL_slider.value],
+                y=[dT_slider.value],
+                z=[power_required_selected],
+                mode="markers",
+                showlegend=False,
+                marker=dict(
+                    size=3,
+                    color="white",
+                    symbol="circle",
+                ),
+                name="Design Point",
+                hovertemplate="C<sub>L</sub>: %{x}<br>δ<sub>T</sub> : %{y}<br>P: %{z}<extra>%{fullData.name}</extra>",
+            ),
+        ]
+    )
+    camera = dict(eye=dict(x=1.35, y=1.35, z=1.35))
 
-    # fig_initial.update_layout(
-    #     scene=dict(
-    #         xaxis=dict(
-    #             title="C<sub>L</sub> (-)",
-    #             range=[xy_lowerbound, active_selection["CLmax_ld"]],
-    #         ),
-    #         yaxis=dict(title="δ<sub>T</sub> (-)", range=[xy_lowerbound, 1]),
-    #         zaxis=dict(
-    #             title="P (kW)",
-    #             range=[0, max_colorbar],
-    #         ),
-    #     ),
-    # )
-    # fig_initial.update_layout(
-    #     scene_camera=camera,
-    #     title={
-    #         "text": f"Minimum power domain for {active_selection.full_name}",
-    #         "font": {"size": 25},
-    #         "xanchor": "center",
-    #         "yanchor": "top",
-    #         "x": 0.5,
-    #     },
-    # )
+    fig_initial.update_layout(
+        scene=dict(
+            xaxis=dict(
+                title="C<sub>L</sub> (-)",
+                range=[xy_lowerbound, active_selection["CLmax_ld"]],
+            ),
+            yaxis=dict(title="δ<sub>T</sub> (-)", range=[xy_lowerbound, 1]),
+            zaxis=dict(
+                title="P (kW)",
+                range=[0, max_colorbar],
+            ),
+        ),
+    )
+    fig_initial.update_layout(
+        scene_camera=camera,
+        title={
+            "text": f"Minimum power domain for {active_selection.full_name}",
+            "font": {"size": 25},
+            "xanchor": "center",
+            "yanchor": "top",
+            "x": 0.5,
+        },
+    )
     return
 
 
@@ -618,6 +633,8 @@ def _(fig_interior_optimum, tab_value, title_keys, variables_stack):
     render_interior = mo.vstack(
         [
             mo.md(r"""
+    ### _Interior optimum_
+
     In this case: $C_L \lt C_{L_{\mathrm{max}}}$, $\delta_T \lt 1$, $\mu_1=\mu_2= 0$
 
     from stationarity condition (2): $\lambda_1 = 0$
@@ -758,7 +775,7 @@ def _(
 ):
     if tab_value != title_keys[0]:
         mo.stop(True)
-    
+
     # Interior graphics
     fig_interior_optimum = OptimumGridView(
         configTraces,
@@ -862,7 +879,7 @@ def _(
 ):
     if tab_value != title_keys[1]:
         mo.stop(True)
-    
+
     fig_lift_limited = go.Figure()
 
     # Power curve vs CL
@@ -1000,7 +1017,7 @@ def _(
 ):
     if tab_value != title_keys[1]:
         mo.stop(True)
-    
+
     # maxlift graphics
     fig_maxlift_optimum = OptimumGridView(
         configTraces,
@@ -1043,7 +1060,7 @@ def _(
     \frac{\partial P}{\partial C_L} = \lambda_1 \frac{\partial D}{\partial C_L}
     $$
     """),
-            mo.md("""This tells us that the required power and drag change in opposite directions with respect to the change in $C_L$. If one decreases, then the other one has to increase, given that $\lambda_1 \lt 0$.
+            mo.md(r"""This tells us that the required power and drag change in opposite directions with respect to the change in $C_L$. If one decreases, then the other one has to increase, given that $\lambda_1 \lt 0$.
     This can only happen in the range of $C_L$ between $C_{L_P}$ and $C_{L_E}$, since they represent the minimum power and maximum aerodynamic efficiency (alternatively minimum drag) respectively.
 
     This is clearer in the performance diagram:"""),
@@ -1414,7 +1431,6 @@ def _(
 
     power_maxthrust_harray = W_selected / E_maxthrust * velocity_maxthrust_harray
     power_maxthrust_selected = W_selected / E_maxthrust_selected * velocity_maxthrust_selected
-
     return (
         CL_maxthrust_selected,
         dTopt_maxthrust,
@@ -1687,7 +1703,7 @@ def _(
 ):
     if tab_value != title_keys[3]:
         mo.stop(True)
-            
+
     power_surface_maxliftThrust = np.broadcast_to(
         power_required_maxliftThrust[np.newaxis, :],  # Shape: (101, 1)
         (len(CL_array), len(dT_array)),  # Target shape: (101, 101)
