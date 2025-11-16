@@ -336,7 +336,7 @@ class OptimumGridView:
             )
         )
 
-        if ~np.isnan(optimum[3]) and not equality:
+        if ~np.isnan(optimum[3]):  # and not equality:
             velocity_marker = create_marker_trace(
                 velocity[1], h_selected / 1e3, "V", "#FFFFFF", "x4", "y4"
             )
@@ -472,6 +472,7 @@ def create_final_flightenvelope(
     figure = go.Figure()
     traces = create_stall_trace(h_array, velocity_stall, "x1", "y1")
 
+    """write this in a loop!"""
     if ~np.isnan(np.asarray(interior[1]).any()):
         if interior[2]:
             traces.append(
@@ -485,7 +486,12 @@ def create_final_flightenvelope(
             )
         else:
             traces.append(
-                go.Scatter(x=[interior[1]], y=[interior[0] / 1e3], mode="markers")
+                go.Scatter(
+                    x=[interior[1]],
+                    y=[interior[0] / 1e3],
+                    mode="markers",
+                    marker=dict(size=10, color=SALMON),
+                )
             )
 
     if ~np.isnan(np.asarray(maxthrust[1]).any()):
@@ -505,6 +511,7 @@ def create_final_flightenvelope(
                     x=[maxthrust[1]],
                     y=[maxthrust[0] / 1e3],
                     mode="markers",
+                    marker=dict(size=10, color=SALMON),
                     showlegend=False,
                 )
             )
@@ -525,6 +532,7 @@ def create_final_flightenvelope(
                 go.Scatter(
                     x=[maxlift[1]],
                     y=[maxlift[0] / 1e3],
+                    marker=dict(size=10, color=SALMON),
                     mode="markers",
                     showlegend=False,
                 )
@@ -538,6 +546,7 @@ def create_final_flightenvelope(
                     y=maxliftThrust[0] / 1e3,
                     mode="lines",
                     line=dict(width=3, color=SALMON),
+                    marker=dict(size=10, color=SALMON),
                     showlegend=False,
                 )
             )

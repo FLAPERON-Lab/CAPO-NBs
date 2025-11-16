@@ -755,9 +755,8 @@ def _(
             (h_interior_array, dTopt_interior, CLopt_interior, true_interior),
             f"Interior minimum power for {active_selection.full_name}",
         )
-    
+
     elif tab_value == title_keys[1]:
-    
         # maxlift graphics
         figure_optimum = OptimumGridView(
             configTraces,
@@ -769,20 +768,20 @@ def _(
         )
 
     elif tab_value == title_keys[2]:
-
         # Maxthrust graphics
         figure_optimum = OptimumGridView(
-        configTraces,
-        h_selected,
-        (velocity_maxthrust_harray, velocity_maxthrust_selected),
-        (drag_maxthrust_harray, drag_maxthrust_selected),
-        (h_maxthrust_array, true_maxthrust, CL_maxthrust_selected, true_maxthrust),
-        f"Thrust-limited minimum power for {active_selection.full_name}",
-    )
+            configTraces,
+            h_selected,
+            (velocity_maxthrust_harray, velocity_maxthrust_selected),
+            (drag_maxthrust_harray, drag_maxthrust_selected),
+            (h_maxthrust_array, true_maxthrust, CL_maxthrust_selected, true_maxthrust),
+            f"Thrust-limited minimum power for {active_selection.full_name}",
+        )
 
     elif tab_value == title_keys[3]:
-        constraint_maxliftThrust = W_selected / E_array / Pa0 / sigma_maxliftThrust**beta * velocity_maxliftThrust_selected
-
+        constraint_maxliftThrust = (
+            W_selected / E_array / Pa0 / sigma_maxliftThrust**beta * velocity_maxliftThrust_selected
+        )
 
         # Create graphic traces
         configTraces_maxliftThrust = plot_utils.ConfigTraces(
@@ -799,13 +798,12 @@ def _(
             velocity_CL_E * maxliftThrust_multiplier,
             velocity_maxliftThrust_selected,
             velocity_maxliftThrust_selected,
-            (drag_yrange, power_yrange/1e3, CLmax),
+            (drag_yrange, power_yrange / 1e3, CLmax),
             zcolorbar,
             mach_trace,
             stall_trace,
         )
-    
-    
+
         # Maxliftthrust graphics
         figure_optimum = OptimumGridView(
             configTraces_maxliftThrust,
@@ -816,8 +814,6 @@ def _(
             f"Thrust-lift limited minimum drag for {active_selection.full_name}",
             equality=True,
         )
-
-
 
 
     figure_optimum.update_axes_ranges(range_performance_diagrams)
@@ -1153,7 +1149,9 @@ def _(figure_optimum, mo, tab_value, title_keys, variables_stack):
     if tab_value != title_keys[2]:
         mo.stop(True)
 
-    mo.vstack([mo.md(r"""
+    mo.vstack(
+        [
+            mo.md(r"""
     ###_Thrust-limited minimum drag_
 
     $C_L \lt C_{L_\mathrm{max}} \quad \Rightarrow \quad \mu_1 = 0$
@@ -1193,7 +1191,11 @@ def _(figure_optimum, mo, tab_value, title_keys, variables_stack):
     $$
     \boxed{\delta_T = 1}, \quad \boxed{C_L^* = \text{numerical}}, \quad {\frac{W^{3/2}}{\sigma^{\beta + 1/2}} \gt \text{numerical}}, \quad {C_{L_E}\lt C_L \lt C_{L_\mathrm{max}}}
     $$
-    """), variables_stack, figure_optimum.figure]).callout()
+    """),
+            variables_stack,
+            figure_optimum.figure,
+        ]
+    ).callout()
     return
 
 
@@ -1235,8 +1237,12 @@ def _(
         #     < 0
         # ) & (CLstar < CLmax)
 
-        sigma_min = (2 * W_selected**1.5)  * (K * CLstar**2 - CD0) * np.sqrt(2 / (atmos.rho0 * S)) / (Pa0 * CLstar**1.5)** (1/(beta+0.5))
-
+        sigma_min = (
+            (2 * W_selected**1.5)
+            * (K * CLstar**2 - CD0)
+            * np.sqrt(2 / (atmos.rho0 * S))
+            / (Pa0 * CLstar**1.5) ** (1 / (beta + 0.5))
+        )
 
         h_maxthrust_array = h_array[(sigma_array < sigma_min)]
 
@@ -1324,7 +1330,9 @@ def _(figure_optimum, mo, tab_value, title_keys, variables_stack):
     if tab_value != title_keys[3]:
         mo.stop(True)
 
-    mo.vstack([mo.md(r"""
+    mo.vstack(
+        [
+            mo.md(r"""
     _Thrust-lift limited minimum drag_
 
 
@@ -1408,14 +1416,17 @@ def _(figure_optimum, mo, tab_value, title_keys, variables_stack):
 
     Below is the performance diagram for power and drag, the optimization domain with the objective function as a surface plot, and finally, on the bottom right, the flight envelope where the optima can be achieved.
 
-    """), variables_stack, figure_optimum.figure]).callout()
+    """),
+            variables_stack,
+            figure_optimum.figure,
+        ]
+    ).callout()
     return
 
 
 @app.cell
 def _(atmos, np):
     def maxliftThrust_condition(W, Pa0, E_S, beta, CL_E, CL_P, S, CLmax):
-
         sigma_maxliftThrust = (W**1.5 / Pa0 / E_S / (np.sqrt(atmos.rho0 * S * CLmax / 2))) ** (1 / (beta + 0.5))
         h_maxliftThrust_selected = atmos.altitude(sigma_maxliftThrust)
 
@@ -1458,8 +1469,7 @@ def _(
     maxliftThrust_multiplier = np.sqrt(rho_selected / (atmos.rho0 * sigma_maxliftThrust))
 
 
-
-    power_available_maxliftThrust = np.repeat(Pa0 * sigma_maxliftThrust ** beta, meshgrid_n) /1e3
+    power_available_maxliftThrust = np.repeat(Pa0 * sigma_maxliftThrust**beta, meshgrid_n) / 1e3
 
     velocity_maxliftThrust_CLarray = velocity_CLarray * maxliftThrust_multiplier
     velocity_maxliftThrust_selected = velocity_maxliftThrust_CLarray[-1]
