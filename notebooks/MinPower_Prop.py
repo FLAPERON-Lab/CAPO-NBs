@@ -701,7 +701,7 @@ def _(
         min_colorbar_maxthrust = np.min(power_required_maxthrust)
         max_colorbar_maxthrust = min_colorbar_maxthrust * 1.5
         zcolorbar_maxthrust = (min_colorbar_maxthrust, max_colorbar_maxthrust)
-    
+
         configTraces_maxthrust = plot_utils.ConfigTraces(
             CL_array,
             dT_array,
@@ -741,7 +741,7 @@ def _(
         min_colorbar_maxliftThrust = np.min(power_required_maxliftThrust)
         max_colorbar_maxliftThrust = min_colorbar_maxliftThrust * 1.5
         zcolorbar_maxliftThrust = (min_colorbar_maxliftThrust, max_colorbar_maxliftThrust)
-    
+
         configTraces_maxliftThrust = plot_utils.ConfigTraces(
             CL_array,
             dT_array,
@@ -781,7 +781,7 @@ def _(
 def _(figure_optimum, tab_value, title_keys, variables_stack):
     if tab_value != title_keys[0]:
         mo.stop(True)
-    
+
     mo.vstack([mo.md(r"""
     ### _Interior solutions_ 
 
@@ -923,7 +923,7 @@ def _(
 def _(figure_optimum, tab_value, title_keys, variables_stack):
     if tab_value != title_keys[1]:
         mo.stop(True)
-    
+
     mo.vstack([mo.md(r"""
     ### _Lift-limited solutions (stall)_
 
@@ -1073,7 +1073,7 @@ def _(
 def _(figure_optimum, tab_value, title_keys, variables_stack):
     if tab_value != title_keys[2]:
         mo.stop(True)
-    
+
     mo.vstack([mo.md(r"""
     ### _Thrust limited solutions_
 
@@ -1146,9 +1146,9 @@ def maxthrust_condition(
         return np.array([np.nan]), dT, np.nan, np.nan, np.nan
 
     h_optimum = atmos.altitude(sigma_optimum)
-    
+
     cond = 1
-    
+
     return h_optimum, dT, CL_P, sigma_optimum, cond
 
 
@@ -1198,7 +1198,6 @@ def _(
 
 
     power_maxthrust_selected = W_selected / E_P * velocity_maxthrust_selected / 1e3
-
     return (
         CLopt_maxthrust,
         constraint_maxthrust,
@@ -1292,7 +1291,7 @@ def maxliftThrust_condition(
 
 
     cond = 1
-    
+
     return h_optimum, dT, CLmax, sigma_optimum, cond
 
 
