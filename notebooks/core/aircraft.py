@@ -41,8 +41,9 @@ class AircraftBase:
 
 
 class OptimumCondition:
-    def compute_optimal(self, W, h, Model):
-        self.hopt_array = Model.aircraft.h_array[self.condition]
+    def compute_optimal(self, W, h, Model, equality=False):
+        if not equality:
+            self.hopt_array = Model.aircraft.h_array[self.condition]
 
         self.cond = 1 if h in self.hopt_array else np.nan
         self.V_envelope = Model.compute_velocity(W, self.hopt_array, self.CLopt)

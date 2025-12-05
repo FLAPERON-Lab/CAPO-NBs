@@ -31,6 +31,7 @@ def _():
         AircraftBase,
         ModelSimplifiedJet,
         OptimumCondition,
+        atmos,
         available_aircrafts,
         data_dir,
         mo,
@@ -656,9 +657,25 @@ def _(OptimumCondition, aircraft, analysisModel):
 
 
 @app.cell
-def _(figure_optimum, mass_stack_analysis, mo, tab_value, title_keys):
+def _(
+    MaxLiftThrustCondition,
+    W_selected_analysis,
+    analysisModel,
+    mass_stack_analysis,
+    mo,
+    np,
+    plot_utils,
+    tab_value,
+    title_keys,
+):
     if tab_value != title_keys[3]:
         mo.stop(True)
+
+    MaxLiftThrust = MaxLiftThrustCondition(W_selected_analysis, analysisModel)
+    surface_MaxLiftThrust = np.broadcast_to(
+        analysisModel.V_CLarray[np.newaxis, :], (plot_utils.meshgrid_n, plot_utils.meshgrid_n)
+    )
+
 
     mo.vstack(
         [
@@ -714,10 +731,34 @@ def _(figure_optimum, mass_stack_analysis, mo, tab_value, title_keys):
     Below is the performance diagram for power and drag, the optimization domain with the objective function as a surface plot, and finally, on the bottom right, the flight envelope where the optima can be achieved.
     """),
             mass_stack_analysis,
-            figure_optimum.figure,
+            analysisModel.plot_optimum(
+                surface_MaxLiftThrust, MaxLiftThrust
+            ).figure
         ]
     ).callout()
     return
+
+
+@app.cell
+def _(OptimumCondition, atmos, np):
+    class MaxLiftThrustCondition(OptimumCondition):
+        def __init__(self, W, Model):
+
+            h_optimum = atmos.altitude((W / (Model.aircraft.Ta0 * 1e3) / Model.aircraft.E_S) ** (1/Model.aircraft.beta))
+
+            Model.update_altitude_dependency(h_optimum)
+            Model.update_context(W, h_optimum)
+
+            self.CLopt = self.CLopt_selected =Model.aircraft.CLmax
+            self.dTopt = 1
+
+            self.hopt_array = np.array([h_optimum])
+            self.condition = 1
+
+
+            self.compute_optimal(W, h_optimum, Model, True)
+
+    return (MaxLiftThrustCondition,)
 
 
 @app.cell
