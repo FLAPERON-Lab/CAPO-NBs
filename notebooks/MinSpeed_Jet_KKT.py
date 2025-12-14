@@ -15,7 +15,12 @@ def _():
     import plotly.express as px
     import numpy as np
     from core import atmos
-    from core.aircraft import available_aircrafts, AircraftBase, ModelSimplifiedJet, OptimumCondition
+    from core.aircraft import (
+        available_aircrafts,
+        AircraftBase,
+        ModelSimplifiedJet,
+        OptimumCondition,
+    )
     from core import plot_utils
     # from core.plot_utils import OptimumGridView
 
@@ -68,23 +73,61 @@ def _(AircraftBase, ModelSimplifiedJet, ac_table, data, plot_utils):
 
     aircraft = AircraftBase(active_selection)
 
-    general_controls = plot_utils.InteractiveElements(aircraft, initial=True)
+    initialControls = plot_utils.InteractiveElements(aircraft, initial=True)
     initialModel = ModelSimplifiedJet(aircraft)
 
-    initial_mass_slider = general_controls.mass_slider
-    initial_altitude_slider = general_controls.altitude_slider
-    initial_CL_slider = general_controls.CL_slider
-    initial_dT_slider = general_controls.dT_slider
+    initial_mass_slider = initialControls.mass_slider
+    initial_altitude_slider = initialControls.altitude_slider
+    initial_CL_slider = initialControls.CL_slider
+    initial_dT_slider = initialControls.dT_slider
 
-    initial_mass_stack, initial_variables_stack = general_controls.init_layout(
+    initial_mass_stack, initial_variables_stack = initialControls.init_layout(
         initial_mass_slider, initial_altitude_slider
     )
     return (
         aircraft,
+        initialControls,
+        initialModel,
         initial_CL_slider,
+        initial_altitude_slider,
         initial_dT_slider,
+        initial_mass_slider,
         initial_variables_stack,
     )
+
+
+@app.cell
+def _(initialControls, initialModel, initial_mass_slider):
+    W_selected_initial = initialControls.sense_mass(initial_mass_slider)
+
+    initialModel.update_mass_dependency(W_selected_initial)
+    return (W_selected_initial,)
+
+
+@app.cell
+def _(initialControls, initialModel, initial_altitude_slider):
+    h_selected_initial = initialControls.sense_altitude(initial_altitude_slider)
+
+    initialModel.update_altitude_dependency(h_selected_initial)
+    return (h_selected_initial,)
+
+
+@app.cell
+def _(W_selected_initial, h_selected_initial, initialModel):
+    initialModel.update_context(W_selected_initial, h_selected_initial)
+    return
+
+
+@app.cell
+def _(W_selected_initial, h_selected_initial, initialModel, np, plot_utils):
+    _ = h_selected_initial, W_selected_initial
+
+
+    initialSurface = np.broadcast_to(
+        initialModel.V_CLarray[np.newaxis, :],
+        (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
+    )
+    return (initialSurface,)
 
 
 @app.cell(hide_code=True)
@@ -107,92 +150,6 @@ def _(mo):
     \end{aligned}
     $$
     """)
-    return
-
-
-@app.cell
-def _():
-    # # Initial Figure
-    # fig_initial = go.Figure()
-
-    # # Minimum velocity surface
-    # fig_initial.add_traces(
-    #     [
-    #         go.Surface(
-    #             x=aircraft.CL_array,
-    #             y=aircraft.dT_array,
-    #             z=objective_surface,
-    #             opacity=0.9,
-    #             name="Velocity",
-    #             colorscale="viridis",
-    #             cmax=max_colorbar,
-    #             cmin=min_colorbar,
-    #             colorbar={"title": "Velocity (m/s)"},
-    #         ),
-    #         go.Scatter3d(
-    #             x=aircraft.CL_array,
-    #             y=constraint,
-    #             z=objective_surface[0],
-    #             opacity=1,
-    #             mode="lines",
-    #             showlegend=False,
-    #             line=dict(color="rgba(255, 0, 0, 0.35)", width=10),
-    #             name="g1 constraint",
-    #         ),
-    #         go.Scatter3d(
-    #             x=[aircraft.CL_array[-15]],
-    #             y=[constraint[-15]],
-    #             z=[objective_surface[0, -15]],
-    #             opacity=1,
-    #             textposition="middle left",
-    #             mode="markers+text",
-    #             text=["g<sub>1</sub>"],
-    #             marker=dict(size=1, color="rgba(255, 0, 0, 0.0)"),
-    #             showlegend=False,
-    #             name="g1 constraint",
-    #             textfont=dict(size=14, family="Arial"),
-    #         ),
-    #         go.Scatter3d(
-    #             x=[CL_slider.value],
-    #             y=[dT_slider.value],
-    #             z=[velocity_selected],
-    #             mode="markers",
-    #             showlegend=False,
-    #             marker=dict(
-    #                 size=3,
-    #                 color="white",
-    #                 symbol="circle",
-    #             ),
-    #             name="Design Point",
-    #             hovertemplate="C<sub>L</sub>: %{x}<br>δ<sub>T</sub> : %{y}<br>V: %{z}<extra>%{fullData.name}</extra>",
-    #         ),
-    #     ]
-    # )
-    # camera = dict(eye=dict(x=1.35, y=1.35, z=1.35))
-
-    # fig_initial.update_layout(
-    #     scene=dict(
-    #         xaxis=dict(
-    #             title="C<sub>L</sub> (-)",
-    #             range=[plot_utils.xy_lowerbound, aircraft.CLmax],
-    #         ),
-    #         yaxis=dict(title="δ<sub>T</sub> (-)", range=[plot_utils.xy_lowerbound, 1]),
-    #         zaxis=dict(title="V (m/s)", range=[0, aircraft.a_0]),
-    #     ),
-    # )
-
-    # fig_initial.update_layout(
-    #     scene_camera=camera,
-    #     title={
-    #         "text": f"Minimum airspeed domain for {aircraft.full_name}",
-    #         "font": {"size": 25},
-    #         "xanchor": "center",
-    #         "yanchor": "top",
-    #         "x": 0.5,
-    #     },
-    # )
-
-    # mo.output.clear()
     return
 
 
@@ -242,9 +199,16 @@ def _(ac_table):
 
 
 @app.cell(hide_code=True)
-def _(initial_CL_slider, initial_dT_slider, initial_variables_stack, mo):
+def _(
+    initialModel,
+    initialSurface,
+    initial_CL_slider,
+    initial_dT_slider,
+    initial_variables_stack,
+    mo,
+):
     mo.md(f"""
-    Here you can modify the control variables to understand how it affects the design: {mo.vstack([mo.hstack([initial_dT_slider, initial_CL_slider]), initial_variables_stack])}
+    Here you can modify the control variables to understand how it affects the design: {mo.vstack([mo.hstack([initial_dT_slider, initial_CL_slider]), initial_variables_stack, initialModel.plot_initial(initialSurface).figure])}
     """)
     return
 
@@ -413,10 +377,21 @@ def _(tab_view):
 
 
 @app.cell
-def _(analysisModel, np, plot_utils, tab):
+def _(
+    W_selected_analysis,
+    analysisModel,
+    h_selected_analysis,
+    np,
+    plot_utils,
+    tab,
+):
     tab_value = tab.value
+
+    _ = h_selected_analysis, W_selected_analysis
+
     surface = np.broadcast_to(
-        analysisModel.V_CLarray[np.newaxis, :], (plot_utils.meshgrid_n, plot_utils.meshgrid_n)
+        analysisModel.V_CLarray[np.newaxis, :],
+        (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
     return surface, tab_value
 
@@ -530,7 +505,8 @@ def _(
     """),
             variables_stack_analysis,
             analysisModel.plot_optimum(
-                surface, MaxThrustCondition(W_selected_analysis, h_selected_analysis, analysisModel)
+                surface,
+                (MaxThrustCondition(W_selected_analysis, h_selected_analysis, analysisModel),),
             ).figure,
         ]
     ).callout()
@@ -631,7 +607,8 @@ def _(
     """),
             variables_stack_analysis,
             analysisModel.plot_optimum(
-                surface, MaxliftCondition(W_selected_analysis, h_selected_analysis, analysisModel)
+                surface,
+                (MaxliftCondition(W_selected_analysis, h_selected_analysis, analysisModel),),
             ).figure,
         ]
     ).callout()
@@ -671,11 +648,11 @@ def _(
     if tab_value != title_keys[3]:
         mo.stop(True)
 
-    MaxLiftThrust = MaxLiftThrustCondition(W_selected_analysis, analysisModel)
+    MaxLiftThrust = (MaxLiftThrustCondition(W_selected_analysis, analysisModel),)
     surface_MaxLiftThrust = np.broadcast_to(
-        analysisModel.V_CLarray[np.newaxis, :], (plot_utils.meshgrid_n, plot_utils.meshgrid_n)
+        analysisModel.V_CLarray[np.newaxis, :],
+        (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
-
 
     mo.vstack(
         [
@@ -731,9 +708,7 @@ def _(
     Below is the performance diagram for power and drag, the optimization domain with the objective function as a surface plot, and finally, on the bottom right, the flight envelope where the optima can be achieved.
     """),
             mass_stack_analysis,
-            analysisModel.plot_optimum(
-                surface_MaxLiftThrust, MaxLiftThrust
-            ).figure
+            analysisModel.plot_optimum(surface_MaxLiftThrust, MaxLiftThrust).figure,
         ]
     ).callout()
     return
@@ -743,21 +718,20 @@ def _(
 def _(OptimumCondition, atmos, np):
     class MaxLiftThrustCondition(OptimumCondition):
         def __init__(self, W, Model):
-
-            h_optimum = atmos.altitude((W / (Model.aircraft.Ta0 * 1e3) / Model.aircraft.E_S) ** (1/Model.aircraft.beta))
+            h_optimum = atmos.altitude(
+                (W / (Model.aircraft.Ta0 * 1e3) / Model.aircraft.E_S) ** (1 / Model.aircraft.beta)
+            )
 
             Model.update_altitude_dependency(h_optimum)
             Model.update_context(W, h_optimum)
 
-            self.CLopt = self.CLopt_selected =Model.aircraft.CLmax
+            self.CLopt = self.CLopt_selected = Model.aircraft.CLmax
             self.dTopt = 1
 
             self.hopt_array = np.array([h_optimum])
             self.condition = 1
 
-
             self.compute_optimal(W, h_optimum, Model, True)
-
     return (MaxLiftThrustCondition,)
 
 
@@ -774,6 +748,86 @@ def _(mo):
     mo.md(r"""
     Now after deriving all the optima for each condition we can summarize the flight envelopes in one graph, as shown below. Experiment with the weight of the aircrarft to understand how the theoretical ceiling for minimum speed moves in the graph.
     """)
+    return
+
+
+@app.cell
+def _(ModelSimplifiedJet, aircraft, plot_utils):
+    envelopeControls = plot_utils.InteractiveElements(aircraft)
+
+    mass_slider_envelope = envelopeControls.mass_slider
+    altitude_slider_envelope = envelopeControls.altitude_slider
+
+    mass_stack_envelope, variables_stack_envelope = envelopeControls.init_layout(
+        mass_slider_envelope, altitude_slider_envelope
+    )
+
+    envelopeModel = ModelSimplifiedJet(aircraft)
+    return (
+        altitude_slider_envelope,
+        envelopeControls,
+        envelopeModel,
+        mass_slider_envelope,
+        variables_stack_envelope,
+    )
+
+
+@app.cell
+def _(envelopeControls, envelopeModel, mass_slider_envelope):
+    W_selected_envelope = envelopeControls.sense_mass(mass_slider_envelope)
+
+    envelopeModel.update_mass_dependency(W_selected_envelope)
+    return (W_selected_envelope,)
+
+
+@app.cell
+def _(altitude_slider_envelope, envelopeControls, envelopeModel):
+    h_selected_envelope = envelopeControls.sense_altitude(altitude_slider_envelope)
+
+    envelopeModel.update_altitude_dependency(h_selected_envelope)
+    return (h_selected_envelope,)
+
+
+@app.cell
+def _(W_selected_envelope, envelopeModel, h_selected_envelope):
+    envelopeModel.update_context(W_selected_envelope, h_selected_envelope)
+    return
+
+
+@app.cell
+def _(W_selected_envelope, envelopeModel, h_selected_envelope, np, plot_utils):
+    _ = h_selected_envelope, W_selected_envelope
+
+    envelopeSurface = np.broadcast_to(
+        envelopeModel.V_CLarray[np.newaxis, :],
+        (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
+    )
+    return (envelopeSurface,)
+
+
+@app.cell
+def _(
+    MaxThrustCondition,
+    MaxliftCondition,
+    W_selected_envelope,
+    envelopeModel,
+    envelopeSurface,
+    h_selected_envelope,
+    mo,
+    variables_stack_envelope,
+):
+    mo.vstack(
+        [
+            variables_stack_envelope,
+            envelopeModel.plot_optimum(
+                envelopeSurface,
+                (
+                    MaxliftCondition(W_selected_envelope, h_selected_envelope, envelopeModel),
+                    MaxThrustCondition(W_selected_envelope, h_selected_envelope, envelopeModel),
+                ),
+            ).figure,
+        ]
+    )
     return
 
 

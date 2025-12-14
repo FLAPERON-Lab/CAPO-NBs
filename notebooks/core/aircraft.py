@@ -6,6 +6,7 @@ import numpy as np
 import polars as pl
 import marimo as mo
 from core import plot_utils
+from core.plot_utils import InitialFig
 
 
 class AircraftBase:
@@ -99,9 +100,9 @@ class SimplifiedAircraft:
         return plot_utils.OptimumGridViewNew(self, configTraces, Condition, equality)
 
     def plot_initial(self, surface):
-        # configTraces = plot_utils.configTraces(self, surface)
+        configTraces = plot_utils.configTraces(self, surface)
 
-        return plot_utils.InitialFig(self, configTraces)
+        return InitialFig(self, surface, configTraces)
 
     # ===== Shared API, overridden by subclasses =====
 

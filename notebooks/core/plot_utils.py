@@ -27,7 +27,7 @@ axes_max_h = 20
 
 
 class OptimumGridViewNew:
-    def __init__(self, Model, configTraces, Optimum, equality=False):
+    def __init__(self, Model, configTraces, Optimums, equality=False):
         """
         args:
             - axes_ranges: list
@@ -47,7 +47,7 @@ class OptimumGridViewNew:
                 self.figure.add_traces(trace)
 
         if not equality:
-            self.plot_inequality_optimum(Model, Optimum)
+            self.plot_inequality_optimum(Model, Optimums)
         else:
             raise NotImplementedError
 
@@ -115,99 +115,118 @@ class OptimumGridViewNew:
             height=800,
         )
 
-    def plot_inequality_optimum(self, Model, Optimum):
-        power_available_trace = go.Scattergl(
-            x=Model.V_CLarray,
-            y=Optimum.dTopt * Model.power_available / 1e3,
-            xaxis="x2",
-            yaxis="y2",
-            mode="lines",
-            showlegend=False,
-            line=dict(color=AVAILABLE_COLOR),
-        )
-        thrust_available = go.Scattergl(
-            x=Model.V_CLarray,
-            y=Optimum.dTopt * Model.thrust,
-            xaxis="x1",
-            yaxis="y1",
-            mode="lines",
-            showlegend=False,
-            line=dict(color=AVAILABLE_COLOR),
-        )
-        flight_envelope_trace = go.Scattergl(
-            x=Optimum.V_envelope,
-            y=Optimum.hopt_array,
-            xaxis="x4",
-            yaxis="y4",
-            mode="lines",
-            showlegend=False,
-            line=dict(color=SALMON),
-        )
+    def plot_inequality_optimum(self, Model, Optimums):
+        all_traces = []
 
-        # Add markers
-        drag_marker = go.Scattergl(
-            x=[Optimum.V_selected],
-            y=[Optimum.power_selected / Optimum.V_selected],
-            mode="markers",
-            showlegend=False,
-            marker=dict(
-                size=10,
-                color=WHITE,
-                symbol="circle",
-            ),
-            name="label",
-            xaxis="x1",
-            yaxis="y1",
-        )
+        hopt_combined = np.hstack([opt.hopt_array for opt in Optimums])
+        V_envelope_combined = np.hstack([opt.V_envelope for opt in Optimums])
 
-        power_marker = go.Scattergl(
-            x=[Optimum.V_selected],
-            y=[Optimum.power_selected / 1e3],
-            mode="markers",
-            showlegend=False,
-            marker=dict(
-                size=10,
-                color=WHITE,
-                symbol="circle",
-            ),
-            name="label",
-            xaxis="x2",
-            yaxis="y2",
-        )
+        # Build dT_optimum list first, then check if empty
+        dT_list = [
+            opt.dTopt * opt.cond
+            for opt in Optimums
+            if not np.isnan(opt.dTopt * opt.cond)
+        ]
 
-        domain_marker = go.Scattergl(
-            x=[Optimum.CLopt_selected],
-            y=[Optimum.dTopt],
-            mode="markers",
-            showlegend=False,
-            marker=dict(
-                size=10,
-                color=WHITE,
-                symbol="circle",
-            ),
-            name="label",
-            xaxis="x3",
-            yaxis="y3",
-        )
+        if dT_list:
+            dT_optimum = np.hstack(dT_list)
+        else:
+            dT_optimum = np.array([1.0])
 
-        envelope_marker = go.Scattergl(
-            x=[Optimum.V_selected],
-            y=[Optimum.h_selected],
-            mode="markers",
-            showlegend=False,
-            marker=dict(
-                size=10,
-                color=WHITE,
-                symbol="circle",
-            ),
-            name="label",
-            xaxis="x4",
-            yaxis="y4",
-        )
+        for i in range(len(Optimums)):
+            Optimum = Optimums[i]
 
-        self.figure.add_traces(
-            (
-                (
+            power_available_trace = go.Scattergl(
+                x=Model.V_CLarray,
+                y=dT_optimum * Model.power_available / 1e3,
+                xaxis="x2",
+                yaxis="y2",
+                mode="lines",
+                showlegend=False,
+                line=dict(color=AVAILABLE_COLOR),
+            )
+            thrust_available = go.Scattergl(
+                x=Model.V_CLarray,
+                y=dT_optimum * Model.thrust,
+                xaxis="x1",
+                yaxis="y1",
+                mode="lines",
+                showlegend=False,
+                line=dict(color=AVAILABLE_COLOR),
+            )
+            flight_envelope_trace = go.Scattergl(
+                x=V_envelope_combined,
+                y=hopt_combined,
+                xaxis="x4",
+                yaxis="y4",
+                mode="lines",
+                showlegend=False,
+                line=dict(color=SALMON),
+            )
+
+            # Add markers
+            drag_marker = go.Scattergl(
+                x=[Optimum.V_selected],
+                y=[Optimum.power_selected / Optimum.V_selected],
+                mode="markers",
+                showlegend=False,
+                marker=dict(
+                    size=10,
+                    color=WHITE,
+                    symbol="circle",
+                ),
+                name="label",
+                xaxis="x1",
+                yaxis="y1",
+            )
+
+            power_marker = go.Scattergl(
+                x=[Optimum.V_selected],
+                y=[Optimum.power_selected / 1e3],
+                mode="markers",
+                showlegend=False,
+                marker=dict(
+                    size=10,
+                    color=WHITE,
+                    symbol="circle",
+                ),
+                name="label",
+                xaxis="x2",
+                yaxis="y2",
+            )
+
+            domain_marker = go.Scattergl(
+                x=[Optimum.CLopt_selected],
+                y=[Optimum.dTopt],
+                mode="markers",
+                showlegend=False,
+                marker=dict(
+                    size=10,
+                    color=WHITE,
+                    symbol="circle",
+                ),
+                name="label",
+                xaxis="x3",
+                yaxis="y3",
+            )
+
+            envelope_marker = go.Scattergl(
+                x=[Optimum.V_selected],
+                y=[Optimum.h_selected],
+                mode="markers",
+                showlegend=False,
+                marker=dict(
+                    size=10,
+                    color=WHITE,
+                    symbol="circle",
+                ),
+                name="label",
+                xaxis="x4",
+                yaxis="y4",
+            )
+
+            all_traces.extend(
+                [
                     power_available_trace,
                     thrust_available,
                     flight_envelope_trace,
@@ -215,9 +234,11 @@ class OptimumGridViewNew:
                     power_marker,
                     domain_marker,
                     envelope_marker,
-                )
+                ]
             )
-        )
+
+        # Add all traces in a single batch for efficiency
+        self.figure.add_traces(tuple(all_traces))
 
 
 class configTraces:
@@ -674,3 +695,87 @@ class InteractiveElements:
         self.altitude_selected = int(slider.value * 1e3)
 
         return self.altitude_selected
+
+
+class InitialFig:
+    def __init__(self, Model, surface, Config: configTraces):
+        figure = go.Figure()
+
+        # Minimum velocity surface
+        figure.add_traces(
+            [
+                go.Surface(
+                    x=Model.aircraft.CL_array,
+                    y=Model.aircraft.dT_array,
+                    z=surface,
+                    opacity=0.9,
+                    name="Velocity",
+                    colorscale="viridis",
+                    cmax=2 * np.min(surface),
+                    cmin=np.min(surface),
+                    colorbar={"title": "Velocity (m/s)"},
+                ),
+                go.Scatter3d(
+                    x=Model.aircraft.CL_array,
+                    y=Model.equilibrium_dT,
+                    z=surface[0],
+                    opacity=1,
+                    mode="lines",
+                    showlegend=False,
+                    line=dict(color="rgba(255, 0, 0, 0.35)", width=10),
+                    name="g1 constraint",
+                ),
+                # go.Scatter3d(
+                #     x=[CL_array[50] + 0.35],
+                #     y=[constraint[50] + 0.3],
+                #     z=[velocity_surface[0, 50] - 0.1],
+                #     opacity=1,
+                #     textposition="middle left",
+                #     mode="markers+text",
+                #     text=["g<sub>1</sub>"],
+                #     marker=dict(size=1, color="rgba(255, 0, 0, 0.0)"),
+                #     showlegend=False,
+                #     name="g1 constraint",
+                #     textfont=dict(size=14, family="Arial"),
+                # ),
+                # go.Scatter3d(
+                #     x=[CL_slider.value],
+                #     y=[dT_slider.value],
+                #     z=[velocity_user_selected],
+                #     mode="markers",
+                #     showlegend=False,
+                #     marker=dict(
+                #         size=3,
+                #         color="white",
+                #         symbol="circle",
+                #     ),
+                #     name="Design Point",
+                #     hovertemplate="C<sub>L</sub>: %{x}<br>δ<sub>T</sub> : %{y}<br>V: %{z}<extra>%{fullData.name}</extra>",
+                # ),
+            ]
+        )
+        camera = dict(eye=dict(x=1.35, y=1.35, z=1.35))
+
+        figure.update_layout(
+            scene=dict(
+                xaxis=dict(
+                    title="C<sub>L</sub> (-)",
+                    range=[xy_lowerbound, Model.aircraft.CLmax],
+                ),
+                yaxis=dict(title="δ<sub>T</sub> (-)", range=[xy_lowerbound, 1]),
+                zaxis=dict(title="V (m/s)", range=[0, 2 * np.min(surface)]),
+            ),
+        )
+
+        figure.update_layout(
+            scene_camera=camera,
+            title={
+                "text": f"Minimum airspeed domain for {Model.aircraft.full_name}",
+                "font": {"size": 25},
+                "xanchor": "center",
+                "yanchor": "top",
+                "x": 0.5,
+            },
+        )
+
+        self.figure = figure
