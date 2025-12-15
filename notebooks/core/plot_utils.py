@@ -487,133 +487,6 @@ def create_title(figure, title):
     )
 
 
-def create_final_flightenvelope(
-    velocity_stall, mach, h_array, interior, maxthrust, maxlift, maxliftThrust
-):
-    """Creates the final flight envelope for each notebook
-    Format for each entry:
-
-    [0] h_array / h_value
-    [1] velocity_array / value
-    [2] inequality? bool True/ False
-
-    """
-    figure = go.Figure()
-    traces = create_stall_trace(h_array, velocity_stall, "x1", "y1")
-
-    """write this in a loop!"""
-    if ~np.isnan(np.asarray(interior[1]).any()):
-        if interior[2]:
-            traces.append(
-                go.Scatter(
-                    x=interior[1],
-                    y=interior[0] / 1e3,
-                    mode="lines",
-                    line=dict(width=3, color=SALMON),
-                    showlegend=False,
-                )
-            )
-        else:
-            traces.append(
-                go.Scatter(
-                    x=[interior[1]],
-                    y=[interior[0] / 1e3],
-                    mode="markers",
-                    marker=dict(size=10, color=SALMON),
-                    showlegend=False,
-                )
-            )
-
-    if ~np.isnan(np.asarray(maxthrust[1]).any()):
-        if maxthrust[2]:
-            traces.append(
-                go.Scatter(
-                    x=maxthrust[1],
-                    y=maxthrust[0] / 1e3,
-                    mode="lines",
-                    line=dict(width=3, color=SALMON),
-                    showlegend=False,
-                )
-            )
-        else:
-            traces.append(
-                go.Scatter(
-                    x=[maxthrust[1]],
-                    y=[maxthrust[0] / 1e3],
-                    mode="markers",
-                    marker=dict(size=10, color=SALMON),
-                    showlegend=False,
-                )
-            )
-
-    if ~np.isnan(np.asarray(maxlift[1]).any()):
-        if maxlift[2]:
-            traces.append(
-                go.Scatter(
-                    x=maxlift[1],
-                    y=maxlift[0] / 1e3,
-                    mode="lines",
-                    line=dict(width=3, color=SALMON),
-                    showlegend=False,
-                )
-            )
-        else:
-            traces.append(
-                go.Scatter(
-                    x=[maxlift[1]],
-                    y=[maxlift[0] / 1e3],
-                    marker=dict(size=10, color=SALMON),
-                    mode="markers",
-                    showlegend=False,
-                )
-            )
-
-    if ~np.isnan(np.asarray(maxliftThrust[1]).any()):
-        if maxliftThrust[2]:
-            traces.append(
-                go.Scatter(
-                    x=maxliftThrust[1],
-                    y=maxliftThrust[0] / 1e3,
-                    mode="lines",
-                    line=dict(width=3, color=SALMON),
-                    marker=dict(size=10, color=SALMON),
-                    showlegend=False,
-                )
-            )
-        else:
-            traces.append(
-                go.Scatter(
-                    x=[maxliftThrust[1]],
-                    y=[maxliftThrust[0] / 1e3],
-                    mode="markers",
-                    marker=dict(size=10, color=SALMON),
-                    showlegend=False,
-                )
-            )
-
-    figure.add_traces(traces)
-    figure.add_traces(create_mach_trace(h_array, mach, "x1", "y1"))
-
-    figure.update_layout(
-        xaxis=dict(
-            title=r"$V \: \text{(m/s)}$",
-            range=[-0.15, axes_max_speed],
-            showgrid=True,
-            gridcolor="#515151",
-            gridwidth=1,
-        ),
-        yaxis=dict(
-            title=r"$h \: 	\text{(km)}$",
-            range=[-0.15, 20],
-            showgrid=True,
-            gridcolor="#515151",
-            gridwidth=1,
-        ),
-    )
-
-    return figure
-
-
 class InteractiveElements:
     def __init__(self, aircraft, initial=False):
         self.aircraft = aircraft
@@ -770,7 +643,7 @@ class InitialFig:
         figure.update_layout(
             scene_camera=camera,
             title={
-                "text": f"Minimum airspeed domain for {Model.aircraft.full_name}",
+                "text": f"{Model.aircraft.full_name}",
                 "font": {"size": 25},
                 "xanchor": "center",
                 "yanchor": "top",
