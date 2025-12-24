@@ -1222,11 +1222,6 @@ def _(OptimumCondition, atmos, np):
 
 
 @app.cell
-def _():
-    return
-
-
-@app.cell
 def _(mo):
     mo.md(r"""
     ## Final flight envelope

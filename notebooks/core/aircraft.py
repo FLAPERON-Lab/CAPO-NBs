@@ -94,15 +94,15 @@ class SimplifiedAircraft:
         )
         self.power_ylim = 0.5 * self.drag_ylim * atmos.a(0) / 1e3
 
-    def plot_optimum(self, surface, Condition, equality=False):
-        configTraces = plot_utils.configTraces(self, surface)
+    def plot_optimum(self, surface, Condition, equality=False, factor=2):
+        configTraces = plot_utils.configTraces(self, surface, factor)
 
         return plot_utils.OptimumGridViewNew(self, configTraces, Condition, equality)
 
-    def plot_initial(self, surface):
+    def plot_initial(self, surface, factor=2):
         configTraces = plot_utils.configTraces(self, surface)
 
-        return InitialFig(self, surface, configTraces)
+        return InitialFig(self, surface, configTraces, factor)
 
     # ===== Shared API, overridden by subclasses =====
 

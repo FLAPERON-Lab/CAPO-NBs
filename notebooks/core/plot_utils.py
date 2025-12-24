@@ -242,7 +242,7 @@ class OptimumGridViewNew:
 
 
 class configTraces:
-    def __init__(self, Model, surface):
+    def __init__(self, Model, surface, factor=2):
         self.heatmap = go.Heatmap(
             x=Model.aircraft.CL_array,
             y=Model.aircraft.dT_array,
@@ -255,7 +255,7 @@ class configTraces:
             xaxis="x3",
             yaxis="y3",
             zmin=np.min(surface),
-            zmax=np.min(surface) * 2,
+            zmax=np.min(surface) * factor,
         )
 
         self.CLP_trace_drag = go.Scattergl(
@@ -571,7 +571,7 @@ class InteractiveElements:
 
 
 class InitialFig:
-    def __init__(self, Model, surface, Config: configTraces):
+    def __init__(self, Model, surface, Config: configTraces, factor=2):
         figure = go.Figure()
 
         # Minimum velocity surface
@@ -584,7 +584,7 @@ class InitialFig:
                     opacity=0.9,
                     name="Velocity",
                     colorscale="viridis",
-                    cmax=2 * np.min(surface),
+                    cmax=factor * np.min(surface),
                     cmin=np.min(surface),
                     colorbar={"title": "Velocity (m/s)"},
                 ),
@@ -636,7 +636,7 @@ class InitialFig:
                     range=[xy_lowerbound, Model.aircraft.CLmax],
                 ),
                 yaxis=dict(title="δ<sub>T</sub> (-)", range=[xy_lowerbound, 1]),
-                zaxis=dict(title="V (m/s)", range=[0, 2 * np.min(surface)]),
+                zaxis=dict(title="V (m/s)", range=[0, factor * np.min(surface)]),
             ),
         )
 
