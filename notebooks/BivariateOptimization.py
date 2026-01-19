@@ -398,12 +398,9 @@ def _():
 
     The partial derivatives are:
 
-    $$
-    \frac{\partial E}{\partial M}
-    =
-    -\frac{C_L}{C_D^2} \frac{\partial C_D}{\partial M}
-    =
-    - C_L \frac{\frac{\partial C_{D_0}}{\partial M} + \frac{\partial K_1}{\partial M}C_L + \frac{\partial K_2}{\partial M}C_L^2}{\left( C_{D_0} + K_1 C_L + K_2 C_L^2 \right)^2} = 0
+    $$ \frac{\partial E}{\partial M}
+    = -\frac{C_L}{C_D^2} \frac{\partial C_D}{\partial M}
+    = - C_L \frac{\frac{\partial C_{D_0}}{\partial M} + \frac{\partial K_1}{\partial M}C_L + \frac{\partial K_2}{\partial M}C_L^2}{\left( C_{D_0} + K_1 C_L + K_2 C_L^2 \right)^2} = 0
     $$
 
     $$

@@ -567,7 +567,7 @@ def _():
 
     $$ \mathcal{L}(M, C_L, \lambda) = \mathcal{J}(M, C_L) + \lambda g(M, C_L) $$
 
-    where $g(M, C_L) = \gamma p S C_L M^2 - 2W$ is the constraint function (written so that $g = 0$ at feasible points).
+    where $g(M, C_L) = \gamma p S C_L M^2 - 2W$ is the constraint function, and therefore $g(M, C_L) = 0$ is the feasible region.
 
     The Lagrangian function is a linear combination of the objective function and the equality constraints, and is a function of the decision variables and the Lagrange multipliers (one for each constraint equation).
 
@@ -587,6 +587,14 @@ def _():
 
     In summary, the necessary conditions for a point in the domain to be a constrained optimum is that the gradient of the Lagrangian function with respect to all variables and multipliers is zero in that point.
 
+    The constrained optimum of the original problem is therefore a stationary point for the Lagrangian, which helps transforming the constrained optimization problem into an unconstrained one.
+    """)
+    return
+
+
+@app.cell
+def _():
+    mo.md(r"""
     In our example with aerodynamic efficiency, the maximum efficiency in vertical equilibrium is found by solving the following equations for $C_L^*, M^*$, and $\lambda^*$:
 
     $$
@@ -597,7 +605,20 @@ def _():
     \end{aligned}
     $$
 
-    The constrained optimum of the original problem is therefore a stationary point for the Lagrangian, which helps transforming the constrained optimization problem into an unconstrained one.
+    The expression of the gradient of the objective function has already been derived (or, at least, expanded) in the previous notebook, for the unconstrained optimization problem.
+    The expression of the gradient of the constraint function is very easy to derive:
+
+    $$ \frac{\partial g}{\partial M} = 2\gamma p S C_L M $$
+
+    $$ \frac{\partial g}{\partial C_L} = \gamma p S M^2 $$
+
+
+    Lastly, the derivative of the Lagrangian with respect to the multiplier is the constraint function itself, and imposing that it must be equal to zero is equivalent to stating that the constraint must be respected.
+    This is also called the "feasibility condition".
+
+    $$ \frac{\partial \mathcal{L}}{\partial \lambda} = g(M, C_L) = 0
+    \quad \Leftrightarrow \quad
+    C_LM^2 = \frac{2W}{\gamma p S} $$
     """)
     return
 
