@@ -103,10 +103,11 @@ class SimplifiedAircraft:
 
         return plot_utils.OptimumGridViewNew(self, configTraces, Condition, equality)
 
-    def plot_initial(self, surface, factor=2):
-        configTraces = plot_utils.configTraces(self, surface)
+    def plot_grid(self, condition, plot_options):
+        return plot_utils.OptimumGridView(self, condition, plot_options)
 
-        return InitialFig(self, surface, configTraces, factor)
+    def plot_initial(self, plot_options, selected):
+        return InitialFig(self, plot_options, selected)
 
     # ===== Shared API, overridden by subclasses =====
 

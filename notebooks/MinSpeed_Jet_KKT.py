@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.17.6"
+__generated_with = "0.18.0"
 app = marimo.App(width="medium")
 
 
@@ -119,7 +119,14 @@ def _(W_selected_initial, h_selected_initial, initialModel):
 
 
 @app.cell
-def _(W_selected_initial, h_selected_initial, initialModel, np, plot_utils):
+def _(
+    W_selected_initial,
+    h_selected_initial,
+    initialModel,
+    initial_CL_slider,
+    np,
+    plot_utils,
+):
     _ = h_selected_initial, W_selected_initial
 
 
@@ -127,7 +134,11 @@ def _(W_selected_initial, h_selected_initial, initialModel, np, plot_utils):
         initialModel.V_CLarray[np.newaxis, :],
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
-    return (initialSurface,)
+
+    selected_value = initialModel.compute_velocity(W_selected_initial, h_selected_initial, initial_CL_slider.value)
+
+    plot_options_initial = {"surface": initialSurface, "title": "Minimum speed", "axes": {"z": {"label": "V (m/s)"}}}
+    return plot_options_initial, selected_value
 
 
 @app.cell(hide_code=True)
@@ -201,14 +212,15 @@ def _(ac_table):
 @app.cell(hide_code=True)
 def _(
     initialModel,
-    initialSurface,
     initial_CL_slider,
     initial_dT_slider,
     initial_variables_stack,
     mo,
+    plot_options_initial,
+    selected_value,
 ):
     mo.md(f"""
-    Here you can modify the control variables to understand how it affects the design: {mo.vstack([mo.hstack([initial_dT_slider, initial_CL_slider]), initial_variables_stack, initialModel.plot_initial(initialSurface).figure])}
+    Here you can modify the control variables to understand how it affects the design: {mo.vstack([mo.hstack([initial_dT_slider, initial_CL_slider]), initial_variables_stack, initialModel.plot_initial(plot_options_initial, [initial_CL_slider.value, initial_dT_slider.value, selected_value]).figure])}
     """)
     return
 

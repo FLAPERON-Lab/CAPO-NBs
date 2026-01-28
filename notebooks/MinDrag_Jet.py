@@ -1,8 +1,7 @@
 import marimo
 
-__generated_with = "0.17.6"
+__generated_with = "0.18.0"
 app = marimo.App(width="medium")
-
 
 with app.setup:
     # Initialization code that runs before all other cells
@@ -41,18 +40,17 @@ def _():
 
 
 @app.cell
-def _(available_aircrafts, data_dir, plot_utils):
+def _():
     # Define constants, this cell runs once and is not dependent in any way on any interactive element (not even the ac database)
     data = available_aircrafts(data_dir, ac_type="Jet")
     ac_table = plot_utils.InteractiveElements.init_table(data)
 
-    labels = ["Drag (N)", -15]
-    hover_name = "D<sub>min</sub>"
+    labels = {"Title": "Drag (N)", "Symbol": "D", "hover_name": "D<sub>min</sub>"}
     return ac_table, data
 
 
 @app.cell
-def _(AircraftBase, ModelSimplifiedJet, ac_table, data, plot_utils):
+def _(ac_table, data):
     # Define constants dependent on the ac database. This runs every time another aircraft is selected
     if ac_table.value is not None and ac_table.value.any().any():
         active_selection = ac_table.value.iloc[0]
@@ -109,18 +107,23 @@ def _(W_selected_initial, h_selected_initial, initialModel):
 
 
 @app.cell
-def _(W_selected_initial, h_selected_initial, initialModel, np, plot_utils):
+def _(W_selected_initial, h_selected_initial, initialModel, initial_CL_slider):
     _ = h_selected_initial, W_selected_initial
 
     initialSurface = np.broadcast_to(
         initialModel.drag_curve[np.newaxis, :],
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
-    return (initialSurface,)
+
+    selected_value = initialModel.compute_drag(W_selected_initial, initial_CL_slider.value)
+
+
+    plot_options_initial = {"surface": initialSurface, "title": "Minimum drag", "axes": {"z": {"label": "D (N)"}}}
+    return plot_options_initial, selected_value
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     # Minimum drag: simplified jet aircraft
 
@@ -143,7 +146,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     ## KKT formulation
     To be reconducted in the standard KKT analysis format, the objective function is expressed in terms of the controls by directly eliminating $c_1^\mathrm{eq}$. The velocity $V$ can be described as:
@@ -159,7 +162,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     $$
     \begin{aligned}
@@ -178,7 +181,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     Below you can see the graph of the domain $0 \leq C_L \leq C_{L_{\mathrm{max}}}$ and $0 \leq \delta_T \leq 1$, with the surface $D$ and the contraint $g_1$ in red. Choose a simplified jet aircraft of your liking in the database below.
     """)
@@ -195,20 +198,20 @@ def _(ac_table):
 @app.cell(hide_code=True)
 def _(
     initialModel,
-    initialSurface,
     initial_CL_slider,
     initial_dT_slider,
     initial_variables_stack,
-    mo,
+    plot_options_initial,
+    selected_value,
 ):
     mo.md(f"""
-    Here you can modify the control variables to understand how it affects the design: {mo.vstack([mo.hstack([initial_dT_slider, initial_CL_slider]), initial_variables_stack, initialModel.plot_initial(initialSurface).figure])}
+    Here you can modify the control variables to understand how it affects the design: {mo.vstack([mo.hstack([initial_dT_slider, initial_CL_slider]), initial_variables_stack, initialModel.plot_initial(plot_options_initial, [initial_CL_slider.value, initial_dT_slider.value, selected_value]).figure])}
     """)
     return
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     ### Lagrangian function and KKT conditions
 
@@ -231,7 +234,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     The multipliers $\lambda_1, \mu_1, \mu_2, \mu_3, \mu_4$ have to meet the following conditions for an optimal solution of the optimization problem $(C_L^*, \delta_T^*)$ to exist.
 
@@ -245,7 +248,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     **B. Primal feasibility: constraints are satisfied**
 
@@ -259,7 +262,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     **C. Dual feasibility: KKT multipliers for inequalities must be non-negative**
 
@@ -269,7 +272,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     **D. Complementary slackness ($\mu_j h_j = 0$)**: inactive inequality constraint have null multipliers, as they do not contribute to the objective function. Active inequality constraints have positive multipliers, as they make the objective function worse.
 
@@ -282,7 +285,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     It is evident that $\mu_2$ and $\mu_4$ can never be active, as we would have an unfeasible situation ($C_L = \delta_T = 0$). In other words, strictly for aircraft flight: $C_L \gt 0$ and $\delta_T \gt 0$. Therefore, we can simplify the analysis by setting these two KKT multipliers to zero:
 
@@ -298,7 +301,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     **Simplified conditions**
 
@@ -315,7 +318,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     ## KKT analysis
 
@@ -325,7 +328,7 @@ def _(mo):
 
 
 @app.cell
-def _(ModelSimplifiedJet, aircraft, plot_utils):
+def _(aircraft):
     analysisControls = plot_utils.InteractiveElements(aircraft)
 
     mass_slider_analysis = analysisControls.mass_slider
@@ -380,14 +383,7 @@ def _(tab_view):
 
 
 @app.cell
-def _(
-    W_selected_analysis,
-    analysisModel,
-    h_selected_analysis,
-    np,
-    plot_utils,
-    tab,
-):
+def _(W_selected_analysis, analysisModel, h_selected_analysis, tab):
     tab_value = tab.value
 
     _ = h_selected_analysis, W_selected_analysis
@@ -396,7 +392,9 @@ def _(
         analysisModel.drag_curve[np.newaxis, :],
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
-    return surface, tab_value
+
+    plot_options_analysis = {"surface": surface}
+    return plot_options_analysis, tab_value
 
 
 @app.cell
@@ -405,8 +403,7 @@ def _(
     W_selected_analysis,
     analysisModel,
     h_selected_analysis,
-    mo,
-    surface,
+    plot_options_analysis,
     tab_value,
     title_keys,
     variables_stack_analysis,
@@ -481,22 +478,18 @@ def _(
 
     """),
             variables_stack_analysis,
-            analysisModel.plot_optimum(
-                surface,
-                (
-                    InteriorCondition(
-                        W_selected_analysis, h_selected_analysis, analysisModel
-                    ),
-                ),
+            analysisModel.plot_grid(
+                (InteriorCondition(W_selected_analysis, h_selected_analysis, analysisModel),),
+                plot_options_analysis,
             ).figure,
         ]
     ).callout()
     return
 
 
-@app.cell
-def _(OptimumCondition, aircraft, analysisModel):
-    class InteriorCondition(OptimumCondition):
+app._unparsable_cell(
+    r"""
+    x`class InteriorCondition(OptimumCondition):
         def __init__(self, W, h, Model):
             self.CLopt = self.CLopt_selected = Model.aircraft.CL_E
             self.dTopt = (
@@ -507,14 +500,13 @@ def _(OptimumCondition, aircraft, analysisModel):
             )
 
             self.condition = (
-                W
-                < analysisModel.compute_thrust(analysisModel.aircraft.h_array)
-                * aircraft.E_max
+                W < analysisModel.compute_thrust(analysisModel.aircraft.h_array) * aircraft.E_max
             ) & (analysisModel.aircraft.CL_E < analysisModel.aircraft.CLmax)
 
             self.compute_optimal(W, h, Model)
-
-    return (InteriorCondition,)
+    """,
+    name="_"
+)
 
 
 @app.cell
@@ -523,8 +515,7 @@ def _(
     W_selected_analysis,
     analysisModel,
     h_selected_analysis,
-    mo,
-    surface,
+    plot_options_analysis,
     tab_value,
     title_keys,
     variables_stack_analysis,
@@ -586,13 +577,9 @@ def _(
     Below is the performance diagram for power and drag, the optimization domain with the objective function as a surface plot, and finally, on the bottom right, the flight envelope where the optima can be achieved.
     """),
             variables_stack_analysis,
-            analysisModel.plot_optimum(
-                surface,
-                (
-                    MaxliftCondition(
-                        W_selected_analysis, h_selected_analysis, analysisModel
-                    ),
-                ),
+            analysisModel.plot_grid(
+                (MaxliftCondition(W_selected_analysis, h_selected_analysis, analysisModel),),
+                plot_options_analysis,
             ).figure,
         ]
     ).callout()
@@ -600,7 +587,7 @@ def _(
 
 
 @app.cell
-def _(OptimumCondition, aircraft, analysisModel):
+def _(aircraft, analysisModel):
     class MaxliftCondition(OptimumCondition):
         def __init__(self, W, h, Model):
             self.CLopt = self.CLopt_selected = Model.aircraft.CLmax
@@ -611,26 +598,19 @@ def _(OptimumCondition, aircraft, analysisModel):
                 / (Model.rhoratio_selected**Model.aircraft.beta)
             )
 
-            self.condition = (
-                W
-                < analysisModel.compute_thrust(analysisModel.aircraft.h_array)
-                * aircraft.E_S
-            ) & (analysisModel.aircraft.CLmax < analysisModel.aircraft.CL_E)
+            self.condition = (W < analysisModel.compute_thrust(analysisModel.aircraft.h_array) * aircraft.E_S) & (
+                analysisModel.aircraft.CLmax < analysisModel.aircraft.CL_E
+            )
 
             self.compute_optimal(W, h, Model)
-
     return (MaxliftCondition,)
 
 
 @app.cell
 def _(
-    MaxThrustCondition,
     W_selected_analysis,
     analysisModel,
     mass_stack_analysis,
-    mo,
-    np,
-    plot_utils,
     tab_value,
     title_keys,
 ):
@@ -711,56 +691,39 @@ def _(
     return
 
 
-@app.cell
-def _(OptimumCondition, atmos, np):
-    class MaxThrustCondition(OptimumCondition):
-        def __init__(self, W, Model, modifyModel=True):
-            sigma_opt = (W / (Model.aircraft.Ta0 * 1e3) / Model.aircraft.E_max) ** (
-                1 / Model.aircraft.beta
-            )
-            h_optimum = (
-                atmos.altitude(sigma_opt)
-                if sigma_opt > atmos.rhoratio(atmos.hmax)
-                else 20000.0
-            )
+@app.class_definition
+class MaxThrustCondition(OptimumCondition):
+    def __init__(self, W, Model, modifyModel=True):
+        sigma_opt = (W / (Model.aircraft.Ta0 * 1e3) / Model.aircraft.E_max) ** (1 / Model.aircraft.beta)
+        h_optimum = atmos.altitude(sigma_opt) if sigma_opt > atmos.rhoratio(atmos.hmax) else 20000.0
 
-            if modifyModel:
-                Model.update_altitude_dependency(h_optimum)
-                Model.update_context(W, h_optimum)
+        if modifyModel:
+            Model.update_altitude_dependency(h_optimum)
+            Model.update_context(W, h_optimum)
 
-            self.dTopt = 1
+        self.dTopt = 1
 
-            self.hopt_array = np.array([h_optimum])
-            self.condition = (Model.aircraft.CL_E < Model.aircraft.CLmax) & (
-                sigma_opt > atmos.rhoratio(atmos.hmax)
-            )
+        self.hopt_array = np.array([h_optimum])
+        self.condition = (Model.aircraft.CL_E < Model.aircraft.CLmax) & (
+            sigma_opt > atmos.rhoratio(atmos.hmax)
+        )
 
-            self.CLopt = self.CLopt_selected = (
-                Model.aircraft.CL_E if self.condition else np.nan
-            )
+        self.CLopt = self.CLopt_selected = Model.aircraft.CL_E if self.condition else np.nan
 
-            self.compute_optimal(W, h_optimum, Model, True)
+        self.compute_optimal(W, h_optimum, Model, True)
 
-            self.cond = 1 if (sigma_opt > atmos.rhoratio(atmos.hmax)) else np.nan
+        self.cond = 1 if (sigma_opt > atmos.rhoratio(atmos.hmax)) else np.nan
 
-            self.V_selected = (
-                Model.compute_velocity(W, h_optimum, self.CLopt_selected) * self.cond
-            )
+        self.V_selected = Model.compute_velocity(W, h_optimum, self.CLopt_selected) * self.cond
 
-            self.CLopt_selected = self.CLopt_selected * self.cond
-
-    return (MaxThrustCondition,)
+        self.CLopt_selected = self.CLopt_selected * self.cond
 
 
 @app.cell
 def _(
-    MaxLiftThrustCondition,
     W_selected_analysis,
     analysisModel,
     mass_stack_analysis,
-    mo,
-    np,
-    plot_utils,
     tab_value,
     title_keys,
 ):
@@ -830,53 +793,36 @@ def _(
     return
 
 
-@app.cell
-def _(OptimumCondition, atmos, np):
-    class MaxLiftThrustCondition(OptimumCondition):
-        def __init__(self, W, Model, modifyModel=True):
-            sigma_opt = (W / (Model.aircraft.Ta0 * 1e3) / Model.aircraft.E_S) ** (
-                1 / Model.aircraft.beta
-            )
-            h_optimum = (
-                atmos.altitude(sigma_opt)
-                if sigma_opt > atmos.rhoratio(atmos.hmax)
-                else 0.0
-            )
+@app.class_definition
+class MaxLiftThrustCondition(OptimumCondition):
+    def __init__(self, W, Model, modifyModel=True):
+        sigma_opt = (W / (Model.aircraft.Ta0 * 1e3) / Model.aircraft.E_S) ** (1 / Model.aircraft.beta)
+        h_optimum = atmos.altitude(sigma_opt) if sigma_opt > atmos.rhoratio(atmos.hmax) else 0.0
 
-            if modifyModel:
-                Model.update_altitude_dependency(h_optimum)
-                Model.update_context(W, h_optimum)
+        if modifyModel:
+            Model.update_altitude_dependency(h_optimum)
+            Model.update_context(W, h_optimum)
 
-            self.dTopt = 1
+        self.dTopt = 1
 
-            self.hopt_array = np.array([h_optimum])
-            self.condition = (Model.aircraft.CLmax < Model.aircraft.CL_E) & (
-                sigma_opt < atmos.rhoratio(atmos.hmax)
-            )
+        self.hopt_array = np.array([h_optimum])
+        self.condition = (Model.aircraft.CLmax < Model.aircraft.CL_E) & (
+            sigma_opt < atmos.rhoratio(atmos.hmax)
+        )
 
-            self.CLopt = self.CLopt_selected = (
-                Model.aircraft.CLmax if self.condition else np.nan
-            )
+        self.CLopt = self.CLopt_selected = Model.aircraft.CLmax if self.condition else np.nan
 
-            self.compute_optimal(W, h_optimum, Model, True)
+        self.compute_optimal(W, h_optimum, Model, True)
 
-            self.cond = (
-                1
-                if ((sigma_opt > atmos.rhoratio(atmos.hmax)) and self.condition)
-                else np.nan
-            )
+        self.cond = 1 if ((sigma_opt > atmos.rhoratio(atmos.hmax)) and self.condition) else np.nan
 
-            self.V_selected = (
-                Model.compute_velocity(W, h_optimum, self.CLopt_selected) * self.cond
-            )
+        self.V_selected = Model.compute_velocity(W, h_optimum, self.CLopt_selected) * self.cond
 
-            self.CLopt_selected = self.CLopt_selected * self.cond
-
-    return (MaxLiftThrustCondition,)
+        self.CLopt_selected = self.CLopt_selected * self.cond
 
 
 @app.cell
-def _(mo):
+def _():
     mo.md(r"""
     ## Final flight envelope
     """)
@@ -884,7 +830,7 @@ def _(mo):
 
 
 @app.cell
-def _(mo):
+def _():
     mo.md(r"""
     Now after deriving all the optima for each condition we can summarize the flight envelopes in one graph, as shown below. Experiment with the weight of the aircrarft to understand how the theoretical ceiling for minimum power moves in the graph.
     """)
@@ -892,7 +838,7 @@ def _(mo):
 
 
 @app.cell
-def _(ModelSimplifiedJet, aircraft, plot_utils):
+def _(aircraft):
     envelopeControls = plot_utils.InteractiveElements(aircraft)
 
     mass_slider_envelope = envelopeControls.mass_slider
@@ -935,32 +881,27 @@ def _(W_selected_envelope, envelopeModel, h_selected_envelope):
 
 
 @app.cell
-def _(W_selected_envelope, envelopeModel, h_selected_envelope, np, plot_utils):
+def _(W_selected_envelope, envelopeModel, h_selected_envelope):
     _ = h_selected_envelope, W_selected_envelope
 
     envelopeSurface = np.broadcast_to(
         envelopeModel.drag_curve[np.newaxis, :],
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
-    return (envelopeSurface,)
+
+    plot_options_envelope = {"surface" : envelopeSurface}
+    return (plot_options_envelope,)
 
 
 @app.cell
-def _(
-    MaxLiftThrustCondition,
-    MaxThrustCondition,
-    W_selected_envelope,
-    envelopeModel,
-):
-    MaxLiftThrustEnvelope = MaxLiftThrustCondition(
-        W_selected_envelope, envelopeModel, False
-    )
+def _(W_selected_envelope, envelopeModel):
+    MaxLiftThrustEnvelope = MaxLiftThrustCondition(W_selected_envelope, envelopeModel, False)
     MaxThrustEnvelope = MaxThrustCondition(W_selected_envelope, envelopeModel, False)
     return MaxLiftThrustEnvelope, MaxThrustEnvelope
 
 
 @app.cell
-def _(MaxLiftThrustEnvelope, MaxThrustEnvelope, plot_utils):
+def _(MaxLiftThrustEnvelope, MaxThrustEnvelope):
     equality_trace = plot_utils.add_equality((MaxLiftThrustEnvelope, MaxThrustEnvelope))
     return (equality_trace,)
 
@@ -971,25 +912,20 @@ def _(
     MaxliftCondition,
     W_selected_envelope,
     envelopeModel,
-    envelopeSurface,
     equality_trace,
     h_selected_envelope,
-    mo,
+    plot_options_envelope,
     variables_stack_envelope,
 ):
     mo.vstack(
         [
             variables_stack_envelope,
-            envelopeModel.plot_optimum(
-                envelopeSurface,
+            envelopeModel.plot_grid(
                 (
-                    InteriorCondition(
-                        W_selected_envelope, h_selected_envelope, envelopeModel
-                    ),
-                    MaxliftCondition(
-                        W_selected_envelope, h_selected_envelope, envelopeModel
-                    ),
+                    InteriorCondition(W_selected_envelope, h_selected_envelope, envelopeModel),
+                    MaxliftCondition(W_selected_envelope, h_selected_envelope, envelopeModel),
                 ),
+                plot_options_envelope
             ).figure.add_traces(equality_trace),
         ]
     )
@@ -997,7 +933,7 @@ def _(
 
 
 @app.cell
-def _(mo):
+def _():
     mo.md(r"""
     ## Summary
     """)
@@ -1005,7 +941,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(
         r"""
     | Name | Condition | $C_L^*$ | $\delta_T^*$ | $P^*$ |

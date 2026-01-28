@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.17.6"
+__generated_with = "0.18.0"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -47,8 +47,7 @@ def _():
     data = available_aircrafts(data_dir, ac_type="Propeller")
     ac_table = plot_utils.InteractiveElements.init_table(data)
 
-    labels = ["Drag (N)", -15]
-    hover_name = "D<sub>min</sub>"
+    labels = {"Title": "Power (kW)", "Symbol": "P", "hover_name": "P<sub>min</sub>"}
     return ac_table, data
 
 
@@ -110,14 +109,25 @@ def _(W_selected_initial, h_selected_initial, initialModel):
 
 
 @app.cell
-def _(W_selected_initial, h_selected_initial, initialModel):
+def _(
+    W_selected_analysis,
+    W_selected_initial,
+    h_selected_analysis,
+    h_selected_initial,
+    initialModel,
+    initial_CL_slider,
+):
     _ = h_selected_initial, W_selected_initial
 
     initialSurface = np.broadcast_to(
         initialModel.power_required[np.newaxis, :],
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
-    return (initialSurface,)
+
+    selected_value = initialModel.compute_power(h_selected_initial, initialModel.compute_velocity(W_selected_analysis, h_selected_analysis, initial_CL_slider.value))
+
+    plot_options_initial = {"surface": initialSurface, "title": "Minimum power", "axes": {"z": {"label": "P (kW)"}}}
+    return plot_options_initial, selected_value
 
 
 @app.cell(hide_code=True)
@@ -201,13 +211,14 @@ def _(ac_table):
 @app.cell(hide_code=True)
 def _(
     initialModel,
-    initialSurface,
     initial_CL_slider,
     initial_dT_slider,
     initial_variables_stack,
+    plot_options_initial,
+    selected_value,
 ):
     mo.md(f"""
-    Here you can modify the control variables to understand how it affects the design: {mo.vstack([mo.hstack([initial_dT_slider, initial_CL_slider]), initial_variables_stack, initialModel.plot_initial(initialSurface).figure])}
+    Here you can modify the control variables to understand how it affects the design: {mo.vstack([mo.hstack([initial_dT_slider, initial_CL_slider]), initial_variables_stack, initialModel.plot_initial(plot_options_initial, [initial_CL_slider.value, initial_dT_slider.value, selected_value]).figure])}
     """)
     return
 

@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.17.6"
+__generated_with = "0.18.0"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -76,6 +76,7 @@ def _(ac_table, data):
         initial_mass_slider, initial_altitude_slider
     )
     return (
+        active_selection,
         aircraft,
         initialControls,
         initialModel,
@@ -110,18 +111,22 @@ def _(W_selected_initial, h_selected_initial, initialModel):
 
 
 @app.cell
-def _(W_selected_initial, h_selected_initial, initialModel):
+def _(W_selected_initial, h_selected_initial, initialModel, initial_CL_slider):
     _ = h_selected_initial, W_selected_initial
 
     initialSurface = np.broadcast_to(
         initialModel.drag_curve[np.newaxis, :],
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
-    return (initialSurface,)
+
+    selected_value = initialModel.compute_velocity(W_selected_initial, h_selected_initial, initial_CL_slider.value)
+
+    plot_options_initial = {"surface": initialSurface, "title": "Minimum speed", "axes": {"z": {"label": "V (m/s)"}}}
+    return plot_options_initial, selected_value
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     # Minimum airspeed: simplified piston propeller aircraft
 
@@ -144,7 +149,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     We could approach the solution of this problem in the same way we have approched the one for simplified jets: obtain the expression of $V$ from $c_1^\mathrm{eq}$, substitute it out of the whole problem, then proceed with deriving with respec to $C_L$ and $\delta_T$.
     In the case of propeller airplanes, this results in the following expression of the horizontal equilibrium contraint, which is unhandy to take derivatives with respect to $C_L$:
@@ -161,7 +166,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     ## Problem reformulation
 
@@ -195,7 +200,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     ## KKT Formulation
 
@@ -224,19 +229,20 @@ def _(ac_table):
 @app.cell(hide_code=True)
 def _(
     initialModel,
-    initialSurface,
     initial_CL_slider,
     initial_dT_slider,
     initial_variables_stack,
+    plot_options_initial,
+    selected_value,
 ):
     mo.md(f"""
-    Here you can modify the control variables to understand how it affects the design: {mo.vstack([mo.hstack([initial_dT_slider, initial_CL_slider]), initial_variables_stack, initialModel.plot_initial(initialSurface).figure])}
+    Here you can modify the control variables to understand how it affects the design: {mo.vstack([mo.hstack([initial_dT_slider, initial_CL_slider]), initial_variables_stack, initialModel.plot_initial(plot_options_initial, [initial_CL_slider.value, initial_dT_slider.value, selected_value]).figure])}
     """)
     return
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     ### Lagrangian function and KKT conditions
 
@@ -258,7 +264,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     **A. Stationarity conditions($\nabla L = 0$):** the gradient of the Lagrangian with respect to each decision variable must be zero
 
@@ -269,7 +275,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     **B. Primal feasibility: constraints are satisfied**
 
@@ -282,7 +288,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     **C. Dual feasibility: KKT multipliers for inequalities must be non-negative**
 
@@ -292,7 +298,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     **D. Complementary slackness ($\mu_j h_j = 0$)**: inactive inequality constraint have null multipliers, as they do not contribute to the objective function. Active inequality constraints have positive multipliers, as they make the objective function worse.
 
@@ -304,7 +310,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     ## KKT Analysis
 
@@ -320,7 +326,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     ### _Idle thrust boundary active_
 
@@ -350,7 +356,6 @@ def _(aircraft):
         analysisControls,
         analysisModel,
         mass_slider_analysis,
-        mass_stack_analysis,
         tab,
         tab_view,
         title_keys,
@@ -429,11 +434,18 @@ def _(
         )
 
         figure_optimum.update_axes_ranges(range_performance_diagrams)
-    return (figure_optimum,)
+    return
 
 
 @app.cell
-def _(figure_optimum, mo, variables_stack):
+def _(
+    InteriorCondition,
+    W_selected_analysis,
+    analysisModel,
+    h_selected_analysis,
+    surface,
+    variables_stack_analysis,
+):
     mo.vstack(
         [
             mo.md(r"""
@@ -468,11 +480,7 @@ def _(figure_optimum, mo, variables_stack):
             variables_stack_analysis,
             analysisModel.plot_optimum(
                 surface,
-                (
-                    InteriorCondition(
-                        W_selected_analysis, h_selected_analysis, analysisModel
-                    ),
-                ),
+                (InteriorCondition(W_selected_analysis, h_selected_analysis, analysisModel),),
             ).figure,
         ]
     ).callout()
@@ -491,9 +499,7 @@ def _(aircraft):
                 W
                 < Model.compute_thrust(
                     Model.aircraft.h_array,
-                    Model.compute_velocity(
-                        W, Model.aircraft.h_array, Model.aircraft.CL_E
-                    ),
+                    Model.compute_velocity(W, Model.aircraft.h_array, Model.aircraft.CL_E),
                 )
                 * aircraft.E_max
             ) & (Model.aircraft.CL_E < Model.aircraft.CLmax)
@@ -501,12 +507,11 @@ def _(aircraft):
             self.CLopt = self.CLopt_selected = Model.aircraft.CL_E
 
             self.compute_optimal(W, h, Model)
-
     return (InteriorCondition,)
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     ### _Max throttle boundary active_
 
@@ -556,7 +561,7 @@ def _():
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""
     ### _Max throttle and stall boundaries active_
 
@@ -589,7 +594,7 @@ def _(mo):
 
 
 @app.cell
-def _(mo):
+def _():
     mo.md(r"""
     Now after deriving all the optima for each condition we can summarize the flight envelopes in one graph, as shown below. Experiment with the weight of the aircrarft to understand how the theoretical ceiling for minimum speed moves in the graph.
     """)

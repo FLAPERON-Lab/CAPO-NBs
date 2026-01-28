@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.17.6"
+__generated_with = "0.18.0"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -86,7 +86,7 @@ def _(ac_table, data):
         initial_altitude_slider,
         initial_dT_slider,
         initial_mass_slider,
-        initial_mass_stack,
+        initial_variables_stack,
     )
 
 
@@ -98,6 +98,8 @@ def _(
     dT_grid,
     h_selected_initial,
     initialModel,
+    initial_CL_slider,
+    initial_dT_slider,
 ):
     _ = h_selected_initial, W_selected_initial
 
@@ -111,7 +113,22 @@ def _(
         ),
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
-    return (initialSurface,)
+
+    selected_value = (
+        W_selected_initial**1.5
+        / (initial_dT_slider.value * aircraft.Pa0 * 1e3)
+        * (aircraft.CD0 + aircraft.K * initial_CL_slider.value**2)
+        / initial_CL_slider.value**1.5
+        * np.sqrt(2 / atmos.rho0 / initialModel.aircraft.S)
+    )
+
+
+    plot_options_initial = {
+        "surface": initialSurface,
+        "title": "Maximum altitude",
+        "axes": {"z": {"label": r"\sigma (-)"}},
+    }
+    return plot_options_initial, selected_value
 
 
 @app.cell
@@ -261,13 +278,14 @@ def _(ac_table):
 @app.cell(hide_code=True)
 def _(
     initialModel,
-    initialSurface,
     initial_CL_slider,
     initial_dT_slider,
-    initial_mass_stack,
+    initial_variables_stack,
+    plot_options_initial,
+    selected_value,
 ):
     mo.md(f"""
-    Here you can modify the control variables to understand how it affects the design: {mo.vstack([mo.hstack([initial_dT_slider, initial_CL_slider]), initial_mass_stack, initialModel.plot_initial(initialSurface, factor=1 / np.min(initialSurface)).figure])}
+    Here you can modify the control variables to understand how it affects the design: {mo.vstack([mo.hstack([initial_dT_slider, initial_CL_slider]), initial_variables_stack, initialModel.plot_initial(plot_options_initial, [initial_CL_slider.value, initial_dT_slider.value, selected_value]).figure])}
     """)
     return
 

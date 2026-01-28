@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.17.6"
+__generated_with = "0.18.0"
 app = marimo.App(width="medium")
 
 
@@ -57,9 +57,6 @@ def _(available_aircrafts, data_dir, plot_utils):
     # Define constants, this cell runs once and is not dependent in any way on any interactive element (not even the ac database)
     data = available_aircrafts(data_dir, ac_type="Jet")
     ac_table = plot_utils.InteractiveElements.init_table(data)
-
-    labels = ["Power (kW)", -15]
-    hover_name = "P<sub>min</sub>"
     return ac_table, data
 
 
@@ -119,14 +116,25 @@ def _(W_selected_initial, h_selected_initial, initialModel):
 
 
 @app.cell
-def _(W_selected_initial, h_selected_initial, initialModel, np, plot_utils):
+def _(
+    W_selected_initial,
+    h_selected_initial,
+    initialModel,
+    initial_CL_slider,
+    np,
+    plot_utils,
+):
     _ = h_selected_initial, W_selected_initial
 
     initialSurface = np.broadcast_to(
         1 / initialModel.V_CLarray[np.newaxis, :],
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
-    return (initialSurface,)
+
+    selected_value = 1 / initialModel.compute_velocity(W_selected_initial, h_selected_initial, initial_CL_slider.value)
+
+    plot_options_initial = {"surface": initialSurface, "title": "Maximum speed", "axes": {"z": {"label": "1 / V (s/m)"}}, "factor" : 10}
+    return plot_options_initial, selected_value
 
 
 @app.cell(hide_code=True)
@@ -198,14 +206,15 @@ def _(ac_table):
 @app.cell(hide_code=True)
 def _(
     initialModel,
-    initialSurface,
     initial_CL_slider,
     initial_dT_slider,
     initial_variables_stack,
     mo,
+    plot_options_initial,
+    selected_value,
 ):
     mo.md(f"""
-    Here you can modify the control variables to understand how it affects the design: {mo.vstack([mo.hstack([initial_dT_slider, initial_CL_slider]), initial_variables_stack, initialModel.plot_initial(initialSurface, 10).figure])}
+    Here you can modify the control variables to understand how it affects the design: {mo.vstack([mo.hstack([initial_dT_slider, initial_CL_slider]), initial_variables_stack, initialModel.plot_initial(plot_options_initial, [initial_CL_slider.value, initial_dT_slider.value, selected_value]).figure])}
     """)
     return
 
@@ -461,7 +470,11 @@ def _(
             variables_stack_analysis,
             analysisModel.plot_optimum(
                 surface,
-                (MaxThrustCondition(W_selected_analysis, h_selected_analysis, analysisModel),),
+                (
+                    MaxThrustCondition(
+                        W_selected_analysis, h_selected_analysis, analysisModel
+                    ),
+                ),
                 factor=10,
             ).figure,
         ]
@@ -477,10 +490,16 @@ def _(OptimumCondition, aircraft, analysisModel, np):
 
             self.dTopt = 1
 
-            self.condition = W < analysisModel.compute_thrust(analysisModel.aircraft.h_array) * aircraft.E_max
+            self.condition = (
+                W
+                < analysisModel.compute_thrust(analysisModel.aircraft.h_array)
+                * aircraft.E_max
+            )
 
             A = thrust_envelope[self.condition] / (2 * Model.aircraft.K * W)
-            B = 1 - np.sqrt(1 - (W / (Model.aircraft.E_max * thrust_envelope[self.condition])) ** 2)
+            B = 1 - np.sqrt(
+                1 - (W / (Model.aircraft.E_max * thrust_envelope[self.condition])) ** 2
+            )
 
             self.CLopt = A * B
 
@@ -488,7 +507,9 @@ def _(OptimumCondition, aircraft, analysisModel, np):
 
             if W > thrust_selected * Model.aircraft.E_S:
                 self.A = thrust_selected / (2 * Model.aircraft.K * W)
-                self.B = 1 - np.sqrt(1 - (W / (Model.aircraft.E_max * thrust_selected)) ** 2)
+                self.B = 1 - np.sqrt(
+                    1 - (W / (Model.aircraft.E_max * thrust_selected)) ** 2
+                )
                 self.CLopt_selected = self.A * self.B
             else:
                 self.A = self.B = np.nan
@@ -587,7 +608,9 @@ def _(
     $$
     """),
             mass_stack_analysis,
-            analysisModel.plot_optimum(surface_MaxLiftThrust, (MaxLiftThrust,), factor=10).figure,
+            analysisModel.plot_optimum(
+                surface_MaxLiftThrust, (MaxLiftThrust,), factor=10
+            ).figure,
         ]
     ).callout()
     return
@@ -598,7 +621,8 @@ def _(OptimumCondition, atmos, np):
     class MaxLiftThrustCondition(OptimumCondition):
         def __init__(self, W, Model, modifyModel=True):
             h_optimum = atmos.altitude(
-                (W / (Model.aircraft.Ta0 * 1e3) / Model.aircraft.E_S) ** (1 / Model.aircraft.beta)
+                (W / (Model.aircraft.Ta0 * 1e3) / Model.aircraft.E_S)
+                ** (1 / Model.aircraft.beta)
             )
 
             if modifyModel:
@@ -610,13 +634,17 @@ def _(OptimumCondition, atmos, np):
             self.hopt_array = np.array([h_optimum])
             self.condition = Model.aircraft.CLmax < Model.aircraft.CL_E
 
-            self.CLopt = self.CLopt_selected = Model.aircraft.CLmax if self.condition else np.nan
+            self.CLopt = self.CLopt_selected = (
+                Model.aircraft.CLmax if self.condition else np.nan
+            )
 
             self.compute_optimal(W, h_optimum, Model, True)
 
             self.cond = 1 if self.condition else np.nan
 
-            self.V_selected = Model.compute_velocity(W, h_optimum, self.CLopt_selected) * self.cond
+            self.V_selected = (
+                Model.compute_velocity(W, h_optimum, self.CLopt_selected) * self.cond
+            )
 
             self.CLopt_selected = self.CLopt_selected * self.cond
     return (MaxLiftThrustCondition,)
@@ -686,7 +714,7 @@ def _(W_selected_envelope, envelopeModel, h_selected_envelope, np, plot_utils):
     _ = h_selected_envelope, W_selected_envelope
 
     envelopeSurface = np.broadcast_to(
-        1/envelopeModel.V_CLarray[np.newaxis, :],
+        1 / envelopeModel.V_CLarray[np.newaxis, :],
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
     return (envelopeSurface,)
@@ -694,7 +722,9 @@ def _(W_selected_envelope, envelopeModel, h_selected_envelope, np, plot_utils):
 
 @app.cell
 def _(MaxLiftThrustCondition, W_selected_envelope, envelopeModel):
-    MaxLiftThrustEnvelope = MaxLiftThrustCondition(W_selected_envelope, envelopeModel, False)
+    MaxLiftThrustEnvelope = MaxLiftThrustCondition(
+        W_selected_envelope, envelopeModel, False
+    )
     return (MaxLiftThrustEnvelope,)
 
 
@@ -720,8 +750,12 @@ def _(
             variables_stack_envelope,
             envelopeModel.plot_optimum(
                 envelopeSurface,
-                (MaxThrustCondition(W_selected_envelope, h_selected_envelope, envelopeModel),),
-                factor=10
+                (
+                    MaxThrustCondition(
+                        W_selected_envelope, h_selected_envelope, envelopeModel
+                    ),
+                ),
+                factor=10,
             ).figure.add_traces(equality_trace),
         ]
     )
