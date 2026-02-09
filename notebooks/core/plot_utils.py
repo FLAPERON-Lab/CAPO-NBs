@@ -1,5 +1,7 @@
 from __future__ import annotations  # Enables postponed evaluation of annotations
 from typing import TYPE_CHECKING
+import copy
+
 
 if TYPE_CHECKING:
     # These imports only run during type checking, not at runtime
@@ -128,14 +130,19 @@ class InitialFig:
     DEFAULT_OPTIONS = {
         "axes": {
             "x": {
-                "data_key": "CL_array",
+                "data_key": "aircraft.CL_array",
                 "label": "C<sub>L</sub> (-)",
-                "bound": "CLmax",
+                "bound": "aircraft.CLmax",
             },
-            "y": {"data_key": "dT_array", "label": "δ<sub>T</sub> (-)", "bound": 1},
+            "y": {
+                "data_key": "aircraft.dT_array",
+                "label": "δ<sub>T</sub> (-)",
+                "bound": 1,
+            },
             "z": {"label": "V (m/s)"},
         },
         "xy_lowerbound": -0.1,
+        "z_lowerbound": 0.0,
         "camera": {"x": 1.35, "y": 1.35, "z": 1.35},
         "opacity": 0.9,
         "colorscale": "viridis",
@@ -162,12 +169,13 @@ class InitialFig:
         factor = opts["factor"]
         xy_lowerbound = opts["xy_lowerbound"]
         axes = opts["axes"]
+        z_lowerbound = opts["z_lowerbound"]
 
         # Get axis data from model
-        x_data = getattr(Model.aircraft, axes["x"]["data_key"])
-        y_data = getattr(Model.aircraft, axes["y"]["data_key"])
+        x_data = self._get_data(Model, axes["x"]["data_key"])
+        y_data = self._get_data(Model, axes["y"]["data_key"])
 
-        # Get bounds (can be a string referencing model attribute, or a number)
+        # Get bounds (can be a dot-notation string or a number)
         x_bound = self._resolve_bound(axes["x"]["bound"], Model)
         y_bound = self._resolve_bound(axes["y"]["bound"], Model)
 
@@ -218,11 +226,13 @@ class InitialFig:
         camera = dict(eye=dict(**opts["camera"]))
 
         figure.update_layout(
+            scene_dragmode="turntable",
             scene=dict(
                 xaxis=dict(title=axes["x"]["label"], range=[xy_lowerbound, x_bound]),
                 yaxis=dict(title=axes["y"]["label"], range=[xy_lowerbound, y_bound]),
                 zaxis=dict(
-                    title=axes["z"]["label"], range=[0, factor * np.min(surface)]
+                    title=axes["z"]["label"],
+                    range=[z_lowerbound, factor * np.min(surface)],
                 ),
             ),
             scene_camera=camera,
@@ -239,7 +249,6 @@ class InitialFig:
 
     def _merge_options(self, user_options: dict) -> dict:
         """Deep merge user options with defaults."""
-        import copy
 
         opts = copy.deepcopy(self.DEFAULT_OPTIONS)
 
@@ -250,10 +259,17 @@ class InitialFig:
                 opts[key] = value
         return opts
 
-    def _resolve_bound(self, bound, Model):
-        """Resolve bound: if string, get from model.aircraft; otherwise return as-is."""
+    def _get_data(self, model, data_key: str):
+        """Traverse dot-notation path to get data. e.g. 'aircraft.CL_array' or 'CL_array'"""
+        obj = model
+        for key in data_key.split("."):
+            obj = getattr(obj, key)
+        return obj
+
+    def _resolve_bound(self, bound, model):
+        """Resolve bound: if dot-notation string, traverse path; otherwise return as-is."""
         if isinstance(bound, str):
-            return getattr(Model.aircraft, bound)
+            return self._get_data(model, bound)
         return bound
 
 
@@ -762,9 +778,15 @@ class OptimumGridView:
                 "range": [axes_min_speed, axes_max_speed],
             },
             "y2": {"title": r"$P \: (\text{kW})$", "range_key": "power_ylim"},
-            "x3": {"title": r"$C_L\:(\text{-})$"},
+            "x3": {
+                "title": r"$C_L\:(\text{-})$",
+                "data_key": "aircraft.CL_array",
+                "bound": "aircraft.CLmax",
+            },
             "y3": {
                 "title": r"$\delta_T \:(\text{-})$",
+                "data_key": "aircraft.dT_array",
+                "bound": 1.0,
                 "range": [axes_min_dT, axes_max_dT],
             },
             "x4": {
@@ -776,12 +798,13 @@ class OptimumGridView:
         "constraint": True,
         "factor": 2,
         "height": 800,
+        "xy_lowerbound": -0.1,
     }
 
     def __init__(
         self,
-        Model: ModelSimplifiedJet | ModelSimplifiedProp,
-        Optimums: list[ModelSimplifiedProp | ModelSimplifiedJet],
+        Model,
+        Optimums: list,
         plot_options: dict = None,
         equality=False,
     ):
@@ -800,15 +823,14 @@ class OptimumGridView:
         self._add_base_traces(Model, surface, opts)
 
         if not equality:
-            self._plot_inequality_optimum(Model, Optimums)
+            self._plot_inequality_optimum(Model, Optimums, opts)
         else:
             raise NotImplementedError
 
         self._update_layout(Model, opts)
 
     def _merge_options(self, user_options: dict) -> dict:
-        import copy
-
+        """Deep merge user options with defaults."""
         opts = copy.deepcopy(self.DEFAULT_OPTIONS)
 
         for key, value in user_options.items():
@@ -826,16 +848,34 @@ class OptimumGridView:
                 opts[key] = value
         return opts
 
+    def _get_data(self, model, data_key: str):
+        """Traverse dot-notation path to get data. e.g. 'aircraft.CL_array' or 'CL_array'"""
+        obj = model
+        for key in data_key.split("."):
+            obj = getattr(obj, key)
+        return obj
+
+    def _resolve_bound(self, bound, model):
+        """Resolve bound: if dot-notation string, traverse path; otherwise return as-is."""
+        if isinstance(bound, str):
+            return self._get_data(model, bound)
+        return bound
+
     def _add_base_traces(self, Model, surface, opts):
         factor = opts["factor"]
+        axes = opts["axes"]
 
-        # Heatmap
+        # Get x3 and y3 data from configurable data_key
+        x3_data = self._get_data(Model, axes["x3"]["data_key"])
+        y3_data = self._get_data(Model, axes["y3"]["data_key"])
+
+        # Heatmap with configurable x/y data
         self.figure.add_trace(
             go.Heatmap(
-                x=Model.aircraft.CL_array,
-                y=Model.aircraft.dT_array,
+                x=x3_data,
+                y=y3_data,
                 z=surface,
-                zsmooth="fast",
+                zsmooth="best",
                 opacity=0.9,
                 hovertemplate="x=%{x}<br>y=%{y}<br>z=%{z}<extra></extra>",
                 colorscale="viridis",
@@ -857,7 +897,7 @@ class OptimumGridView:
         if opts["constraint"]:
             self.figure.add_trace(
                 go.Scattergl(
-                    x=Model.aircraft.CL_array,
+                    x=x3_data,
                     y=Model.equilibrium_dT,
                     name="constraint",
                     line=dict(color=CONSTRAINT_CLR, width=10),
@@ -1028,6 +1068,7 @@ class OptimumGridView:
 
     def _update_layout(self, Model, opts):
         axes = opts["axes"]
+        xy_lowerbound = opts.get("xy_lowerbound", -0.1)
 
         layout_dict = {"height": opts["height"], "legend": dict(x=0.02, y=0.98)}
 
@@ -1046,10 +1087,15 @@ class OptimumGridView:
         for axis_name, axis_opts in axes.items():
             axis_config = {"title": axis_opts.get("title")}
 
+            # Handle range: explicit range, range_key, or bound-based
             if "range" in axis_opts:
                 axis_config["range"] = axis_opts["range"]
             elif "range_key" in axis_opts:
                 axis_config["range"] = [0.0, getattr(Model, axis_opts["range_key"])]
+            elif "bound" in axis_opts:
+                # Use bound (like InitialFig does)
+                upper_bound = self._resolve_bound(axis_opts["bound"], Model)
+                axis_config["range"] = [xy_lowerbound, upper_bound]
 
             if axis_name in ("x3", "y3", "x4", "y4"):
                 axis_config["showgrid"] = True
@@ -1062,11 +1108,11 @@ class OptimumGridView:
 
         self.figure.update_layout(**layout_dict)
 
-    def _plot_inequality_optimum(self, Model, Optimums):
+    def _plot_inequality_optimum(self, Model, Optimums, opts):
         all_traces = []
+        axes = opts["axes"]
 
         hopt_combined = np.hstack([opt.hopt_array for opt in Optimums])
-
         V_envelope_combined = np.hstack([opt.V_envelope for opt in Optimums])
 
         # Build dT_optimum list first, then check if empty
@@ -1113,9 +1159,18 @@ class OptimumGridView:
                 line=dict(color=SALMON),
             )
 
+            # Get the optimum marker position using the configurable data keys
+            # We need to map from Optimum's selected values to the appropriate x3/y3 coordinates
+            # By default this would be CLopt_selected and dTopt, but could be different
+            x3_opt_key = axes["x3"].get("optimum_key", "CLopt_selected")
+            y3_opt_key = axes["y3"].get("optimum_key", "dTopt")
+
+            x3_opt_value = getattr(Optimum, x3_opt_key)
+            y3_opt_value = getattr(Optimum, y3_opt_key)
+
             domain_marker = go.Scattergl(
-                x=[Optimum.CLopt_selected],
-                y=[Optimum.dTopt],
+                x=[x3_opt_value],
+                y=[y3_opt_value],
                 mode="markers",
                 showlegend=False,
                 marker=dict(
