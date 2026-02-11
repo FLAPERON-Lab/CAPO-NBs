@@ -57,9 +57,6 @@ def _(available_aircrafts, data_dir, plot_utils):
     # Define constants, this cell runs once and is not dependent in any way on any interactive element (not even the ac database)
     data = available_aircrafts(data_dir, ac_type="Jet")
     ac_table = plot_utils.InteractiveElements.init_table(data)
-
-    labels = ["Power (kW)", -15]
-    hover_name = "P<sub>min</sub>"
     return ac_table, data
 
 
@@ -135,9 +132,15 @@ def _(
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
 
-    selected_value = initialModel.compute_velocity(W_selected_initial, h_selected_initial, initial_CL_slider.value)
+    selected_value = initialModel.compute_velocity(
+        W_selected_initial, h_selected_initial, initial_CL_slider.value
+    )
 
-    plot_options_initial = {"surface": initialSurface, "title": "Minimum speed", "axes": {"z": {"label": "V (m/s)"}}}
+    plot_options_initial = {
+        "surface": initialSurface,
+        "title": "Minimum speed",
+        "axes": {"z": {"label": "V (m/s)"}},
+    }
     return plot_options_initial, selected_value
 
 
@@ -401,11 +404,13 @@ def _(
 
     _ = h_selected_analysis, W_selected_analysis
 
-    surface = np.broadcast_to(
+    analysisSurface = np.broadcast_to(
         analysisModel.V_CLarray[np.newaxis, :],
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
-    return surface, tab_value
+
+    plot_options_analysis = {"surface": analysisSurface}
+    return plot_options_analysis, tab_value
 
 
 @app.cell
@@ -441,7 +446,7 @@ def _(
     analysisModel,
     h_selected_analysis,
     mo,
-    surface,
+    plot_options_analysis,
     tab_value,
     title_keys,
     variables_stack_analysis,
@@ -516,9 +521,9 @@ def _(
     Below is the performance diagram for power and drag, the optimization domain with the objective function as a surface plot, and finally, on the bottom right, the flight envelope where the optima can be achieved.
     """),
             variables_stack_analysis,
-            analysisModel.plot_optimum(
-                surface,
+            analysisModel.plot_grid(
                 (MaxThrustCondition(W_selected_analysis, h_selected_analysis, analysisModel),),
+                plot_options_analysis,
             ).figure,
         ]
     ).callout()
@@ -561,7 +566,7 @@ def _(
     analysisModel,
     h_selected_analysis,
     mo,
-    surface,
+    plot_options_analysis,
     tab_value,
     title_keys,
     variables_stack_analysis,
@@ -619,9 +624,9 @@ def _(
     Below is the performance diagram for power and drag, the optimization domain with the objective function as a surface plot, and finally, on the bottom right, the flight envelope where the optima can be achieved.
     """),
             variables_stack_analysis,
-            analysisModel.plot_optimum(
-                surface,
+            analysisModel.plot_grid(
                 (MaxliftCondition(W_selected_analysis, h_selected_analysis, analysisModel),),
+                plot_options_analysis,
             ).figure,
         ]
     ).callout()
@@ -656,6 +661,7 @@ def _(
     mass_stack_analysis,
     mo,
     np,
+    plot_options_analysis,
     plot_utils,
     tab_value,
     title_keys,
@@ -663,7 +669,7 @@ def _(
     if tab_value != title_keys[3]:
         mo.stop(True)
 
-    MaxLiftThrust = (MaxLiftThrustCondition(W_selected_analysis, analysisModel),)
+    MaxLiftThrust = MaxLiftThrustCondition(W_selected_analysis, analysisModel)
     surface_MaxLiftThrust = np.broadcast_to(
         analysisModel.V_CLarray[np.newaxis, :],
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
@@ -723,7 +729,7 @@ def _(
     Below is the performance diagram for power and drag, the optimization domain with the objective function as a surface plot, and finally, on the bottom right, the flight envelope where the optima can be achieved.
     """),
             mass_stack_analysis,
-            analysisModel.plot_optimum(surface_MaxLiftThrust, MaxLiftThrust).figure,
+            analysisModel.plot_grid((MaxLiftThrust,), plot_options_analysis).figure,
         ]
     ).callout()
     return
@@ -745,15 +751,19 @@ def _(OptimumCondition, atmos, np):
             self.dTopt = 1
 
             self.hopt_array = np.array([h_optimum])
-            self.condition = Model.aircraft.CLmax > Model.aircraft.CL_E
+            self.condition = (Model.aircraft.CLmax > Model.aircraft.CL_E)
 
-            self.CLopt = self.CLopt_selected = Model.aircraft.CLmax if self.condition else np.nan
+            self.CLopt = self.CLopt_selected = (
+                Model.aircraft.CLmax if self.condition else np.nan
+            )
 
             self.compute_optimal(W, h_optimum, Model, True)
 
             self.cond = 1 if self.condition else np.nan
 
-            self.V_selected = Model.compute_velocity(W, h_optimum, self.CLopt_selected) * self.cond
+            self.V_selected = (
+                Model.compute_velocity(W, h_optimum, self.CLopt_selected) * self.cond
+            )
 
             self.CLopt_selected = self.CLopt_selected * self.cond
     return (MaxLiftThrustCondition,)
@@ -826,7 +836,9 @@ def _(W_selected_envelope, envelopeModel, h_selected_envelope, np, plot_utils):
         envelopeModel.V_CLarray[np.newaxis, :],
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
-    return (envelopeSurface,)
+
+    plot_options_envelope = {"surface" : envelopeSurface}
+    return (plot_options_envelope,)
 
 
 @app.cell
@@ -847,21 +859,20 @@ def _(
     MaxliftCondition,
     W_selected_envelope,
     envelopeModel,
-    envelopeSurface,
     equality_trace,
     h_selected_envelope,
     mo,
+    plot_options_envelope,
     variables_stack_envelope,
 ):
     mo.vstack(
         [
             variables_stack_envelope,
-            envelopeModel.plot_optimum(
-                envelopeSurface,
+            envelopeModel.plot_grid(
                 (
                     MaxliftCondition(W_selected_envelope, h_selected_envelope, envelopeModel),
                     MaxThrustCondition(W_selected_envelope, h_selected_envelope, envelopeModel),
-                ),
+                ), plot_options_envelope
             ).figure.add_traces(equality_trace),
         ]
     )
