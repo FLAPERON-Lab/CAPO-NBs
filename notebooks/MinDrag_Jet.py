@@ -115,10 +115,15 @@ def _(W_selected_initial, h_selected_initial, initialModel, initial_CL_slider):
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
 
-    selected_value = initialModel.compute_drag(W_selected_initial, initial_CL_slider.value)
+    selected_value = initialModel.compute_drag(
+        W_selected_initial, initial_CL_slider.value
+    )
 
-
-    plot_options_initial = {"surface": initialSurface, "title": "Minimum drag", "axes": {"z": {"label": "D (N)"}}}
+    plot_options_initial = {
+        "surface": initialSurface,
+        "title": "Minimum drag",
+        "axes": {"z": {"label": "D (N)"}},
+    }
     return plot_options_initial, selected_value
 
 
@@ -479,7 +484,11 @@ def _(
     """),
             variables_stack_analysis,
             analysisModel.plot_grid(
-                (InteriorCondition(W_selected_analysis, h_selected_analysis, analysisModel),),
+                (
+                    InteriorCondition(
+                        W_selected_analysis, h_selected_analysis, analysisModel
+                    ),
+                ),
                 plot_options_analysis,
             ).figure,
         ]
@@ -487,9 +496,9 @@ def _(
     return
 
 
-app._unparsable_cell(
-    r"""
-    x`class InteriorCondition(OptimumCondition):
+@app.cell
+def _(aircraft, analysisModel):
+    class InteriorCondition(OptimumCondition):
         def __init__(self, W, h, Model):
             self.CLopt = self.CLopt_selected = Model.aircraft.CL_E
             self.dTopt = (
@@ -504,9 +513,7 @@ app._unparsable_cell(
             ) & (analysisModel.aircraft.CL_E < analysisModel.aircraft.CLmax)
 
             self.compute_optimal(W, h, Model)
-    """,
-    name="_"
-)
+    return (InteriorCondition,)
 
 
 @app.cell
@@ -578,7 +585,11 @@ def _(
     """),
             variables_stack_analysis,
             analysisModel.plot_grid(
-                (MaxliftCondition(W_selected_analysis, h_selected_analysis, analysisModel),),
+                (
+                    MaxliftCondition(
+                        W_selected_analysis, h_selected_analysis, analysisModel
+                    ),
+                ),
                 plot_options_analysis,
             ).figure,
         ]
@@ -598,9 +609,11 @@ def _(aircraft, analysisModel):
                 / (Model.rhoratio_selected**Model.aircraft.beta)
             )
 
-            self.condition = (W < analysisModel.compute_thrust(analysisModel.aircraft.h_array) * aircraft.E_S) & (
-                analysisModel.aircraft.CLmax < analysisModel.aircraft.CL_E
-            )
+            self.condition = (
+                W
+                < analysisModel.compute_thrust(analysisModel.aircraft.h_array)
+                * aircraft.E_S
+            ) & (analysisModel.aircraft.CLmax < analysisModel.aircraft.CL_E)
 
             self.compute_optimal(W, h, Model)
     return (MaxliftCondition,)
@@ -622,6 +635,10 @@ def _(
         analysisModel.drag_curve[np.newaxis, :],
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
+
+    plot_options_analysis_MaxThrust = {
+        "surface": surface_MaxThrust,
+    }
 
     mo.vstack(
         [
@@ -685,7 +702,7 @@ def _(
 
     """),
             mass_stack_analysis,
-            analysisModel.plot_optimum(surface_MaxThrust, MaxThrust).figure,
+            analysisModel.plot_grid(MaxThrust, plot_options_analysis_MaxThrust).figure,
         ]
     ).callout()
     return
@@ -694,8 +711,14 @@ def _(
 @app.class_definition
 class MaxThrustCondition(OptimumCondition):
     def __init__(self, W, Model, modifyModel=True):
-        sigma_opt = (W / (Model.aircraft.Ta0 * 1e3) / Model.aircraft.E_max) ** (1 / Model.aircraft.beta)
-        h_optimum = atmos.altitude(sigma_opt) if sigma_opt > atmos.rhoratio(atmos.hmax) else 20000.0
+        sigma_opt = (W / (Model.aircraft.Ta0 * 1e3) / Model.aircraft.E_max) ** (
+            1 / Model.aircraft.beta
+        )
+        h_optimum = (
+            atmos.altitude(sigma_opt)
+            if sigma_opt > atmos.rhoratio(atmos.hmax)
+            else 20000.0
+        )
 
         if modifyModel:
             Model.update_altitude_dependency(h_optimum)
@@ -708,13 +731,17 @@ class MaxThrustCondition(OptimumCondition):
             sigma_opt > atmos.rhoratio(atmos.hmax)
         )
 
-        self.CLopt = self.CLopt_selected = Model.aircraft.CL_E if self.condition else np.nan
+        self.CLopt = self.CLopt_selected = (
+            Model.aircraft.CL_E if self.condition else np.nan
+        )
 
         self.compute_optimal(W, h_optimum, Model, True)
 
         self.cond = 1 if (sigma_opt > atmos.rhoratio(atmos.hmax)) else np.nan
 
-        self.V_selected = Model.compute_velocity(W, h_optimum, self.CLopt_selected) * self.cond
+        self.V_selected = (
+            Model.compute_velocity(W, h_optimum, self.CLopt_selected) * self.cond
+        )
 
         self.CLopt_selected = self.CLopt_selected * self.cond
 
@@ -735,6 +762,10 @@ def _(
         analysisModel.drag_curve[np.newaxis, :],
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
+
+    plot_options_analysis_MaxLiftThrust = {
+        "surface": surface_MaxLiftThrust,
+    }
 
     mo.vstack(
         [
@@ -787,7 +818,9 @@ def _(
     Below is the performance diagram for power and drag, the optimization domain with the objective function as a surface plot, and finally, on the bottom right, the flight envelope where the optima can be achieved.
     """),
             mass_stack_analysis,
-            analysisModel.plot_optimum(surface_MaxLiftThrust, MaxLiftThrust).figure,
+            analysisModel.plot_grid(
+                MaxLiftThrust, plot_options_analysis_MaxLiftThrust
+            ).figure,
         ]
     ).callout()
     return
@@ -796,8 +829,12 @@ def _(
 @app.class_definition
 class MaxLiftThrustCondition(OptimumCondition):
     def __init__(self, W, Model, modifyModel=True):
-        sigma_opt = (W / (Model.aircraft.Ta0 * 1e3) / Model.aircraft.E_S) ** (1 / Model.aircraft.beta)
-        h_optimum = atmos.altitude(sigma_opt) if sigma_opt > atmos.rhoratio(atmos.hmax) else 0.0
+        sigma_opt = (W / (Model.aircraft.Ta0 * 1e3) / Model.aircraft.E_S) ** (
+            1 / Model.aircraft.beta
+        )
+        h_optimum = (
+            atmos.altitude(sigma_opt) if sigma_opt > atmos.rhoratio(atmos.hmax) else 0.0
+        )
 
         if modifyModel:
             Model.update_altitude_dependency(h_optimum)
@@ -810,13 +847,21 @@ class MaxLiftThrustCondition(OptimumCondition):
             sigma_opt < atmos.rhoratio(atmos.hmax)
         )
 
-        self.CLopt = self.CLopt_selected = Model.aircraft.CLmax if self.condition else np.nan
+        self.CLopt = self.CLopt_selected = (
+            Model.aircraft.CLmax if self.condition else np.nan
+        )
 
         self.compute_optimal(W, h_optimum, Model, True)
 
-        self.cond = 1 if ((sigma_opt > atmos.rhoratio(atmos.hmax)) and self.condition) else np.nan
+        self.cond = (
+            1
+            if ((sigma_opt > atmos.rhoratio(atmos.hmax)) and self.condition)
+            else np.nan
+        )
 
-        self.V_selected = Model.compute_velocity(W, h_optimum, self.CLopt_selected) * self.cond
+        self.V_selected = (
+            Model.compute_velocity(W, h_optimum, self.CLopt_selected) * self.cond
+        )
 
         self.CLopt_selected = self.CLopt_selected * self.cond
 
@@ -889,13 +934,15 @@ def _(W_selected_envelope, envelopeModel, h_selected_envelope):
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
 
-    plot_options_envelope = {"surface" : envelopeSurface}
+    plot_options_envelope = {"surface": envelopeSurface}
     return (plot_options_envelope,)
 
 
 @app.cell
 def _(W_selected_envelope, envelopeModel):
-    MaxLiftThrustEnvelope = MaxLiftThrustCondition(W_selected_envelope, envelopeModel, False)
+    MaxLiftThrustEnvelope = MaxLiftThrustCondition(
+        W_selected_envelope, envelopeModel, False
+    )
     MaxThrustEnvelope = MaxThrustCondition(W_selected_envelope, envelopeModel, False)
     return MaxLiftThrustEnvelope, MaxThrustEnvelope
 
@@ -922,10 +969,14 @@ def _(
             variables_stack_envelope,
             envelopeModel.plot_grid(
                 (
-                    InteriorCondition(W_selected_envelope, h_selected_envelope, envelopeModel),
-                    MaxliftCondition(W_selected_envelope, h_selected_envelope, envelopeModel),
+                    InteriorCondition(
+                        W_selected_envelope, h_selected_envelope, envelopeModel
+                    ),
+                    MaxliftCondition(
+                        W_selected_envelope, h_selected_envelope, envelopeModel
+                    ),
                 ),
-                plot_options_envelope
+                plot_options_envelope,
             ).figure.add_traces(equality_trace),
         ]
     )
