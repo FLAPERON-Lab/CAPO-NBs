@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.15.2"
+__generated_with = "0.19.11"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -35,8 +35,7 @@ def _():
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     # Aerodynamic Efficiency
 
     The lift polar expresses the capability of the aircraft to generate aerodynamic lift at a given angle of attack.
@@ -48,8 +47,7 @@ def _():
 
     What these curves expressed is therefore not a _flight performance_ metric, but rather an _aerodynamic performance_ metric.
     Aerodynamic performance is still very useful, of course, as it plays a major role in the analysis and interpretation of flight performance.
-    """
-    )
+    """)
     return
 
 
@@ -70,8 +68,7 @@ def _():
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     ## Boundary values
     Two notable values of the aerodynamic efficiency are easy to calculate, corresponding to the boundary value of $C_L$.
 
@@ -80,8 +77,7 @@ def _():
     $$C_L=C_{L_\mathrm{max}} \quad \Rightarrow \quad  E_S = \frac{C_{L_\mathrm{max}}}{C_{D_0}+K C_{L_\mathrm{max}}^2}$$
 
     $E$ is a non monotonic function of the $C_L$, and therefore it is expected that it will have some staionary points inside the domain.
-    """
-    )
+    """)
     return
 
 
@@ -297,7 +293,9 @@ def _(fig_endurance):
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""## Optimization""")
+    mo.md(r"""
+    ## Optimization
+    """)
     return
 
 
@@ -324,57 +322,49 @@ def _():
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""
-    The existence of a stationary point inside the domain or on its boundary is guaranteed by Weierstrass theorem for a contiunoues function in a compact set. 
+    mo.md(r"""
+    The existence of a stationary point inside the domain or on its boundary is guaranteed by Weierstrass theorem for a contiunoues function in a compact set.
 
-    The necessary condition for an interior point to be stationary is given by the fact that the gradient of the objective function with respect to the decision variable is zero in that point. 
+    The necessary condition for an interior point to be stationary is given by the fact that the gradient of the objective function with respect to the decision variable is zero in that point.
     Therefore, interior stationary points can be found by equating the gradient of the objecitive function to zero.
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""
-    $$ \frac{\mathrm{d}E}{\mathrm{d}C_L} = \frac{C_{D_0}-KC_L^2}{C_{D_0}+KC_L^2} = 0 
+    mo.md(r"""
+    $$ \frac{\mathrm{d}E}{\mathrm{d}C_L} = \frac{C_{D_0}-KC_L^2}{C_{D_0}+KC_L^2} = 0
     \quad \text{for} \quad C_L = C_{L_E} = \sqrt{\frac{C_{D_0}}{K}} $$
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     It can be easily verified that this is indeed a maximum by looking at the convexity of the objective function.
     A sufficient condition to prove it is actually a maximum is to show that the Hessian is negative at the stationary point.
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     The value of the total drag coefficient in this condition is twice the value of the zero-lift one, meaning that zero-lift and induced drag have the same contribution to total drag.
 
     The corresponding value of the maximum aerodynamic efficiency is therefore:
 
     $$ E_\mathrm{max} = \frac{C_{L_E}}{C_{D_0}+KC_{L_E}^2} = \frac{\sqrt{\frac{C_{D_0}}{K}}}{2C_{D_0}} = \sqrt{\frac{1}{4KC_{D_0}}}$$
-    """
-    )
+    """)
     return
 
 
 @app.cell
 def _():
     _defaults.nav_footer(
-        "FlightControls.py", "Flight Controls", "MinSpeed.py", "Minimum Speed"
+        "FlightControls.py", "Flight Controls", "MinDrag.py", "Minimum Drag"
     )
     return
 

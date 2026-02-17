@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.15.0"
+__generated_with = "0.17.6"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -27,13 +27,17 @@ def _():
 
 @app.cell
 def _():
-    mo.md(r"""# Minimum airspeed""")
+    mo.md(r"""
+    # Minimum airspeed
+    """)
     return
 
 
 @app.cell
 def _():
-    mo.md(r"""## Unconstrained optimization problem""")
+    mo.md(r"""
+    ## Unconstrained optimization problem
+    """)
     return
 
 
@@ -64,8 +68,7 @@ def _():
 
 @app.cell
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     This problem is ill posed, and it does not make sense to solve it.
 
     There is no functional relation between the objective function $V$ and the controls $C_L, \delta_T$.
@@ -77,8 +80,7 @@ def _():
 
     A relation must be introduced with constraint equations, starting from the EoMs.
     These will define the problem properly.
-    """
-    )
+    """)
     return
 
 
@@ -177,13 +179,15 @@ def _(ac_table):
 
 @app.cell
 def _(CL_slider, dT_slider, fig):
-    mo.vstack([fig, mo.hstack([CL_slider, dT_slider])])
+    mo.vstack([mo.hstack([CL_slider, dT_slider]), fig])
     return
 
 
 @app.cell
 def _():
-    mo.md(r"""## Constrained optimization problem""")
+    mo.md(r"""
+    ## Constrained optimization problem
+    """)
     return
 
 
@@ -212,31 +216,27 @@ def _():
 
 @app.cell
 def _():
-    mo.md(
-        r"""
-    The introduction of the constraints for vertical ($c_1^\mathrm{eq}$) and horizontal equilibrium ($c_2^\mathrm{eq}$) restricts the scope to only a certain type of optimal speeds we are looking for. 
+    mo.md(r"""
+    The introduction of the constraints for vertical ($c_1^\mathrm{eq}$) and horizontal equilibrium ($c_2^\mathrm{eq}$) restricts the scope to only a certain type of optimal speeds we are looking for.
 
     The constraint equations introduce a functional dependency between the objective function and the controls.
     We are going to use them to reformulate the problem in order to analyse its properties.
 
     Before that, we notice that the expression of $c_2^\mathrm{eq}$ depends on the type of powertrain of the aircraft, and therefore we must proceed diffently for each powertrain architecture.
 
-    1. ~~[Simplified Jet -  Monotonicity Analysis](/?file=MinSpeed_Jet_MonoAn.py)~~
     1. [Simplified Jet -  Karush-Kuhn-Tucker Analyis](/?file=MinSpeed_Jet_KKT.py)
-    1. ~~[Simplified Piston-Prop -  Monotonicity Analysis](/?file=MinSpeed_Prop_MonoAn.py)~~
-    1. [Simplified Piston-Prop -  Karush-Kuhn-Tucker Analysis](/?file=MinSpeed_Prop_KKT.py)
-    """
-    )
+    2. [Simplified Piston-Prop -  Karush-Kuhn-Tucker Analysis](/?file=MinSpeed_Prop_KKT.py)
+    """)
     return
 
 
 @app.cell
 def _():
     _defaults.nav_footer(
-        "AerodynamicEfficiency.py",
-        "Aerodynamic Efficiency",
         "MinPower.py",
         "Minimum Power",
+        "MaxSpeed.py",
+        "Maximum Speed",
     )
     return
 
