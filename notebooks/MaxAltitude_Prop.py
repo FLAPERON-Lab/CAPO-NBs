@@ -46,9 +46,6 @@ def _():
     # Define constants, this cell runs once and is not dependent in any way on any interactive element (not even the ac database)
     data = available_aircrafts(data_dir, ac_type="Propeller")
     ac_table = plot_utils.InteractiveElements.init_table(data)
-
-    labels = ["Drag (N)", -15]
-    hover_name = "D<sub>min</sub>"
     return ac_table, data
 
 
@@ -61,8 +58,6 @@ def _(ac_table, data):
         active_selection = data.iloc[0]
 
     aircraft = AircraftBase(active_selection)
-
-    label = "Min Speed (m/s)"
 
     initialControls = plot_utils.InteractiveElements(aircraft, initial=True)
     initialModel = ModelSimplifiedProp(aircraft)
@@ -114,19 +109,22 @@ def _(
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
 
-    selected_value = (
-        W_selected_initial**1.5
-        / (initial_dT_slider.value * aircraft.Pa0 * 1e3)
-        * (aircraft.CD0 + aircraft.K * initial_CL_slider.value**2)
-        / initial_CL_slider.value**1.5
-        * np.sqrt(2 / atmos.rho0 / initialModel.aircraft.S)
-    )
-
+    if initial_CL_slider.value != 0 and initial_dT_slider.value != 0:
+        selected_value = (
+            W_selected_initial**1.5
+            / (initial_dT_slider.value * aircraft.Pa0 * 1e3)
+            * (aircraft.CD0 + aircraft.K * initial_CL_slider.value**2)
+            / initial_CL_slider.value**1.5
+            * np.sqrt(2 / atmos.rho0 / initialModel.aircraft.S)
+        )
+    else:
+        selected_value = np.nan
 
     plot_options_initial = {
         "surface": initialSurface,
         "title": "Maximum altitude",
-        "axes": {"z": {"label": r"\sigma (-)"}},
+        "axes": {"z": {"label": "σ<sup>	β</sup> (-)"}},
+        "factor": 1 / np.min(initialSurface),
     }
     return plot_options_initial, selected_value
 
@@ -443,7 +441,13 @@ def _(
         ),
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
-    return Surface, tab_value
+
+    plot_options_analysis_Surface = {
+        "surface": Surface,
+        "factor": 1 / np.min(Surface),
+        "constraint": False,
+    }
+    return plot_options_analysis_Surface, tab_value
 
 
 @app.cell
@@ -494,6 +498,14 @@ def _(
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
 
+    plot_options_analysis_MaxThrust = {
+        "surface": surface_MaxThrust,
+        "factor": 1 / np.min(surface_MaxThrust),
+        "constraint": False,
+    }
+
+    analysisModel.update_mass_dependency(W_selected_analysis)
+
     mo.vstack(
         [
             mo.md(r"""
@@ -528,11 +540,9 @@ def _(
     $$
     """),
             mass_stack_analysis,
-            analysisModel.plot_optimum(
-                surface_MaxThrust,
+            analysisModel.plot_grid(
                 MaxThrust,
-                factor=1 / np.min(surface_MaxThrust),
-                constraint=False,
+                plot_options_analysis_MaxThrust,
             ).figure,
         ]
     ).callout()
@@ -548,12 +558,13 @@ class MaxThrustCondition(OptimumCondition):
             W**1.5
             / (Model.aircraft.Pa0 * 1e3)
             / Model.aircraft.E_P
-            / (0.5 * atmos.rho0 * Model.aircraft.S * Model.aircraft.CL_P)
+            / (0.5 * atmos.rho0 * Model.aircraft.S * Model.aircraft.CL_P) ** 0.5
         ) ** (1 / (Model.aircraft.beta + 0.5))
 
         h_optimum = (
             atmos.altitude(sigma_opt)
-            if sigma_opt > atmos.rhoratio(atmos.hmax) and atmos.altitude(sigma_opt) > 0.0
+            if sigma_opt > atmos.rhoratio(atmos.hmax)
+            and atmos.altitude(sigma_opt) > 0.0
             else 0.0
         )
 
@@ -561,7 +572,9 @@ class MaxThrustCondition(OptimumCondition):
             Model.update_altitude_dependency(h_optimum)
             Model.update_context(W, h_optimum)
 
-        self.CLopt = self.CLopt_selected = Model.aircraft.CL_P if h_optimum != 0.0 else np.nan
+        self.CLopt = self.CLopt_selected = (
+            Model.aircraft.CL_P if h_optimum != 0.0 else np.nan
+        )
         self.dTopt = 1
 
         self.hopt_array = np.array([h_optimum])
@@ -571,21 +584,23 @@ class MaxThrustCondition(OptimumCondition):
 
         self.cond = 1 if self.condition else np.nan
 
-        self.V_selected = Model.compute_velocity(W, h_optimum, self.CLopt_selected) * self.cond
+        self.V_selected = (
+            Model.compute_velocity(W, h_optimum, self.CLopt_selected) * self.cond
+        )
 
         self.CLopt_selected = self.CLopt_selected * self.cond
 
 
 @app.cell
 def _(
-    Surface,
     W_selected_analysis,
     analysisModel,
     mass_stack_analysis,
+    plot_options_analysis_Surface,
     tab_value,
     title_keys,
 ):
-    if tab_value != title_keys[2]:
+    if tab_value != title_keys[3]:
         mo.stop(True)
 
     MaxLiftThrust = (MaxLiftThrustCondition(W_selected_analysis, analysisModel),)
@@ -620,11 +635,9 @@ def _(
     $$
     """),
             mass_stack_analysis,
-            analysisModel.plot_optimum(
-                Surface,
+            analysisModel.plot_grid(
                 MaxLiftThrust,
-                factor=1 / np.min(Surface),
-                constraint=False,
+                plot_options_analysis_Surface,
             ).figure,
         ]
     ).callout()
@@ -634,18 +647,17 @@ def _(
 @app.class_definition
 class MaxLiftThrustCondition(OptimumCondition):
     def __init__(self, W, Model, modifyModel=True):
-        # sigma_exp = (W**1.5) / Pa0 /?? E_P / np.sqrt(0.5 * atmos.rho0 * S * CL_P)
-
         sigma_opt = (
             W**1.5
             / (Model.aircraft.Pa0 * 1e3)
             / Model.aircraft.E_S
-            / (0.5 * atmos.rho0 * Model.aircraft.S * Model.aircraft.CLmax)
+            / (0.5 * atmos.rho0 * Model.aircraft.S * Model.aircraft.CLmax) ** 0.5
         ) ** (1 / (Model.aircraft.beta + 0.5))
 
         h_optimum = (
             atmos.altitude(sigma_opt)
-            if sigma_opt > atmos.rhoratio(atmos.hmax) and atmos.altitude(sigma_opt) > 0.0
+            if sigma_opt > atmos.rhoratio(atmos.hmax)
+            and atmos.altitude(sigma_opt) > 0.0
             else 0.0
         )
 
@@ -653,7 +665,9 @@ class MaxLiftThrustCondition(OptimumCondition):
             Model.update_altitude_dependency(h_optimum)
             Model.update_context(W, h_optimum)
 
-        self.CLopt = self.CLopt_selected = Model.aircraft.CLmax if h_optimum != 0.0 else np.nan
+        self.CLopt = self.CLopt_selected = (
+            Model.aircraft.CLmax if h_optimum != 0.0 else np.nan
+        )
         self.dTopt = 1
 
         self.hopt_array = np.array([h_optimum])
@@ -663,7 +677,9 @@ class MaxLiftThrustCondition(OptimumCondition):
 
         self.cond = 1 if self.condition else np.nan
 
-        self.V_selected = Model.compute_velocity(W, h_optimum, self.CLopt_selected) * self.cond
+        self.V_selected = (
+            Model.compute_velocity(W, h_optimum, self.CLopt_selected) * self.cond
+        )
 
         self.CLopt_selected = self.CLopt_selected * self.cond
 
@@ -686,99 +702,86 @@ def _(aircraft):
     mass_stack_envelope, variables_stack_envelope = envelopeControls.init_layout(
         mass_slider_envelope, altitude_slider_envelope
     )
-
-    envelopeModel = ModelSimplifiedProp(aircraft)
-    return (
-        altitude_slider_envelope,
-        envelopeControls,
-        envelopeModel,
-        mass_slider_envelope,
-        mass_stack_envelope,
-    )
-
-
-@app.cell
-def _(envelopeControls, envelopeModel, mass_slider_envelope):
-    W_selected_envelope = envelopeControls.sense_mass(mass_slider_envelope)
-
-    envelopeModel.update_mass_dependency(W_selected_envelope)
-    return (W_selected_envelope,)
-
-
-@app.cell
-def _(altitude_slider_envelope, envelopeControls, envelopeModel):
-    h_selected_envelope = envelopeControls.sense_altitude(altitude_slider_envelope)
-
-    envelopeModel.update_altitude_dependency(h_selected_envelope)
-    return (h_selected_envelope,)
-
-
-@app.cell
-def _(W_selected_envelope, envelopeModel, h_selected_envelope):
-    envelopeModel.update_context(W_selected_envelope, h_selected_envelope)
-    return
+    return envelopeControls, mass_slider_envelope, mass_stack_envelope
 
 
 @app.cell
 def _(
     CL_grid,
-    W_selected_envelope,
+    W_selected_initial,
     aircraft,
     dT_grid,
-    envelopeModel,
-    h_selected_envelope,
+    envelopeControls,
+    initialModel,
+    mass_slider_envelope,
+    mass_stack_envelope,
 ):
-    _ = h_selected_envelope, W_selected_envelope
+    W_selected_envelope = envelopeControls.sense_mass(mass_slider_envelope)
+
+    # Create a fresh model for computing optima
+    envelopeModel = ModelSimplifiedProp(aircraft)
+    envelopeModel.update_mass_dependency(W_selected_envelope)
+
+    MaxThrustEnvelope = MaxThrustCondition(W_selected_envelope, envelopeModel, False)
+    MaxLiftThrustEnvelope = MaxLiftThrustCondition(
+        W_selected_envelope, envelopeModel, False
+    )
+
+    # Determine which condition applies and update the model accordingly
+    if MaxThrustEnvelope.condition:
+        optimal_condition = (MaxThrustEnvelope,)
+        # Update model with MaxThrust's optimal altitude
+        MaxThrustCondition(W_selected_envelope, envelopeModel, True)
+    else:
+        optimal_condition = (MaxLiftThrustEnvelope,)
+        # Update model with MaxLiftThrust's optimal altitude
+        MaxLiftThrustCondition(W_selected_envelope, envelopeModel, True)
+
+    if MaxThrustEnvelope.hopt_array[0] != 0:
+        h_selected_envelope = (
+            float(MaxThrustEnvelope.hopt_array[0])
+            if MaxThrustEnvelope.condition
+            else float(MaxLiftThrustEnvelope.hopt_array[0])
+        )
+    else:
+        h_selected_envelope = 0.0
 
     envelopeSurface = np.broadcast_to(
         (
-            W_selected_envelope**1.5
+            W_selected_initial**1.5
             / (dT_grid * aircraft.Pa0 * 1e3)
             * (aircraft.CD0 + aircraft.K * CL_grid**2)
             / CL_grid**1.5
-            * np.sqrt(2 / atmos.rho0 / envelopeModel.aircraft.S)
+            * np.sqrt(2 / atmos.rho0 / initialModel.aircraft.S)
         ),
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
-    return (envelopeSurface,)
 
+    plot_options_envelope = {
+        "surface": envelopeSurface,
+        "factor": 1 / np.min(envelopeSurface),
+        "constraint": False,
+    }
 
-@app.cell
-def _(W_selected_envelope, envelopeModel):
-    MaxThrustEnvelope = MaxThrustCondition(W_selected_envelope, envelopeModel, False)
-    MaxLiftThrustEnvelope = MaxLiftThrustCondition(W_selected_envelope, envelopeModel, False)
-    return MaxLiftThrustEnvelope, MaxThrustEnvelope
-
-
-@app.cell
-def _(MaxLiftThrustEnvelope, MaxThrustEnvelope):
     equality_trace = plot_utils.add_equality(
         (
             MaxThrustEnvelope,
             MaxLiftThrustEnvelope,
         )
     )
-    return (equality_trace,)
 
+    if MaxThrustEnvelope.condition:
+        optimal_condition = (MaxThrustEnvelope,)
+    else:
+        optimal_condition = (MaxLiftThrustEnvelope,)
 
-@app.cell
-def _(
-    W_selected_analysis,
-    analysisModel,
-    envelopeModel,
-    envelopeSurface,
-    equality_trace,
-    mass_stack_envelope,
-):
     mo.vstack(
         [
             mass_stack_envelope,
-            envelopeModel.plot_optimum(
-                envelopeSurface,
-                (MaxThrustCondition(W_selected_analysis, analysisModel, False),),
-                factor=1 / np.min(envelopeSurface),
-                constraint=False,
-            ).figure.add_traces(equality_trace),
+            envelopeModel.plot_grid(
+                optimal_condition,
+                plot_options_envelope,
+            ).figure,
         ]
     )
     return
