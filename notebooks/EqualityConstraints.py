@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.19.4"
+__generated_with = "0.19.11"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -32,7 +32,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     # Equality Constraints
@@ -53,44 +53,28 @@ def _():
     return
 
 
-@app.function
-def CD(M, CL):
-    """
-    Evaluate the drag coefficient C_D(M, C_L)
-
-    Parameters
-    ----------
-    M : float or ndarray
-        Mach number
-    CL : float or ndarray
-        Lift coefficient
-
-    Returns
-    -------
-    CD : float or ndarray
-        Drag coefficient
-    """
-
-    # Drag-divergence Mach number
-    M_dd = 0.82 - 0.17 * CL
-
-    # Common term
-    A = 0.06 + 0.1 * np.exp(2.0 * (M - M_dd))
-
-    # C_D0
-    CD0 = 0.045 - 0.06 * M + 0.025 * M**2 + 0.005 * np.exp(13 * (M - M_dd)) + A * (0.4 - 0.05 * M) ** 2
-
-    # K1 and K2
-    K1 = -2.0 * A * (0.4 - 0.05 * M)
-    K2 = A
-
-    # Total drag coefficient
-    CD = CD0 + K1 * CL + K2 * CL**2
-
-    return CD
-
-
 @app.cell
+def _():
+    def M_dd_func(CL):
+        return 0.82 - 0.17 * CL
+
+    def CD_func(M, CL):
+        M_dd_val = M_dd_func(CL)
+        exp_12 = np.exp(12.942 * (M - M_dd_val))
+        exp_2 = np.exp(2 * (M - M_dd_val))
+
+        CD0 = (0.045 - 0.059052 * M + 0.025 * M**2 + 0.005426 * exp_12) + (
+            0.06 + 0.1 * exp_2
+        ) * (0.4 - 0.05 * M) ** 2
+        K1 = -2 * (0.06 + 0.1 * exp_2) * (0.4 - 0.05 * M)
+        K2 = 0.06 + 0.1 * exp_2
+
+        return CD0 + K1 * CL + K2 * CL**2
+
+    return (CD_func,)
+
+
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     ## Simple Equality Constraints
@@ -100,7 +84,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     ### Fixed Lift Coefficient
@@ -128,7 +112,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     ### Fixed Mach Number
@@ -155,7 +139,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     ## Solution Method: Substitution
@@ -195,7 +179,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     ## Geometric interpretation
@@ -206,7 +190,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     TODO: transform the charts below to interactive (AI did the first draft). Similar to Bivariate, but now the constraint lines must be treated differently. For example: for the case of given CL, use a numerical input to ask users to fix the value of the CL constraint. Then use a slider to let them change the Mach number to find the optimum. Same, with inverted role, for the case of given Mach.
@@ -217,35 +201,90 @@ def _():
 
 
 @app.cell
-def _():
-    # Constraint values
-    CL_given = 0.6
-    M_given = 0.7
-    return CL_given, M_given
-
-
-@app.cell
-def _():
-    # Create meshgrid for contour plots
+def _(CD_func):
+    # Variables declared
     meshgrid_n = 101
+    xy_lowerbound = -0.1
+
+    CL_buffer = 1
+    # Handle deselected row from table
+    CLmax = 0.9  # active_selection["CLmax_ld"]
     M_range = np.linspace(0, 1, meshgrid_n)
-    CL_range = np.linspace(0, 0.9, meshgrid_n)
+    CL_range = np.linspace(0, CLmax, meshgrid_n)
+    # Create meshgrid
     M_grid, CL_grid = np.meshgrid(M_range, CL_range)
 
-    # Evaluate E on the grid
-    E_grid = CL_grid / CD(M_grid, CL_grid)
-    return CL_range, E_grid, M_range
+    # Evaluate CD on the grid
+    CD_grid = CD_func(M_grid, CL_grid)
+
+    E_grid = CL_grid / CD_grid
+
+    CL_array = np.linspace(0, CLmax + CL_buffer, meshgrid_n)
+
+    M_slider_eq = mo.ui.slider(start=0, stop=1, step=0.05, label="$M$")
+    CL_slider_eq = mo.ui.slider(0, CLmax, step=0.05, label="$C_L$")
+    return CL_range, CL_slider_eq, E_grid, M_range, M_slider_eq
 
 
 @app.cell
-def _(CL_given, CL_opt_M, CL_range, E_grid, M_given, M_opt_CL, M_range):
+def _(CD_func, CL_range, CL_slider_eq, M_range, M_slider_eq):
+    # Slices of E along constraints
+    # For fixed CL
+    CL_selected_eq = CL_slider_eq.value
+    E_fixed_CL = CL_selected_eq / CD_func(M_range, CL_selected_eq)
+    M_opt_CL = M_range[np.argmax(E_fixed_CL)]
+    E_max_CL = np.max(E_fixed_CL)
+
+    # For fixed M
+    M_selected_eq = M_slider_eq.value
+    E_fixed_M = CL_range / CD_func(M_selected_eq, CL_range)
+    CL_opt_M = CL_range[np.argmax(E_fixed_M)]
+    E_max_M = np.max(E_fixed_M)
+    return CL_opt_M, CL_selected_eq, E_max_CL, E_max_M, M_opt_CL, M_selected_eq
+
+
+@app.cell
+def _():
+    # Create separate sliders for fig_simple
+    CL_constraint_left = mo.ui.slider(
+        0, 0.9, step=0.05, label="$C_L$ (constraint)", value=0.6
+    )
+    M_position_left = mo.ui.slider(0, 1, step=0.05, label="$M$ (position)", value=0.5)
+    M_constraint_right = mo.ui.slider(
+        0, 1, step=0.05, label="$M$ (constraint)", value=0.7
+    )
+    CL_position_right = mo.ui.slider(
+        0, 0.9, step=0.05, label="$C_L$ (position)", value=0.5
+    )
+    return (
+        CL_constraint_left,
+        CL_position_right,
+        M_constraint_right,
+        M_position_left,
+    )
+
+
+@app.cell
+def _(
+    CD_func,
+    CL_constraint_left,
+    CL_position_right,
+    CL_range,
+    E_grid,
+    M_constraint_right,
+    M_position_left,
+    M_range,
+):
     fig_simple = make_subplots(
         rows=1,
         cols=2,
-        subplot_titles=(f"Fixed C<sub>L</sub> = {CL_given}", f"Fixed M = {M_given}"),
+        subplot_titles=(
+            f"Fixed C<sub>L</sub> = {CL_constraint_left.value:.2f}",
+            f"Fixed M = {M_constraint_right.value:.2f}",
+        ),
     )
 
-    # Left plot: Fixed CL
+    # Left plot: Fixed CL (constraint), varying M
     fig_simple.add_trace(
         go.Contour(
             x=M_range,
@@ -256,20 +295,46 @@ def _(CL_given, CL_opt_M, CL_range, E_grid, M_given, M_opt_CL, M_range):
                 showlines=True,
                 coloring="heatmap",
             ),
-            colorbar=dict(title="E (-)", x=0.45),
-            showscale=True,
+            showscale=False,
         ),
         row=1,
         col=1,
     )
 
-    # Constraint line
+    # Calculate maximum efficiency along left constraint line
+    E_along_left_constraint = CL_constraint_left.value / CD_func(
+        M_range, CL_constraint_left.value
+    )
+    E_max_left = np.max(E_along_left_constraint)
+
+    # Add red contour line at maximum efficiency for left plot
+    fig_simple.add_trace(
+        go.Contour(
+            x=M_range,
+            y=CL_range,
+            z=E_grid,
+            contours=dict(
+                start=E_max_left,
+                end=E_max_left,
+                size=0.1,
+                showlabels=False,
+                coloring="none",
+            ),
+            line=dict(color="red", width=2),
+            showscale=False,
+            hoverinfo="skip",
+        ),
+        row=1,
+        col=1,
+    )
+
+    # Constraint line on left (horizontal CL line)
     fig_simple.add_trace(
         go.Scatter(
             x=M_range,
-            y=[CL_given] * len(M_range),
+            y=[CL_constraint_left.value] * len(M_range),
             mode="lines",
-            line=dict(color="red", width=3, dash="dash"),
+            line=dict(color="red", dash="dot"),
             name="Constraint",
             showlegend=True,
         ),
@@ -277,11 +342,14 @@ def _(CL_given, CL_opt_M, CL_range, E_grid, M_given, M_opt_CL, M_range):
         col=1,
     )
 
-    # Optimal point
+    # Optimal point on left (star at M_position_left)
+    E_at_point_left = CL_constraint_left.value / CD_func(
+        M_position_left.value, CL_constraint_left.value
+    )
     fig_simple.add_trace(
         go.Scatter(
-            x=[M_opt_CL],
-            y=[CL_given],
+            x=[M_position_left.value],
+            y=[CL_constraint_left.value],
             mode="markers",
             marker=dict(color="yellow", size=12, symbol="star"),
             name="Optimum",
@@ -291,7 +359,7 @@ def _(CL_given, CL_opt_M, CL_range, E_grid, M_given, M_opt_CL, M_range):
         col=1,
     )
 
-    # Right plot: Fixed M
+    # Right plot: Fixed M (constraint), varying CL
     fig_simple.add_trace(
         go.Contour(
             x=M_range,
@@ -302,20 +370,45 @@ def _(CL_given, CL_opt_M, CL_range, E_grid, M_given, M_opt_CL, M_range):
                 showlines=True,
                 coloring="heatmap",
             ),
-            colorbar=dict(title="E (-)", x=1.02),
+            colorbar=dict(title="E (-)"),
             showscale=True,
         ),
         row=1,
         col=2,
     )
 
-    # Constraint line
+    # Calculate maximum efficiency along right constraint line
+    E_along_right_constraint = CL_range / CD_func(M_constraint_right.value, CL_range)
+    E_max_right = np.max(E_along_right_constraint)
+
+    # Add red contour line at maximum efficiency for right plot
+    fig_simple.add_trace(
+        go.Contour(
+            x=M_range,
+            y=CL_range,
+            z=E_grid,
+            contours=dict(
+                start=E_max_right,
+                end=E_max_right,
+                size=0.1,
+                showlabels=False,
+                coloring="none",
+            ),
+            line=dict(color="red", width=2),
+            showscale=False,
+            hoverinfo="skip",
+        ),
+        row=1,
+        col=2,
+    )
+
+    # Constraint line on right (vertical M line)
     fig_simple.add_trace(
         go.Scatter(
-            x=[M_given] * len(CL_range),
+            x=[M_constraint_right.value] * len(CL_range),
             y=CL_range,
             mode="lines",
-            line=dict(color="red", width=3, dash="dash"),
+            line=dict(color="red", dash="dot"),
             name="Constraint",
             showlegend=False,
         ),
@@ -323,11 +416,14 @@ def _(CL_given, CL_opt_M, CL_range, E_grid, M_given, M_opt_CL, M_range):
         col=2,
     )
 
-    # Optimal point
+    # Optimal point on right (star at CL_position_right)
+    E_at_point_right = CL_position_right.value / CD_func(
+        M_constraint_right.value, CL_position_right.value
+    )
     fig_simple.add_trace(
         go.Scatter(
-            x=[M_given],
-            y=[CL_opt_M],
+            x=[M_constraint_right.value],
+            y=[CL_position_right.value],
             mode="markers",
             marker=dict(color="yellow", size=12, symbol="star"),
             name="Optimum",
@@ -337,132 +433,197 @@ def _(CL_given, CL_opt_M, CL_range, E_grid, M_given, M_opt_CL, M_range):
         col=2,
     )
 
-    fig_simple.update_xaxes(title_text="M (-)", row=1, col=1)
-    fig_simple.update_yaxes(title_text="C<sub>L</sub> (-)", row=1, col=1)
-    fig_simple.update_xaxes(title_text="M (-)", row=1, col=2)
-    fig_simple.update_yaxes(title_text="C<sub>L</sub> (-)", row=1, col=2)
+    # Calculate max efficiency for axis limits
+    max_E = np.max(E_grid)
+
+    fig_simple.update_xaxes(title_text=r"$M \; (-)$", row=1, col=1)
+    fig_simple.update_yaxes(title_text=r"$C_L \; (-)$", range=[0, 0.9], row=1, col=1)
+    fig_simple.update_xaxes(title_text=r"$M \; (-)$", row=1, col=2)
+    fig_simple.update_yaxes(title_text=r"$C_L \; (-)$", range=[0, 0.9], row=1, col=2)
 
     fig_simple.update_layout(
         title_text="Simple Equality Constraints",
         title_x=0.5,
         height=500,
+        showlegend=False,
     )
 
-    mo.output.clear()
-    fig_simple
-    return
-
-
-@app.cell
-def _(CL_given, CL_range, M_given, M_range):
-    # Slices of E along constraints
-    # For fixed CL
-    E_fixed_CL = CL_given / CD(M_range, CL_given)
-    M_opt_CL = M_range[np.argmax(E_fixed_CL)]
-    E_max_CL = np.max(E_fixed_CL)
-
-    # For fixed M
-    E_fixed_M = CL_range / CD(M_given, CL_range)
-    CL_opt_M = CL_range[np.argmax(E_fixed_M)]
-    E_max_M = np.max(E_fixed_M)
-    return CL_opt_M, E_fixed_CL, E_fixed_M, E_max_CL, E_max_M, M_opt_CL
-
-
-@app.cell
-def _(CL_given, CL_opt_M, E_max_CL, E_max_M, M_given, M_opt_CL):
-    mo.md(f"""
-    **Results:**
-
-    - **Fixed $C_L = {CL_given}$**: Optimal Mach number $M^* = {M_opt_CL:.3f}$, with $E_{{\\mathrm{{max}}}} = {E_max_CL:.2f}$
-    - **Fixed $M = {M_given}$**: Optimal lift coefficient $C_L^* = {CL_opt_M:.3f}$, with $E_{{\\mathrm{{max}}}} = {E_max_M:.2f}$
-    """)
+    mo.vstack(
+        [
+            mo.hstack(
+                [
+                    mo.md("**Left Plot:**"),
+                    CL_constraint_left,
+                    M_position_left,
+                    mo.md("**Right Plot:**"),
+                    M_constraint_right,
+                    CL_position_right,
+                ]
+            ),
+            fig_simple,
+        ]
+    )
     return
 
 
 @app.cell
 def _(
-    CL_given,
-    CL_opt_M,
+    CD_func,
+    CL_constraint_left,
+    CL_position_right,
     CL_range,
-    E_fixed_CL,
-    E_fixed_M,
-    E_max_CL,
-    E_max_M,
-    M_given,
-    M_opt_CL,
+    M_constraint_right,
+    M_position_left,
     M_range,
 ):
-    fig_slices = make_subplots(rows=1, cols=2)
+    fig_slices = make_subplots(
+        rows=1,
+        cols=2,
+        subplot_titles=(
+            f"Fixed C<sub>L</sub> = {CL_constraint_left.value:.2f}",
+            f"Fixed M = {M_constraint_right.value:.2f}",
+        ),
+    )
 
-    # Left: E vs M for fixed CL
+    # Left plot: E vs M for fixed CL
+    E_along_CL = CL_constraint_left.value / CD_func(M_range, CL_constraint_left.value)
+    E_max_along_CL = np.max(E_along_CL)
+
     fig_slices.add_trace(
         go.Scatter(
             x=M_range,
-            y=E_fixed_CL,
+            y=E_along_CL,
             mode="lines",
             line=dict(color="blue", width=2),
-            name=f"E(M, C<sub>L</sub>={CL_given})",
-        ),
-        row=1,
-        col=1,
-    )
-
-    fig_slices.add_trace(
-        go.Scatter(
-            x=[M_opt_CL],
-            y=[E_max_CL],
-            mode="markers",
-            marker=dict(color="yellow", size=12, symbol="star"),
-            name="Maximum",
-        ),
-        row=1,
-        col=1,
-    )
-
-    # Right: E vs CL for fixed M
-    fig_slices.add_trace(
-        go.Scatter(
-            x=CL_range,
-            y=E_fixed_M,
-            mode="lines",
-            line=dict(color="green", width=2),
-            name=f"E(M={M_given}, C<sub>L</sub>)",
+            name="E(M, C<sub>L</sub>)",
             showlegend=True,
         ),
         row=1,
-        col=2,
+        col=1,
     )
+
+    # Max efficiency line on left
+    fig_slices.add_trace(
+        go.Scatter(
+            x=[M_range[0], M_range[-1]],
+            y=[E_max_along_CL, E_max_along_CL],
+            mode="lines",
+            line=dict(color="red", width=2),
+            name="Max E",
+            showlegend=True,
+        ),
+        row=1,
+        col=1,
+    )
+
+    # Current point on left
+    E_marker_left = CL_constraint_left.value / CD_func(
+        M_position_left.value, CL_constraint_left.value
+    )
+    fig_slices.add_trace(
+        go.Scatter(
+            x=[M_position_left.value],
+            y=[E_marker_left],
+            mode="markers",
+            marker=dict(color="yellow", size=10, symbol="star"),
+            name="Current point",
+            showlegend=False,
+        ),
+        row=1,
+        col=1,
+    )
+
+    # Right plot: E vs CL for fixed M
+    E_along_M = CL_range / CD_func(M_constraint_right.value, CL_range)
+    E_max_along_M = np.max(E_along_M)
 
     fig_slices.add_trace(
         go.Scatter(
-            x=[CL_opt_M],
-            y=[E_max_M],
-            mode="markers",
-            marker=dict(color="yellow", size=12, symbol="star"),
-            name="Maximum",
+            x=CL_range,
+            y=E_along_M,
+            mode="lines",
+            line=dict(color="green", width=2),
+            name="E(M, C<sub>L</sub>)",
             showlegend=False,
         ),
         row=1,
         col=2,
     )
 
-    fig_slices.update_xaxes(title_text="M (-)", row=1, col=1)
-    fig_slices.update_yaxes(title_text="E (-)", row=1, col=1)
-    fig_slices.update_xaxes(title_text="C<sub>L</sub> (-)", row=1, col=2)
-    fig_slices.update_yaxes(title_text="E (-)", row=1, col=2)
-
-    fig_slices.update_layout(
-        title_text="Objective Function Along Constraint Lines",
-        title_x=0.5,
-        height=400,
+    # Max efficiency line on right
+    fig_slices.add_trace(
+        go.Scatter(
+            x=[CL_range[0], CL_range[-1]],
+            y=[E_max_along_M, E_max_along_M],
+            mode="lines",
+            line=dict(color="red", width=2),
+            name="Max E",
+            showlegend=False,
+        ),
+        row=1,
+        col=2,
     )
 
-    mo.output.clear()
-    fig_slices
+    # Current point on right
+    E_marker_right = CL_position_right.value / CD_func(
+        M_constraint_right.value, CL_position_right.value
+    )
+    fig_slices.add_trace(
+        go.Scatter(
+            x=[CL_position_right.value],
+            y=[E_marker_right],
+            mode="markers",
+            marker=dict(color="yellow", size=10, symbol="star"),
+            name="Current point",
+            showlegend=False,
+        ),
+        row=1,
+        col=2,
+    )
+
+    fig_slices.update_xaxes(title_text=r"$M \; (-)$", row=1, col=1)
+    fig_slices.update_yaxes(title_text=r"$E \; (-)$", row=1, col=1)
+    fig_slices.update_xaxes(title_text=r"$C_L \; (-)$", row=1, col=2)
+    fig_slices.update_yaxes(title_text=r"$E \; (-)$", row=1, col=2)
+
+    fig_slices.update_layout(
+        title_text="Simple Equality Constraints - 1D Slices",
+        title_font_size=25,
+        title_x=0.5,
+        height=400,
+        showlegend=False,
+    )
+
+    mo.vstack(
+        [
+            mo.hstack(
+                [
+                    mo.md("**Left Plot:**"),
+                    CL_constraint_left,
+                    M_position_left,
+                    mo.md("**Right Plot:**"),
+                    M_constraint_right,
+                    CL_position_right,
+                ]
+            ),
+            fig_slices,
+        ]
+    )
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
+def _(CL_opt_M, CL_selected_eq, E_max_CL, E_max_M, M_opt_CL, M_selected_eq):
+    mo.md(f"""
+    **Results:**
+
+    - **Fixed $C_L = {CL_selected_eq}$**: Optimal Mach number $M^* = {M_opt_CL:.3f}$, with $E_{{\\mathrm{{max}}}} = {E_max_CL:.2f}$
+    - **Fixed $M = {M_selected_eq}$**: Optimal lift coefficient $C_L^* = {CL_opt_M:.3f}$, with $E_{{\\mathrm{{max}}}} = {E_max_M:.2f}$
+    """)
+    return
+
+
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     As you can see, the constrained optimum lies at the point where a contour line of the objective function is tangent to the constraint line.
@@ -480,7 +641,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     ## Complex Equality Constraint: Vertical Equilibrium
@@ -496,7 +657,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     The optimization problem now becomes:
@@ -518,7 +679,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     To solve this problem, we could of course still use substitution, in principle.
@@ -542,7 +703,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     ## Solution Method: Lagrange Multipliers
@@ -579,7 +740,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     *Let $\mathcal{J}: \mathbb{R}^n \to \mathbb{R}$ and $g: \mathbb{R}^n \to \mathbb{R}$ be continuously differentiable functions. If $\mathbf{x}^* \in \mathbb{R}^n$ is a local extremum of $\mathcal{J}(\mathbf{x})$ subject to the constraint $g(\mathbf{x}) = 0$, and if $\nabla g(\mathbf{x}^*) \neq \mathbf{0}$, then there exists a scalar $\lambda^* \in \mathbb{R}$ such that*
@@ -600,7 +761,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     Recall now the tangency interpretation we have observed before in the case of only one equality constraint.
@@ -624,7 +785,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     In our example with aerodynamic efficiency, the maximum efficiency in vertical equilibrium is found by solving the following equations for $C_L^*, M^*$, and $\lambda^*$:
@@ -655,7 +816,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     TODO: verify and check the following charts (removing the static results). Optionally, discuss that the value of the constraint depends on other flight parameters like weight and altitude (foreshadow what happens in the following notebooks) and add sliders accordingly. For convenience, you can write the constraint by isolating the $W/p$ term so that the constraint curve moves up if weight or altitude increase, and moves down if weight or altitude decrease.
@@ -664,7 +825,7 @@ def _():
 
 
 @app.cell
-def _():
+def _(CD_func):
     # Example parameters for vertical equilibrium
     # Assume sea level standard atmosphere
     rho = 1.225  # kg/m^3
@@ -678,7 +839,7 @@ def _():
     B_eq = W
 
     # Generate constraint curve
-    M_constraint = np.linspace(0.3, 1.0, 100)
+    M_constraint = np.linspace(0.0, 1.0, 100)
     CL_constraint = B_eq / (A_eq * M_constraint**2)
 
     # Filter to keep only valid CL values
@@ -687,7 +848,7 @@ def _():
     CL_constraint = CL_constraint[valid_idx]
 
     # Evaluate E along constraint
-    E_constraint = CL_constraint / CD(M_constraint, CL_constraint)
+    E_constraint = CL_constraint / CD_func(M_constraint, CL_constraint)
 
     # Find optimum along constraint
     opt_idx = np.argmax(E_constraint)
@@ -766,12 +927,11 @@ def _(
         height=500,
     )
 
-    mo.output.clear()
     fig_equilibrium
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(CL_opt_eq, E_opt_eq, M_opt_eq):
     mo.md(f"""
     **Result:**
@@ -824,7 +984,7 @@ def _(E_constraint, E_opt_eq, M_constraint, M_opt_eq):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     ## Multiple Equality Constraints
@@ -849,7 +1009,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     *Let $\mathcal{J}: \mathbb{R}^n \to \mathbb{R}$ and $g_i: \mathbb{R}^n \to \mathbb{R}$ for $i = 1, 2, \ldots, m$ be continuously differentiable functions. If $\mathbf{x}^* \in \mathbb{R}^n$ is a local extremum of $\mathcal{J}(\mathbf{x})$ subject to the constraints $g_i(\mathbf{x}) = 0$ for $i = 1, 2, \ldots, m$, and if the constraint gradients $\nabla g_1(\mathbf{x}^*), \nabla g_2(\mathbf{x}^*), \ldots, \nabla g_m(\mathbf{x}^*)$ are linearly independent, then there exist scalars $\lambda_1^*, \lambda_2^*, \ldots, \lambda_m^* \in \mathbb{R}$ such that*
@@ -872,7 +1032,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     The condition that $\nabla g_1(\mathbf{x}^*), \ldots, \nabla g_m(\mathbf{x}^*)$ are linearly independent is sometimes called the "Linear Independence Constraint Qualification (LICQ)".
@@ -899,7 +1059,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     ## Advantages
