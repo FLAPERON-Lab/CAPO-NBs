@@ -210,13 +210,13 @@ def _(CD_func, CD_grid, CL_grid, CL_range, CL_slider, M_range, M_slider):
             go.Scatter(
                 x=[M_slider.value, M_slider.value],
                 y=[0.0, np.max(CL_range)],
-                line=dict(color="red", dash="dot"),
+                line=dict(color="red", width=3, dash="dash"),
                 showlegend=False,
             ),
             go.Scatter(
                 x=[0.0, 1.0],
                 y=[CL_slider.value, CL_slider.value],
-                line=dict(color="red", dash="dot"),
+                line=dict(color="red", width=3, dash="dash"),
                 showlegend=False,
             ),
         ],
@@ -235,7 +235,7 @@ def _(CD_func, CD_grid, CL_grid, CL_range, CL_slider, M_range, M_slider):
             go.Scatter(
                 x=[CL_slider.value, CL_slider.value],
                 y=[0.0, CL_slider.value / CD_func(M_slider.value, CL_slider.value)],
-                line=dict(color="red", dash="dot"),
+                line=dict(color="red", width=3, dash="dash"),
                 showlegend=False,
             ),
         ],
@@ -254,7 +254,7 @@ def _(CD_func, CD_grid, CL_grid, CL_range, CL_slider, M_range, M_slider):
             go.Scatter(
                 x=[M_slider.value, M_slider.value],
                 y=[0.0, CL_slider.value / CD_func(M_slider.value, CL_slider.value)],
-                line=dict(color="red", dash="dot"),
+                line=dict(color="red", width=3, dash="dash"),
                 showlegend=False,
             ),
         ],

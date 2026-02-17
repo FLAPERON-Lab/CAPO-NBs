@@ -316,6 +316,7 @@ def _(
             ),
             line=dict(color="red", width=2),
             showscale=False,
+            showlegend=False,
             hoverinfo="skip",
         ),
         row=1,
@@ -345,7 +346,7 @@ def _(
             mode="markers",
             marker=dict(color="yellow", size=12, symbol="star"),
             name="Optimum",
-            showlegend=True,
+            showlegend=False,
         ),
         row=1,
         col=1,
@@ -362,7 +363,8 @@ def _(
                 showlines=True,
                 coloring="heatmap",
             ),
-            colorbar=dict(title="E (-)"),
+            colorbar=dict(title="E (-)", len=0.9, x=1.02, y=0.4, yanchor="middle"),
+
             showscale=True,
         ),
         row=1,
@@ -388,6 +390,7 @@ def _(
             ),
             line=dict(color="red", width=2),
             showscale=False,
+            showlegend=False,
             hoverinfo="skip",
         ),
         row=1,
@@ -417,7 +420,7 @@ def _(
             mode="markers",
             marker=dict(color="yellow", size=12, symbol="star"),
             name="Optimum",
-            showlegend=False,
+            showlegend=True,
         ),
         row=1,
         col=2,
@@ -435,7 +438,7 @@ def _(
         title_text="Simple Equality Constraints",
         title_x=0.5,
         height=500,
-        showlegend=False,
+        showlegend=True,
     )
 
     mo.vstack(
@@ -907,7 +910,8 @@ def _(
                 showlines=True,
                 coloring="heatmap",
             ),
-            colorbar=dict(title="E (-)"),
+            colorbar=dict(title="E (-)", len=0.9, x=1.02, y=0.43, yanchor="middle"),
+
             showscale=True,
         )
     )
@@ -944,7 +948,7 @@ def _(
         title_font_size=25,
         title_x=0.5,
         height=500,
-        showlegend=False,
+        showlegend=True,
     )
 
     mo.vstack(

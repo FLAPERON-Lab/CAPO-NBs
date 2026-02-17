@@ -609,8 +609,7 @@ def _(CL_opt_simple, CL_range, E_grid, M_opt_simple, M_range):
             z=E_grid,
             colorscale="viridis",
             contours=dict(showlines=True, coloring="heatmap"),
-                    colorbar=dict(title="E (-)", len=0.95, x=1.02, y=0.44, yanchor="middle"),
-
+            colorbar=dict(title="E (-)", len=0.95, x=1.02, y=0.44, yanchor="middle"),
             hovertemplate="M: %{x:.3f}<br>C<sub>L</sub>: %{y:.3f}<br>E: %{z:.2f}<extra></extra>",
         )
     )
@@ -802,7 +801,7 @@ def _(CL_opt_full, CL_range, E_grid, M_MO, M_grid, M_opt_full, M_range, V_MO):
             x=[M_MO, M_MO],
             y=[0, 0.9],
             mode="lines",
-            line=dict(color="red", width=4),
+            line=dict(color="red", dash="dot"),
             name=f"h<sub>5</sub>: V = {V_MO:.0f} m/s",
             showlegend=True,
         )
@@ -973,7 +972,6 @@ def _(
                 coloring="heatmap",
             ),
             colorbar=dict(title="E (-)", len=0.8, x=1.02, y=0.37, yanchor="middle"),
-
             hovertemplate="M: %{x:.3f}<br>C<sub>L</sub>: %{y:.3f}<br>E: %{z:.2f}<extra></extra>",
         )
     )
