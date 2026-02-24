@@ -79,7 +79,13 @@ def CD(M, CL):
     A = 0.06 + 0.1 * np.exp(2.0 * (M - M_dd))
 
     # C_D0
-    CD0 = 0.045 - 0.06 * M + 0.025 * M**2 + 0.005 * np.exp(13 * (M - M_dd)) + A * (0.4 - 0.05 * M) ** 2
+    CD0 = (
+        0.045
+        - 0.06 * M
+        + 0.025 * M**2
+        + 0.005 * np.exp(13 * (M - M_dd))
+        + A * (0.4 - 0.05 * M) ** 2
+    )
 
     # K1 and K2
     K1 = -2.0 * A * (0.4 - 0.05 * M)
@@ -469,7 +475,6 @@ def _():
         M, CL = x
         return -CL / CD(M, CL)
 
-
     # Initial guess
     x0 = np.array([0.5, 0.5])
     return objective, x0
@@ -517,7 +522,6 @@ def _(objective, tol, x0):
                 CL - 0.9,  # h4: CL <= 0.9
             ]
         )
-
 
     result_simple = minimize(
         objective,
@@ -576,9 +580,7 @@ def _(
         status_simple = "**ACTIVE**" if is_active_simple else "inactive"
         results_text_simple += f"\n- {name_simple}: $h_{i_simple + 1} = {h_val_simple:.6f}$ — {status_simple}"
 
-    results_text_simple += (
-        "\n\n**All constraints are inactive** — the optimum lies strictly in the interior of the feasible region."
-    )
+    results_text_simple += "\n\n**All constraints are inactive** — the optimum lies strictly in the interior of the feasible region."
 
     mo.md(results_text_simple)
     return
@@ -684,7 +686,6 @@ def _(M_MO, objective, tol, x0):
             ]
         )
 
-
     result_full = minimize(
         objective,
         x0,
@@ -739,7 +740,9 @@ def _(
     **Constraint Status:**
     """
 
-    for i, (name, h_val, is_active) in enumerate(zip(constraint_names_full, h_opt_full, active_constraints_full)):
+    for i, (name, h_val, is_active) in enumerate(
+        zip(constraint_names_full, h_opt_full, active_constraints_full)
+    ):
         status = "**ACTIVE (binding)**" if is_active else "inactive"
         results_text_full += f"\n- {name}: $h_{i + 1} = {h_val:.6f}$ — {status}"
 
@@ -890,7 +893,6 @@ def _(
     M_MO_interactive = V_MO_interactive / a_cruise
     include_h5 = include_h5_checkbox.value
 
-
     def constraints_ineq_interactive(x):
         M, CL = x
         if include_h5:
@@ -913,7 +915,6 @@ def _(
                 ]
             )
 
-
     result_interactive = minimize(
         objective,
         x0,
@@ -929,10 +930,16 @@ def _(
     # Update feasibility mask
     if include_h5:
         feasible_mask_interactive = (
-            (M_grid >= 0) & (M_grid <= 1) & (CL_grid >= 0) & (CL_grid <= 0.9) & (M_grid <= M_MO_interactive)
+            (M_grid >= 0)
+            & (M_grid <= 1)
+            & (CL_grid >= 0)
+            & (CL_grid <= 0.9)
+            & (M_grid <= M_MO_interactive)
         )
     else:
-        feasible_mask_interactive = (M_grid >= 0) & (M_grid <= 1) & (CL_grid >= 0) & (CL_grid <= 0.9)
+        feasible_mask_interactive = (
+            (M_grid >= 0) & (M_grid <= 1) & (CL_grid >= 0) & (CL_grid <= 0.9)
+        )
 
     E_grid_feasible_interactive = np.where(feasible_mask_interactive, E_grid, np.nan)
     return (
@@ -983,7 +990,7 @@ def _(
                 x=[M_MO_interactive, M_MO_interactive],
                 y=[0, 0.9],
                 mode="lines",
-                line=dict(color="red", width=3, dash="dash"),
+                line=dict(color="red", width=3, dash="dot"),
                 name=f"h<sub>5</sub>: V = {V_MO_interactive:.0f} m/s (M = {M_MO_interactive:.3f})",
             )
         )

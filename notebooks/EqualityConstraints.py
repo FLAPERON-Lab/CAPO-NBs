@@ -364,7 +364,6 @@ def _(
                 coloring="heatmap",
             ),
             colorbar=dict(title="E (-)", len=0.9, x=1.02, y=0.4, yanchor="middle"),
-
             showscale=True,
         ),
         row=1,
@@ -445,13 +444,10 @@ def _(
         [
             mo.hstack(
                 [
-                    mo.md("**Left Plot:**"),
-                    CL_constraint_left,
-                    M_position_left,
-                    mo.md("**Right Plot:**"),
-                    M_constraint_right,
-                    CL_position_right,
-                ]
+                    mo.vstack([CL_constraint_left, M_position_left]),
+                    mo.vstack([M_constraint_right, CL_position_right]),
+                ],
+                justify="center",
             ),
             fig_simple,
         ]
@@ -587,13 +583,10 @@ def _(
         [
             mo.hstack(
                 [
-                    mo.md("**Left Plot:**"),
-                    CL_constraint_left,
-                    M_position_left,
-                    mo.md("**Right Plot:**"),
-                    M_constraint_right,
-                    CL_position_right,
-                ]
+                    mo.vstack([CL_constraint_left, M_position_left]),
+                    mo.vstack([M_constraint_right, CL_position_right]),
+                ],
+                justify="center",
             ),
             fig_slices,
         ]
@@ -852,7 +845,7 @@ def _(CD_func, W_slider, altitude_slider):
     CL_constraint = (2 * W) / (gamma * p * S * M_constraint**2)
 
     # Clip CL values to stay within plot range [0, 0.9]
-    CL_constraint_clipped = np.clip(CL_constraint, 0, 0.9)
+    CL_constraint_clipped = np.clip(CL_constraint, 0, 2.0)
 
     # Find valid points for optimization (where CL <= 0.9)
     valid_idx = CL_constraint <= 0.9
@@ -911,7 +904,6 @@ def _(
                 coloring="heatmap",
             ),
             colorbar=dict(title="E (-)", len=0.9, x=1.02, y=0.43, yanchor="middle"),
-
             showscale=True,
         )
     )
@@ -922,7 +914,7 @@ def _(
             x=M_constraint,
             y=CL_constraint_clipped,
             mode="lines",
-            line=dict(color="red", width=3, dash="dash"),
+            line=dict(color="red", width=3, dash="dot"),
             name="Vertical Equilibrium",
         )
     )

@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.13.8"
+__generated_with = "0.19.11"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -21,21 +21,21 @@ def _():
 
 @app.cell
 def _():
-    mo.md(r"""# Problem formulation""")
+    mo.md(r"""
+    # Problem formulation
+    """)
     return
 
 
 @app.cell
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     During flight, the aircraft can be commanded to achieve the best performance made available by the capabilities of its aero-propulsive systems, or that is allowed by regulations, safety, or other contraints.
 
     This means making appropriate use of the available flight controls $\bm{u}$ in order to maximize or minimize a certain _performance metric_ $J$, which depends on the mission phase and/or chosen flight strategy, while complying with constraints $\bm{c}$ introduced by different sources
 
     The FPAO problem is here formalized using either of the two following mathematical notations:
-    """
-    )
+    """)
     return
 
 
@@ -144,7 +144,7 @@ def _():
 def _():
     mo.md(
         r"""For a _point performance_ optimization problem, the objective of FPAO is to find the _feasible_ value of the controls $\bm{u}$ that optimize a given flight performance metric $J$ while complying to the physical and operational constraints $\bm{c}_\mathrm{eq}$ and $\bm{c}_\mathrm{ineq}$.
-    
+
         The solution of an FPAO problem should be analized as a function of the aircraft design and flight parameters $\bm{p}$."""
     ).callout(kind="success").style({"width": "75%", "text-align": "center"}).center()
     return
@@ -152,13 +152,11 @@ def _():
 
 @app.cell
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     Common examples of performance metrics in FPAO are: aerodynamic efficiency, instantaneous rate of climb, instantaneous angle of climb, instantaneous turn radius, instantaneous load factor, time required to turn at constant speed.
 
     They are analyzed in the following notebooks, after a discussion on controls and contraints
-    """
-    )
+    """)
     return
 
 

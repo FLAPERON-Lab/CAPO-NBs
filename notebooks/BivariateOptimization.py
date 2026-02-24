@@ -210,13 +210,13 @@ def _(CD_func, CD_grid, CL_grid, CL_range, CL_slider, M_range, M_slider):
             go.Scatter(
                 x=[M_slider.value, M_slider.value],
                 y=[0.0, np.max(CL_range)],
-                line=dict(color="red", width=3, dash="dash"),
+                line=dict(color="red", width=3, dash="dot"),
                 showlegend=False,
             ),
             go.Scatter(
                 x=[0.0, 1.0],
                 y=[CL_slider.value, CL_slider.value],
-                line=dict(color="red", width=3, dash="dash"),
+                line=dict(color="red", width=3, dash="dot"),
                 showlegend=False,
             ),
         ],
@@ -235,7 +235,7 @@ def _(CD_func, CD_grid, CL_grid, CL_range, CL_slider, M_range, M_slider):
             go.Scatter(
                 x=[CL_slider.value, CL_slider.value],
                 y=[0.0, CL_slider.value / CD_func(M_slider.value, CL_slider.value)],
-                line=dict(color="red", width=3, dash="dash"),
+                line=dict(color="red", width=3, dash="dot"),
                 showlegend=False,
             ),
         ],
@@ -254,7 +254,7 @@ def _(CD_func, CD_grid, CL_grid, CL_range, CL_slider, M_range, M_slider):
             go.Scatter(
                 x=[M_slider.value, M_slider.value],
                 y=[0.0, CL_slider.value / CD_func(M_slider.value, CL_slider.value)],
-                line=dict(color="red", width=3, dash="dash"),
+                line=dict(color="red", width=3, dash="dot"),
                 showlegend=False,
             ),
         ],
@@ -390,24 +390,21 @@ def _():
     def M_dd_func(CL):
         return 0.82 - 0.17 * CL
 
-
     def CD_func(M, CL):
         M_dd_val = M_dd_func(CL)
         exp_12 = np.exp(12.942 * (M - M_dd_val))
         exp_2 = np.exp(2 * (M - M_dd_val))
 
-        CD0 = (0.045 - 0.059052 * M + 0.025 * M**2 + 0.005426 * exp_12) + (0.06 + 0.1 * exp_2) * (
-            0.4 - 0.05 * M
-        ) ** 2
+        CD0 = (0.045 - 0.059052 * M + 0.025 * M**2 + 0.005426 * exp_12) + (
+            0.06 + 0.1 * exp_2
+        ) * (0.4 - 0.05 * M) ** 2
         K1 = -2 * (0.06 + 0.1 * exp_2) * (0.4 - 0.05 * M)
         K2 = 0.06 + 0.1 * exp_2
 
         return CD0 + K1 * CL + K2 * CL**2
 
-
     def E_func(M, CL):
         return CL / CD_func(M, CL)
-
 
     def gradient_E_numerical(x):
         M, CL = x
@@ -415,7 +412,6 @@ def _():
         dE_dM = (E_func(M + h, CL) - E_func(M - h, CL)) / (2 * h)
         dE_dCL = (E_func(M, CL + h) - E_func(M, CL - h)) / (2 * h)
         return [dE_dM, dE_dCL]
-
 
     # Solve for stationary point
     x0 = [0.6, 0.4]

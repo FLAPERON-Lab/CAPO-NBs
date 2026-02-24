@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.15.2"
+__generated_with = "0.19.11"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -34,8 +34,7 @@ def _():
 
 @app.cell
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     # Univariate optimization
 
     In this case, we are going to assume that the drag coefficient $C_D$ is exclusively a function of the lift coefficient $C_L$ according to the very classic _parabolic drag polar_ model.
@@ -51,20 +50,17 @@ def _():
     Its expression can be calculated explicitly very easily:
 
     $$ E = \frac{C_L}{C_D} = \frac{C_L}{C_{D_0} + K C_L^2} $$
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     ## Optimization
 
     The optimization problem can then be formulated as:
-    """
-    )
+    """)
     return
 
 
@@ -91,8 +87,7 @@ def _():
 
 @app.cell
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     $E$ is a non-monotonic continuous function of $C_L$, and therefore it may have extreme values in:
 
     - stationary points
@@ -104,51 +99,43 @@ def _():
     So we know that, if we search exhaustively, we are going to find the maximum (and also the minimum) value of the aerodynamic efficiency.
 
     Because $E$ is a continuous function, there are no singular points. In general, they would also have to be evaluated.
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     ## Stationary values
 
-    The necessary condition for an interior point to be stationary is given by the fact that the gradient of the objective function with respect to the decision variable is zero in that point. 
+    The necessary condition for an interior point to be stationary is given by the fact that the gradient of the objective function with respect to the decision variable is zero in that point.
     Therefore, interior stationary points can be found by equating the derivative of the objecitive function to zero.
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""
-    $$ \frac{\mathrm{d}E}{\mathrm{d}C_L} = \frac{C_{D_0}-KC_L^2}{C_{D_0}+KC_L^2} = 0 
+    mo.md(r"""
+    $$ \frac{\mathrm{d}E}{\mathrm{d}C_L} = \frac{C_{D_0}-KC_L^2}{C_{D_0}+KC_L^2} = 0
     \quad \text{for} \quad C_L^* = C_{L_E} = \sqrt{\frac{C_{D_0}}{K}} $$
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     It can be easily verified that this is indeed a maximum by looking at the convexity of the objective function.
     A sufficient condition to prove it is actually a maximum is to show that the second derivative is negative at the stationary point.
     For us, a graphical verification will be enough in this context.
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     The value of the total drag coefficient in this condition is twice the value of the zero-lift one, meaning that zero-lift and induced drag have the same contribution to total drag.
 
     $$ C_D^* = 2C_{D_0} $$
@@ -156,30 +143,26 @@ def _():
     The corresponding stationary value of the aerodynamic efficiency is therefore:
 
     $$ E^* = \frac{C_{L}^*}{C_{D_0}+KC_L^{*2}} = \frac{\sqrt{\frac{C_{D_0}}{K}}}{2C_{D_0}} = \sqrt{\frac{1}{4KC_{D_0}}}$$
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     ## Boundary values
     The values of the aerodynamic efficiency at the boundary of its domain are immediate to calculate:
 
     $$ E(C_L = 0) = 0$$
 
     $$ E(C_L = C_{L_\mathrm{max}}) = E_S = \frac{C_{L_\mathrm{max}}}{C_{D_0}+K C_{L_\mathrm{max}}^2}$$
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     ## Conclusion
 
     To determine the maximum aerodynamic efficiency, we therefore need to compare the values of the objective function in the stationary point and in the boundary points:
@@ -195,8 +178,7 @@ def _():
     $$ E_{\mathrm{max}} = E^* = \sqrt{\frac{1}{4KC_{D_0}}} \quad \text{for} \quad C_L = C_{L_E} = \sqrt{\frac{C_{D_0}}{K}} $$
 
     You can verify this graphically by selecting any aircraft in the following menu.
-    """
-    )
+    """)
     return
 
 

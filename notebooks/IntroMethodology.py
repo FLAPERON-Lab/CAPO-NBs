@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.15.2"
+__generated_with = "0.19.11"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -34,12 +34,11 @@ def _():
 
 @app.cell
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     # Optimization Methodologies
 
     In these series of notebooks, we are going to explore different optimization methodologies that can be used to solve performance optimization problems for aircraft.
-    We will start from a simple problem (that you may have already encountered), and solve it with mathematical tools that you may already be familiar with. 
+    We will start from a simple problem (that you may have already encountered), and solve it with mathematical tools that you may already be familiar with.
     We will then progressively complicate the problem by including constraints and variable dependencies, and explore the application of more general optimization approaches.
 
     The following notebooks will cover:
@@ -47,19 +46,20 @@ def _():
     1. Optimization of a continuous function of 1 variable on a compact domain, by finding its interior stationary points and evaluating boundary values.
     2. Optimization of a continuous function of 2 variables on a compact domain, by finding its interior stationary points and evaluating boundary values.
     3. Optimization of a function of 2 variables subjected to equality constraints
-        1. By substituting the constraint expression in the function 
+        1. By substituting the constraint expression in the function
         2. By using Lagrange multipliers.
     4. Optimization of a function of 2 variables with both equality and inequality constrains, by means of KKT analysis.
 
     In order to keep the focus on the optimization methodologies, we will use the same objective function: the aerodynamic efficiency.
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""## Aerodynamic Efficiency""")
+    mo.md(r"""
+    ## Aerodynamic Efficiency
+    """)
     return
 
 
@@ -80,8 +80,7 @@ def _():
 
 @app.cell
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     The lift coefficient expresses the capability of the aircraft to generate aerodynamic lift for a given angle of attack and flow regime.
     The drag coefficient expresses the capability of the aircraf to generate aerodynamic drag for a given angle of attack and flow regime.
 
@@ -91,22 +90,19 @@ def _():
 
     What these coefficients express is therefore not a _flight_ performance metric, but rather an _aerodynamic_ performance metric.
     Aerodynamic performance is still very useful, of course, as it plays a major role in the analysis and interpretation of flight performance.
-    """
-    )
+    """)
     return
 
 
 @app.cell
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     In the following notebooks, we are going to assume different models to express the drag coefficients as a function of the lift coefficient (but not only), in order to calculate the maximum aerodynamic efficiency using different methods.
 
     First, we are going to assume it only depends on the lift coefficient using a _parabolic_ drag polar model, then we are going to also assume it depends on the Mach number, in order to see the effects of compressibility.
 
     Because $E$ is only an aerodynamic performance metric, we will include _flight constraints_ in the optimization problem to make it relevant for scenarios in which the aircraft is actually flying.
-    """
-    )
+    """)
     return
 
 
