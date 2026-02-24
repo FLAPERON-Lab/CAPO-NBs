@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.14.16"
+__generated_with = "0.19.11"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -22,25 +22,21 @@ def _():
 
 @app.cell
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     # Simplified Aircraft Models
 
     Using simplified aero-propulsive models to characterize the performance of an aircraft keeps the analytical derivations manageable and preserves their didactic value.
-    """
-    )
+    """)
     return
 
 
 @app.cell
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     ## Assumptions
 
     These are standard assumptions in the field of FPAO.
-    """
-    )
+    """)
     return
 
 
@@ -64,43 +60,45 @@ def _():
 
 @app.cell
 def _():
-    mo.md(r"""# Visualizations""")
+    mo.md(r"""
+    # Visualizations
+    """)
     return
 
 
 @app.cell
 def _():
-    mo.md(r"""Here it is possible to select multiple aircrafts to visualise their thrust and power behaviour with respect to speed, visualising the standard assumptions mentioned above.""")
+    mo.md(r"""
+    Here it is possible to select multiple aircrafts to visualise their thrust and power behaviour with respect to speed, visualising the standard assumptions mentioned above.
+    """)
     return
 
 
 @app.cell
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     /// admonition | Heads up!
 
      Don't forget to press **submit** in the "multiple selection" tab! or **clear** if you want to erase all the lines.
     ///
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(ac):
-    data = ac.available_aircrafts(data_dir, verbose=True).round(decimals=4)
+    data = ac.available_aircrafts(data_dir, verbose=False).round(decimals=4)
 
     cols_4dec = [
         "CD0",
         "K",
         "beta",
-        "CLmax_cl",
-        "CLmax_to",
+        # "CLmax_cl",
+        # "CLmax_to",
         "CLmax_ld",
-        "cT",
-        "cP",
-        "MMO",
+        # "cT",
+        # "cP",
+        # "MMO",
     ]
 
     data[cols_4dec] = data[cols_4dec].round(4)
@@ -137,7 +135,9 @@ def _():
 
 @app.cell
 def _():
-    mo.md("""In the following graph it is possible to fix the y-axis range by ticking the checkmark, this is useful to understand the behaviour of the different curves with the changing of the parameters. You can change the different parameters through the use of sliders.""")
+    mo.md("""
+    In the following graph it is possible to fix the y-axis range by ticking the checkmark, this is useful to understand the behaviour of the different curves with the changing of the parameters. You can change the different parameters through the use of sliders.
+    """)
     return
 
 
@@ -178,9 +178,7 @@ def _(fix_yaxis):
 
     m_slider = mo.ui.slider(start=0, stop=1, step=0.1, label=r"", show_value=True)
 
-    speed = mo.ui.dropdown(
-        options=["CAS", "TAS", "EAS", "M"], value="CAS", label=r"Speed"
-    )
+    speed = mo.ui.dropdown(options=["CAS", "TAS", "EAS", "M"], value="CAS", label=r"Speed")
 
     drag_condition = mo.ui.dropdown(
         options=["Cruise", "Landing", "Take Off"],
@@ -266,13 +264,9 @@ def _(
         x_axis = TAS / atmos.a(h)
 
     colors = px.colors.qualitative.Vivid
-    color_map_available = {
-        id: colors[i % len(colors)] for i, id in enumerate(fleet.keys())
-    }
+    color_map_available = {id: colors[i % len(colors)] for i, id in enumerate(fleet.keys())}
     colors = px.colors.qualitative.Safe
-    color_map_required = {
-        id: colors[i % len(colors)] for i, id in enumerate(fleet.keys())
-    }
+    color_map_required = {id: colors[i % len(colors)] for i, id in enumerate(fleet.keys())}
 
     fig.add_trace(
         go.Scatter(
@@ -339,16 +333,10 @@ def _(
         if show_required.value:
             mass = (
                 obj.ac_data["OEM"].values
-                + (obj.ac_data["MTOM"].values - obj.ac_data["OEM"].values)
-                * m_slider.value
+                + (obj.ac_data["MTOM"].values - obj.ac_data["OEM"].values) * m_slider.value
             )
             if drag_condition.value == "Cruise":
-                CL = (
-                    (mass * 9.80665 / obj.ac_data["S"].values)
-                    * (2 / atmos.rho(h))
-                    * 1
-                    / (TAS**2)
-                )
+                CL = (mass * 9.80665 / obj.ac_data["S"].values) * (2 / atmos.rho(h)) * 1 / (TAS**2)
             elif drag_condition.value == "Take Off":
                 CL = obj.ac_data["CLmax_to"].values
             elif drag_condition.value == "Landing":
@@ -431,9 +419,7 @@ def _():
 
 @app.cell
 def _():
-    _defaults.nav_footer(
-        "Atmosphere.py", "Atmosphere", "AircraftCustom.py", "Custom Aircraft Models"
-    )
+    _defaults.nav_footer("Atmosphere.py", "Atmosphere", "AircraftCustom.py", "Custom Aircraft Models")
     return
 
 
@@ -446,6 +432,7 @@ def _():
     from core import aircraft as ac
     from core import atmos
     import polars as pl
+
     return ac, atmos, go, make_subplots, np, px
 
 

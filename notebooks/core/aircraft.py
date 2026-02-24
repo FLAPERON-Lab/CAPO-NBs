@@ -156,7 +156,7 @@ def available_aircrafts(data_dir, verbose=False, round=True, ac_type=None):
             ]
         ]
 
-    return data[data["CD0"].notna() & data["K"].notna()].reset_index(drop=True)
+    return data.dropna().reset_index(drop=True)
 
 
 class Aircraft:
@@ -212,3 +212,9 @@ class Aircraft:
             cP = self.ac_data["cP"].item()
             FF = cP * self.power(V, h, deltaT)[1]
         return FF
+
+
+if __name__ == "__main__":
+    data_dir = str("public" / "AircraftDB_Standard.csv")
+
+    data = available_aircrafts(data_dir, verbose=False)
