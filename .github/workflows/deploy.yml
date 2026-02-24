@@ -31,7 +31,7 @@ jobs:
         run: |
           uv run python -m build -w .
           mkdir -p _site/notebooks/public
-          cp notebooks/dist/*.whl _site/notebooks/public
+          cp dist/*.whl _site/notebooks/public
           cp requirements.txt _site/notebooks/public
 
           # Move everything (including hidden files) inside _site/notebooks to _site/
