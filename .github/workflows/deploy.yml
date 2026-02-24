@@ -3,7 +3,7 @@ name: Build, Export, and Deploy Marimo WASM Notebook
 on:
   push:
     branches:
-      - main
+      - 30-new-preliminary-notebooks-on-calculus-fundamentals
 
 env:
   UV_SYSTEM_PYTHON: 1
