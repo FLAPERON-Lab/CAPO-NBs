@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - 30-new-preliminary-notebooks-on-calculus-fundamentals
 
 env:
   UV_SYSTEM_PYTHON: 1
@@ -21,7 +22,7 @@ jobs:
 
       - name: Install the project
         run: uv sync --locked --all-extras --dev
-      
+
       - name: 🛠️ Export notebooks
         run: |
           uv run .github/scripts/build.py --output-dir _site
