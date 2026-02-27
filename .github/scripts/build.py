@@ -46,11 +46,11 @@ def _adapt_to_wasm(notebook_path: Path, output_dir: Path):
             "scipy",
         ]
         # Add local or remote .whl
-        wheel_path = str(
-            mo.notebook_location() / "public" / "fpao_cc-0.0.1-py3-none-any.whl"
-        )
+        # wheel_path = str(
+        #     mo.notebook_location() / "public" / "fpao_cc-0.0.1-py3-none-any.whl"
+        # )
         
-        requirements.append(wheel_path)
+        # requirements.append(wheel_path)
 
         await micropip.install(requirements, keep_going=True)
 
