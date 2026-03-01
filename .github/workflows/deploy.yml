@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - 30-new-preliminary-notebooks-on-calculus-fundamentals
 
 env:
   UV_SYSTEM_PYTHON: 1
@@ -26,11 +27,32 @@ jobs:
         run: |
           uv run .github/scripts/build.py --output-dir _site
 
+      - name: Create minimal pyproject.toml for wheel build
+        run: |
+          cat > pyproject.toml << 'EOF'
+          [build-system]
+          requires = ["setuptools", "wheel"]
+          build-backend = "setuptools.build_meta"
+          
+          [project]
+          name = "core"
+          version = "0.0.1"
+          
+          [tool.setuptools.packages.find]
+          where = ["notebooks"]
+          include = ["core*"]
+          EOF
+
+          tree notebooks/
+
       - name: Build core wheel and copy to _site/
         run: |
+          cat pyproject.toml
           uv run python -m build -w .
           mkdir -p _site/notebooks/public
           cp dist/*.whl _site/notebooks/public
+
+          tree _site/notebooks
 
           # Move everything (including hidden files) inside _site/notebooks to _site/
           rsync -a _site/notebooks/ _site/
