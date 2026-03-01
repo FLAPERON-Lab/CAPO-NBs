@@ -4,6 +4,11 @@ __generated_with = "0.19.11"
 app = marimo.App(width="medium")
 
 with app.setup:
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path.cwd()))
+
     # Initialization code that runs before all other cells
     import marimo as mo
     import pandas as pd
@@ -13,7 +18,9 @@ with app.setup:
     _defaults.FILEURL = _defaults.get_url()
 
     _defaults.set_plotly_template()
-    data_dir = str(mo.notebook_location() / "public" / "AircraftDB_Standard.csv")
+    data_dir = str(
+        mo.notebook_location().parent.parent / "data" / "AircraftDB_Standard.csv"
+    )
 
 
 @app.cell
@@ -89,18 +96,18 @@ def _():
 
 @app.cell(hide_code=True)
 def _(ac):
-    data = ac.available_aircrafts(data_dir, verbose=True).round(decimals=4)
+    data = ac.available_aircrafts(data_dir, verbose=False).round(decimals=4)
 
     cols_4dec = [
         "CD0",
         "K",
         "beta",
-        "CLmax_cl",
-        "CLmax_to",
+        # "CLmax_cl",
+        # "CLmax_to",
         "CLmax_ld",
-        "cT",
-        "cP",
-        "MMO",
+        # "cT",
+        # "cP",
+        # "MMO",
     ]
 
     data[cols_4dec] = data[cols_4dec].round(4)

@@ -4,6 +4,11 @@ __generated_with = "0.17.6"
 app = marimo.App(width="medium")
 
 with app.setup:
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path.cwd()))
+
     # Initialization code that runs before all other cells
     import marimo as mo
     from core import _defaults
@@ -16,7 +21,11 @@ with app.setup:
     _defaults.FILEURL = _defaults.get_url()
 
     _defaults.set_plotly_template()
-    data_dir = str(mo.notebook_location() / "public" / "AircraftDB_Standard.csv")
+
+    # Data directory
+    data_dir = str(
+        mo.notebook_location().parent.parent / "data" / "AircraftDB_Standard.csv"
+    )
 
 
 @app.cell
@@ -29,7 +38,7 @@ def _():
 @app.cell
 def _():
     mo.md(r"""
-    # Minimum power
+    # Minimum Drag
     """)
     return
 
@@ -47,12 +56,12 @@ def _():
     mo.callout(
         mo.md(
             r"""
-        Find the minimum power by changing the lift coefficient and throttle within certain limits:
+        Find the minimum drag by changing the lift coefficient and throttle within certain limits:
 
     $$
     \begin{aligned}
         \min_{C_L, \delta_T} 
-        & \quad P \\
+        & \quad D \\
         % \text{subject to} 
         % & \quad \bm{c}_\mathrm{eq}(\bm{x},\bm{u}; \bm{p}) = 0 \\
         % & \quad \bm{c_\mathrm{ineq}}(\bm{x},\bm{u}; \bm{p}) \le 0 \\
@@ -72,12 +81,11 @@ def _():
     mo.md(r"""
     This problem is ill posed, and it does not make sense to solve it.
 
-    There is no functional relation between the objective function $P$ and the controls $C_L, \delta_T$.
-    In other words, there is no equation that specifies how $P$ can change with respect to the controls.
+    There is no functional relation between the objective function $D$ and the controls $C_L, \delta_T$.
+    In other words, there is no equation that specifies how $D$ can change with respect to the controls.
     It does not make sense to optimize Flight Performance if the flight dynamics is not controlled.
 
-    For example, the minimum power achievable could be 0, if the aircraft is standing still on the runway.
-    It could even be negative, if someone is pushing the aircraft back, or there is tailwind.
+    For example, the minimum drag achievable could be 0, if the aircraft is standing still on the runway.
 
     A relation must be introduced with constraint equations, starting from the EoMS.
     These will define the problem properly.
@@ -158,7 +166,7 @@ def _(CL_maxld, CL_slider, ac_table, dT_slider):
         scene1=dict(
             xaxis=dict(title=r"C<sub>L</sub> (-)"),
             yaxis=dict(title=r"δ<sub>T</sub> (-)"),
-            zaxis=dict(title=r"P (m/s)"),
+            zaxis=dict(title=r"D (N)"),
         ),
     )
     fig.update_xaxes(range=[-0.5, CL_maxld], row=1, col=1)
@@ -196,12 +204,12 @@ def _():
 def _():
     mo.callout(
         mo.md(r"""
-        Find the minimum airspeed that can be maintained in Steady Level Flight by changing the lift coefficient and throttle within certain limits
+        Find the minimum drag that can be maintained in Steady Level Flight by changing the lift coefficient and throttle within certain limits
 
     $$
     \begin{aligned}
         \min_{C_L, \delta_T} 
-        & \quad P = DV = \frac{1}{2}\rho V^2S(C_{D_0}+KC_L^2)V \\
+        & \quad D = \frac{1}{2}\rho V^2S(C_{D_0}+KC_L^2) \\
         \text{subject to} 
         & \quad c_1^\mathrm{eq} = L-W = \frac{1}{2}\rho V^2 S C_L - W = 0 \\
         & \quad c_2^\mathrm{eq} = T-D = \delta_T T_a(V,h) - \frac{1}{2} \rho V^2 S (C_{D_0}+K C_L^2) =0 \\
@@ -225,15 +233,20 @@ def _():
 
     Before that, we notice that the expression of $c_2^\mathrm{eq}$ depends on the type of powertrain of the aircraft, and therefore we must proceed diffently for each powertrain architecture.
 
-    1. [Simplified Jet -  Karush-Kuhn-Tucker Analyis](/?file=MinPower_Jet.py)
-    1. [Simplified Piston-Prop -  Karush-Kuhn-Tucker Analysis](/?file=MinPower_Prop.py)
+    1. [Simplified Jet -  Karush-Kuhn-Tucker Analyis](/?file=Steady_Level_Flight/MinDrag_Jet.py)
+    1. [Simplified Piston-Prop -  Karush-Kuhn-Tucker Analysis](/?file=Steady_Level_Flight/MinDrag_Prop.py)
     """)
     return
 
 
 @app.cell
 def _():
-    _defaults.nav_footer("MinDrag.py", "Minimum Drag", "MinSpeed.py", "Minimum Speed")
+    _defaults.nav_footer(
+        "../Optimization_Methodology/InequalityConstraints.py",
+        "Inequality Constraints",
+        "MinPower.py",
+        "Minimum Power",
+    )
     return
 
 

@@ -4,6 +4,11 @@ __generated_with = "0.17.6"
 app = marimo.App(width="medium")
 
 with app.setup:
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path.cwd()))
+
     # Initialization code that runs before all other cells
     import marimo as mo
     from core import _defaults
@@ -16,7 +21,11 @@ with app.setup:
     _defaults.FILEURL = _defaults.get_url()
 
     _defaults.set_plotly_template()
-    data_dir = str(mo.notebook_location() / "public" / "AircraftDB_Standard.csv")
+
+    # Data directory
+    data_dir = str(
+        mo.notebook_location().parent.parent / "data" / "AircraftDB_Standard.csv"
+    )
 
 
 @app.cell
@@ -29,7 +38,7 @@ def _():
 @app.cell
 def _():
     mo.md(r"""
-    # Maximum altitude
+    # Maximum speed
     """)
     return
 
@@ -47,12 +56,12 @@ def _():
     mo.callout(
         mo.md(
             r"""
-        Find the minimum power by changing the lift coefficient and throttle within certain limits:
+        Find the maximum velocityby changing the lift coefficient and throttle within certain limits:
 
     $$
     \begin{aligned}
         \max_{C_L, \delta_T} 
-        & \quad h \\
+        & \quad V \\
         % \text{subject to} 
         % & \quad \bm{c}_\mathrm{eq}(\bm{x},\bm{u}; \bm{p}) = 0 \\
         % & \quad \bm{c_\mathrm{ineq}}(\bm{x},\bm{u}; \bm{p}) \le 0 \\
@@ -72,8 +81,8 @@ def _():
     mo.md(r"""
     This problem is ill posed, and it does not make sense to solve it.
 
-    There is no functional relation between the objective function $h$ and the controls $C_L, \delta_T$.
-    In other words, there is no equation that specifies how $h$ can change with respect to the controls.
+    There is no functional relation between the objective function $V$ and the controls $C_L, \delta_T$.
+    In other words, there is no equation that specifies how $V$ can change with respect to the controls.
     It does not make sense to optimize Flight Performance if the flight dynamics is not controlled.
 
     A relation must be introduced with constraint equations, starting from the EoMS.
@@ -155,7 +164,7 @@ def _(CL_maxld, CL_slider, ac_table, dT_slider):
         scene1=dict(
             xaxis=dict(title=r"C<sub>L</sub> (-)"),
             yaxis=dict(title=r"δ<sub>T</sub> (-)"),
-            zaxis=dict(title=r"h (m)"),
+            zaxis=dict(title=r"V (m/s)"),
         ),
     )
     fig.update_xaxes(range=[-0.5, CL_maxld], row=1, col=1)
@@ -193,12 +202,12 @@ def _():
 def _():
     mo.callout(
         mo.md(r"""
-        Find the maximum altitude that can be maintained in Steady Level Flight by changing the lift coefficient and throttle within certain limits
+        Find the maximum airspeed that can be maintained in Steady Level Flight by changing the lift coefficient and throttle within certain limits
 
     $$
     \begin{aligned}
         \max_{C_L, \delta_T} 
-        & \quad h \\
+        & \quad V \\
         \text{subject to} 
         & \quad c_1^\mathrm{eq} = L-W = \frac{1}{2}\rho V^2 S C_L - W = 0 \\
         & \quad c_2^\mathrm{eq} = T-D = \delta_T T_a(V,h) - \frac{1}{2} \rho V^2 S (C_{D_0}+K C_L^2) =0 \\
@@ -215,22 +224,24 @@ def _():
 @app.cell(hide_code=True)
 def _():
     mo.md(r"""
-    The introduction of the constraints for vertical ($c_1^\mathrm{eq}$) and horizontal equilibrium ($c_2^\mathrm{eq}$) restricts the scope to only a certain type of optimal altitudes we are looking for.
+    The introduction of the constraints for vertical ($c_1^\mathrm{eq}$) and horizontal equilibrium ($c_2^\mathrm{eq}$) restricts the scope to only a certain type of optimal velocities we are looking for.
 
     The constraint equations introduce a functional dependency between the objective function and the controls.
     We are going to use them to reformulate the problem in order to analyse its properties.
 
     Before that, we notice that the expression of $c_2^\mathrm{eq}$ depends on the type of powertrain of the aircraft, and therefore we must proceed diffently for each powertrain architecture.
 
-    1. [Simplified Jet -  Karush-Kuhn-Tucker Analyis](/?file=MaxAltitude_Jet.py)
-    1. [Simplified Piston-Prop -  Karush-Kuhn-Tucker Analysis](/?file=MaxAltitude_Prop.py)
+    1. [Simplified Jet -  Karush-Kuhn-Tucker Analyis](/?file=Steady_Level_Flight/MaxSpeed_Jet.py)
+    1. [Simplified Piston-Prop -  Karush-Kuhn-Tucker Analysis](/?file=Steady_Level_Flight/MaxSpeed_Prop.py)
     """)
     return
 
 
 @app.cell
 def _():
-    _defaults.nav_footer("MaxSpeed.py", "Maximum Speed", "", "")
+    _defaults.nav_footer(
+        "MinSpeed.py", "Minimum Speed", "MaxAltitude.py", "Maximum Altitude"
+    )
     return
 
 

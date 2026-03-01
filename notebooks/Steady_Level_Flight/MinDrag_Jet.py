@@ -4,6 +4,11 @@ __generated_with = "0.18.0"
 app = marimo.App(width="medium")
 
 with app.setup:
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path.cwd()))
+
     # Initialization code that runs before all other cells
     import marimo as mo
 
@@ -29,7 +34,9 @@ with app.setup:
     _defaults.set_plotly_template()
 
     # Data directory
-    data_dir = str(mo.notebook_location() / "public" / "AircraftDB_Standard.csv")
+    data_dir = str(
+        mo.notebook_location().parent.parent / "data" / "AircraftDB_Standard.csv"
+    )
 
 
 @app.cell
@@ -434,7 +441,7 @@ def _(
     $$
 
     Notice how the optimal $C_L^*$ has the **same value** for maximum aerodynamic efficiency (maximum $C_L /C_D$), for 
-    $0\lt C_L \lt  C_{L_\mathrm{max}}$ and $0 \lt \delta_T \lt 1$, as shown in [Aerodynamic Efficiency](/?file=AerodynamicEfficiency.py).
+    $0\lt C_L \lt  C_{L_\mathrm{max}}$ and $0 \lt \delta_T \lt 1$, as shown in [Aerodynamic Efficiency](/?file=Steady_Level_Flight/MinDrag.py).
 
     The corresponding $\delta_T^*$ is found by solving the primal feasibility constraint (3) and using $C_L = C_L^*$, as calculated above.
 
@@ -509,10 +516,13 @@ def _(aircraft, analysisModel):
             )
 
             self.condition = (
-                W < analysisModel.compute_thrust(analysisModel.aircraft.h_array) * aircraft.E_max
+                W
+                < analysisModel.compute_thrust(analysisModel.aircraft.h_array)
+                * aircraft.E_max
             ) & (analysisModel.aircraft.CL_E < analysisModel.aircraft.CLmax)
 
             self.compute_optimal(W, h, Model)
+
     return (InteriorCondition,)
 
 
@@ -616,6 +626,7 @@ def _(aircraft, analysisModel):
             ) & (analysisModel.aircraft.CLmax < analysisModel.aircraft.CL_E)
 
             self.compute_optimal(W, h, Model)
+
     return (MaxliftCondition,)
 
 

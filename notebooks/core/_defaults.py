@@ -39,26 +39,30 @@ def set_sidebar():
         mo.nav_menu(
             {
                 f"{FILEURL}Scope.py": "Scope",
-                "References": {
-                    f"{FILEURL}Nomenclature.py": "Nomenclature",
+                f"{FILEURL}Nomenclature.py": "Nomenclature",
+                "Models Library": {
+                    f"{FILEURL}Models_Library/Atmosphere.py": "Atmosphere",
+                    f"{FILEURL}Models_Library/AircraftSimplified.py": "Simplified Aircraft",
+                    f"{FILEURL}Models_Library/AircraftCustom.py": "Custom Aircraft",
                 },
-                "Models library": {
-                    f"{FILEURL}Atmosphere.py": "Atmosphere",
-                    f"{FILEURL}AircraftSimplified.py": "Simplified Aircraft",
-                    f"{FILEURL}AircraftCustom.py": "Custom Aircraft",
+                "Problem Formulation": {
+                    f"{FILEURL}Problem_Formulation/PointPerformance.py": "Point Performance",
+                    f"{FILEURL}Problem_Formulation/FlightConstraints.py": "Flight Constraints",
+                    f"{FILEURL}Problem_Formulation/FlightControls.py": "Flight Controls",
                 },
-                "Performance Optimization": {
-                    f"{FILEURL}ProblemFormulation.py": "Problem Formulation",
-                    f"{FILEURL}FlightConstraints.py": "Flight Constraints",
-                    f"{FILEURL}FlightControls.py": "Flight Controls",
+                "Optimization Methodology": {
+                    f"{FILEURL}Optimization_Methodology/PreambleMethodologies.py": "Preamble Methodologies",
+                    f"{FILEURL}Optimization_Methodology/UnivariateOptimization.py": "Univariate Optimization",
+                    f"{FILEURL}Optimization_Methodology/BivariateOptimization.py": "Bivariate Optimization",
+                    f"{FILEURL}Optimization_Methodology/EqualityConstraints.py": "Equality Constraints",
+                    f"{FILEURL}Optimization_Methodology/InequalityConstraints.py": "Inequality Constraints",
                 },
                 "Steady Level Flight": {
-                    f"{FILEURL}AerodynamicEfficiency.py": "Aerodynamic Efficiency",
-                    f"{FILEURL}MinDrag.py": "Minimum Drag",
-                    f"{FILEURL}MinPower.py": "Minimum Power",
-                    f"{FILEURL}MinSpeed.py": "Minimum Speed",
-                    f"{FILEURL}MaxSpeed.py": "Maximum Speed",
-                    f"{FILEURL}MaxAltitude.py": "Maximum Altitude",
+                    f"{FILEURL}Steady_Level_Flight/MinDrag.py": "Minimum Drag",
+                    f"{FILEURL}Steady_Level_Flight/MinPower.py": "Minimum Power",
+                    f"{FILEURL}Steady_Level_Flight/MinSpeed.py": "Minimum Speed",
+                    f"{FILEURL}Steady_Level_Flight/MaxSpeed.py": "Maximum Speed",
+                    f"{FILEURL}Steady_Level_Flight/MaxAltitude.py": "Maximum Altitude",
                 },
             },
             orientation="vertical",

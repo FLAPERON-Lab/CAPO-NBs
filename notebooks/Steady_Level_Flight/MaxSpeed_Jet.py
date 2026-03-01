@@ -3,9 +3,12 @@ import marimo
 __generated_with = "0.18.0"
 app = marimo.App(width="medium")
 
+with app.setup:
+    import sys
+    from pathlib import Path
 
-@app.cell
-def _():
+    sys.path.insert(0, str(Path.cwd()))
+
     # Initialization code that runs before all other cells
     import marimo as mo
 
@@ -31,17 +34,8 @@ def _():
     _defaults.set_plotly_template()
 
     # Data directory
-    data_dir = str(mo.notebook_location() / "public" / "AircraftDB_Standard.csv")
-    return (
-        AircraftBase,
-        ModelSimplifiedJet,
-        OptimumCondition,
-        atmos,
-        available_aircrafts,
-        data_dir,
-        mo,
-        np,
-        plot_utils,
+    data_dir = str(
+        mo.notebook_location().parent.parent / "data" / "AircraftDB_Standard.csv"
     )
 
 
@@ -527,6 +521,7 @@ def _(OptimumCondition, aircraft, analysisModel, np):
                 self.CLopt_selected = np.nan
 
             self.compute_optimal(W, h, Model)
+
     return (MaxThrustCondition,)
 
 
@@ -663,6 +658,7 @@ def _(OptimumCondition, atmos, np):
             )
 
             self.CLopt_selected = self.CLopt_selected * self.cond
+
     return (MaxLiftThrustCondition,)
 
 
@@ -734,10 +730,7 @@ def _(W_selected_envelope, envelopeModel, h_selected_envelope, np, plot_utils):
         (plot_utils.meshgrid_n, plot_utils.meshgrid_n),
     )
 
-    plot_options_envelope = {
-        "surface": envelopeSurface,
-        "factor" : 10
-    }
+    plot_options_envelope = {"surface": envelopeSurface, "factor": 10}
     return (plot_options_envelope,)
 
 
