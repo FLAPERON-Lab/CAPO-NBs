@@ -11,21 +11,15 @@ with app.setup:
 
     # Initialization code that runs before all other cells
     import marimo as mo
-
-    # Import dependencies
     from core import _defaults
-    from plotly.subplots import make_subplots
     import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
     import plotly.express as px
     import numpy as np
-    from core import atmos
     from core import aircraft as ac
-    from core.aircraft import velocity, horizontal_constraint, power, drag
 
-    # Set local/online filepath
     _defaults.FILEURL = _defaults.get_url()
 
-    # Plotly dark mode template
     _defaults.set_plotly_template()
 
     # Data directory

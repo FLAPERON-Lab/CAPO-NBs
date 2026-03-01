@@ -157,11 +157,16 @@ def _():
 @app.cell(hide_code=True)
 def _():
     mo.md(r"""
+    mo.md(r"""
     ## Boundary values
     The values of the aerodynamic efficiency at the boundary of its domain are immediate to calculate:
 
     $$ E(C_L = 0) = 0$$
 
+    $$C_L=C_{L_\mathrm{max}} \quad \Rightarrow \quad  E_S = \frac{C_{L_\mathrm{max}}}{C_{D_0}+K C_{L_\mathrm{max}}^2}$$
+
+    $E$ is a non monotonic function of the $C_L$, and therefore it is expected that it will have some staionary points inside the domain.
+    """)
     $$ E(C_L = C_{L_\mathrm{max}}) = E_S = \frac{C_{L_\mathrm{max}}}{C_{D_0}+K C_{L_\mathrm{max}}^2}$$
     """)
     return

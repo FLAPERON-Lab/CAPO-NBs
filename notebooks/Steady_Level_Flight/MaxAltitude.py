@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.16.5"
+__generated_with = "0.17.6"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -11,21 +11,15 @@ with app.setup:
 
     # Initialization code that runs before all other cells
     import marimo as mo
-
-    # Import dependencies
     from core import _defaults
-    from plotly.subplots import make_subplots
     import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
     import plotly.express as px
     import numpy as np
-    from core import atmos
     from core import aircraft as ac
-    from core.aircraft import velocity, horizontal_constraint, power, drag
 
-    # Set local/online filepath
     _defaults.FILEURL = _defaults.get_url()
 
-    # Plotly dark mode template
     _defaults.set_plotly_template()
 
     # Data directory
@@ -43,13 +37,17 @@ def _():
 
 @app.cell
 def _():
-    mo.md(r"""# Maximum altitude""")
+    mo.md(r"""
+    # Maximum altitude
+    """)
     return
 
 
 @app.cell
 def _():
-    mo.md(r"""## Unconstrained optimization problem""")
+    mo.md(r"""
+    ## Unconstrained optimization problem
+    """)
     return
 
 
@@ -80,8 +78,7 @@ def _():
 
 @app.cell
 def _():
-    mo.md(
-        r"""
+    mo.md(r"""
     This problem is ill posed, and it does not make sense to solve it.
 
     There is no functional relation between the objective function $h$ and the controls $C_L, \delta_T$.
@@ -90,8 +87,7 @@ def _():
 
     A relation must be introduced with constraint equations, starting from the EoMS.
     These will define the problem properly.
-    """
-    )
+    """)
     return
 
 
@@ -196,7 +192,9 @@ def _(CL_slider, dT_slider, fig):
 
 @app.cell
 def _():
-    mo.md(r"""## Constrained optimization problem""")
+    mo.md(r"""
+    ## Constrained optimization problem
+    """)
     return
 
 
@@ -225,9 +223,8 @@ def _():
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(
-        r"""
-    The introduction of the constraints for vertical ($c_1^\mathrm{eq}$) and horizontal equilibrium ($c_2^\mathrm{eq}$) restricts the scope to only a certain type of optimal altitudes we are looking for. 
+    mo.md(r"""
+    The introduction of the constraints for vertical ($c_1^\mathrm{eq}$) and horizontal equilibrium ($c_2^\mathrm{eq}$) restricts the scope to only a certain type of optimal altitudes we are looking for.
 
     The constraint equations introduce a functional dependency between the objective function and the controls.
     We are going to use them to reformulate the problem in order to analyse its properties.
@@ -236,8 +233,7 @@ def _():
 
     1. [Simplified Jet -  Karush-Kuhn-Tucker Analyis](/?file=Steady_Level_Flight/MaxAltitude_Jet.py)
     1. [Simplified Piston-Prop -  Karush-Kuhn-Tucker Analysis](/?file=Steady_Level_Flight/MaxAltitude_Prop.py)
-    """
-    )
+    """)
     return
 
 
