@@ -52,6 +52,9 @@ jobs:
           mkdir -p _site/notebooks/public
           cp dist/*.whl _site/notebooks/public
 
+          mkdir -p _site/public
+          cp data/AircraftDB_Standard.csv _site/public/AircraftDB_Standard.csv
+
           tree _site/notebooks
 
           # Move everything (including hidden files) inside _site/notebooks to _site/
