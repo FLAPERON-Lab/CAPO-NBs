@@ -1,0 +1,36 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: >-
+  Flight Performance Analysis and Optimization: from
+  Calculus to Computers
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Carmine
+    family-names: Varriale
+    email: C.Varriale@tudelft.nl
+    affiliation: >-
+      Faculty of Aerospace Engineering, Delft University of
+      Technology, The Netherlands
+    orcid: 'https://orcid.org/0000-0001-7419-992X'
+  - given-names: Federico
+    family-names: Angioni
+    email: F.angioni@tudelft.nl
+    affiliation: >-
+      Faculty of Aerospace Engineering, Delft University of
+      Technology, The Netherlands
+    orcid: 'https://orcid.org/0009-0005-7028-4840'
+repository-code: 'https://github.com/FLAPERON-Lab/FPAO-CC'
+url: 'https://flaperon-lab.github.io/FPAO-CC/Homepage.html'
+abstract: >-
+  A collection of Python marimo notebooks to explain and
+  experiment with Aircraft Flight Performance and
+  Optimization on the solid foundations of Calculus
+keywords:
+  - Flight Performance
+  - Optimization
+license: Apache-2.0
