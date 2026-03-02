@@ -74,7 +74,7 @@ This repository relies on `uv`, an extremely fast Python project manager.
     > Use the VSCode _marimo_ extension _exclusively_ for minor, cosmetic changes, or to automate search-and-replace (or similar) tasks.
 
 ### Managing the aircraft databases
-You can view and manipulate the `AircraftDB_*.ssv` files by opening them in the [VSCode](https://code.visualstudio.com/) editor using the [Rainbow CSV](https://marketplace.visualstudio.com/items?itemName=mechatroner.rainbow-csv) and the [Edit CSV](https://marketplace.visualstudio.com/items?itemName=janisdd.vscode-edit-csv) extensions. 
+You can view and manipulate the `data\AircraftDB_*.csv` files by opening them in the [VSCode](https://code.visualstudio.com/) editor using the [Rainbow CSV](https://marketplace.visualstudio.com/items?itemName=mechatroner.rainbow-csv) and the [Edit CSV](https://marketplace.visualstudio.com/items?itemName=janisdd.vscode-edit-csv) extensions. 
 
 > [!CAUTION]
 > Please DO NOT use Microsoft Excel, as it is not able to preserve the correct format of the documents.
