@@ -34,9 +34,7 @@ The notebooks can be run locally using the _marimo_ server. This allows for inte
     uv run marimo run Scope.py
     ```
 
-## Licensing
-
-### Authors
+## Authors
 
 The content of this repository has been developed by:
 1. Carmine Varriale, Technische Universiteit Delft (![ORCID logo](https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png) [0000-0001-7419-992X](https://orcid.org/0000-0001-7419-992X))
@@ -45,21 +43,25 @@ The content of this repository has been developed by:
 
 3. Maarten van Hoven, Technische Universiteit Delft
 
-### License
+## License
 
-The contents of the folder `\notebooks\*.py` are licensed under an <a href="https://opensource.org/licenses/Apache-2.0" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">Apache License 2.0</a>. 
+The contents of the folder `notebooks/*.py` are licensed under an <a href="https://opensource.org/licenses/Apache-2.0" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">Apache License 2.0</a>. 
 See the [Apache-2.0.txt](LICENSES/Apache-2.0.txt) file for details.
 
-The contents of the folder `\data\*.csv` are licensed under a <a href="https://creativecommons.org/licenses/by/4.0/ " target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY 4.0</a> license.
+The contents of the folder `data/*.csv` are licensed under a <a href="https://creativecommons.org/licenses/by/4.0/ " target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY 4.0</a> license.
 See the [CC-BY-4.0.txt](LICENSES/CC-BY-4.0.txt) file for details.
 
-
-### Copyright notice
+Copyright notice
 Technische Universiteit Delft hereby disclaims all copyright interest in the work "Flight Performance Analysis and Optimization: from Calculus to Computers (FPAO-CC)". 
 It is a collection of Marimo notebooks to explain and visualize the theory of aircraft performance optimization using interactive visualizations in Python, written by the Author(s).
 Henri Werij, Dean of Faculty of Aerospace Engineering, Technische Universiteit Delft.
 
-© 2026, Carmine Varriale, Federico Angioni, Maarten van Hoven
+&copy; 2026, Carmine Varriale, Federico Angioni, Maarten van Hoven
+
+## Cite this repository
+If you use this software, please cite it as below or check out the CITATION.cff file.
+
+**How to cite this repository**: Varriale, C., Angioni, F., van Hoven, M. 2026. Flight Performance Analysis and Optimization: from Calculus to Computers. Software. [doi]()
 
 ## Contributors
 
