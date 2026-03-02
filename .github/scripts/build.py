@@ -127,7 +127,7 @@ def _export_html_wasm(
     output_path = output_path.relative_to("notebooks")
 
     # Base command for marimo export
-    cmd: List[str] = ["uvx", "marimo", "export", "html-wasm", "--sandbox"]
+    cmd: List[str] = ["uvx", "marimo==0.17.0", "export", "html-wasm", "--sandbox"]
 
     # Configure export mode based on whether it's an app or a notebook
     if as_app:
