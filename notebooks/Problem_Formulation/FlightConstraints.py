@@ -81,7 +81,7 @@ def _():
         r"""
     ### Assumptions
 
-    Within a FPAO problem, it is sufficient to describe the _position_, _translational velocity_, and _translational acceleration_ of the aircraft with respect to the air or ground.  
+    Within a CAPO problem, it is sufficient to describe the _position_, _translational velocity_, and _translational acceleration_ of the aircraft with respect to the air or ground.  
     It is therefore typical to regard the aircraft as a point-mass, with no actual geometry,  inertia, _orientation_, _angular velocity_ and _angular acceleration_ with respect to the air or the ground.
 
     This is done by modelling all external (aerodynamic, propulsive, inertial) forces as acting in one single point, the aircraft Center of gravity (CG), which becomes then representative of the aircraft motion.  
@@ -255,7 +255,7 @@ def _():
 @app.cell
 def _():
     mo.md(r"""
-    The Equations of Motion represent the most important physical constraint of the FPAO problem.  
+    The Equations of Motion represent the most important physical constraint of the CAPO problem.  
     They are _equality constraints_ $\bm{c}_\mathrm{eq}$ which regulate how all flight parameters should be related to each other to satisfy Newton's second law.
     """).callout(kind="success").style(
         {"width": "85%", "text-align": "center"}
@@ -269,7 +269,7 @@ def _():
         r"""
     ## Operations and safety
 
-    Other types of equality or inequality constraints, typically coming from regulations and safety requirements, influence the FPAO problem.
+    Other types of equality or inequality constraints, typically coming from regulations and safety requirements, influence the CAPO problem.
 
     Some examples are:
 
@@ -294,7 +294,7 @@ def _():
     Equality constraints may be manipulated by _substituting_ their expressions anywhere else in the optimization problem.
     This is also true for the EoMs constraints themselves.
     Equality constraints which are _explicit_ in any variable of interest may even be _directly eliminated_ from the optimization problem formulation.
-    This can lead to great simplifications in the analysis of a parametric FPAO problem.
+    This can lead to great simplifications in the analysis of a parametric CAPO problem.
 
     For example, compare the following two sets of constraints:
     """
@@ -343,7 +343,7 @@ def _():
 def _():
     mo.md(
         r"""
-    For the case on the left, the aircraft is free to evolve in 3 DoF, but we are only interested in its performance with no roll angle and in steady flight. This means that, in the FPAO problem, we are inspecting all possible dynamic evolutions of the aicraft and then searching for those that comply with these two latter constraints.
+    For the case on the left, the aircraft is free to evolve in 3 DoF, but we are only interested in its performance with no roll angle and in steady flight. This means that, in the CAPO problem, we are inspecting all possible dynamic evolutions of the aicraft and then searching for those that comply with these two latter constraints.
 
     For the case on the right, the aircraft is free to evolve only in the way that automatically verifies the intended scenario. 
     The two aforementioned equality constraints have been made _redundant_ by _direct substitution_, and therefore eliminated.
@@ -352,7 +352,7 @@ def _():
     For example, the latter equation suggests that the type of evolution in exam is either a horizontal steady turn ($\gamma=0$), or symmetric curvlinear flight ($\dot{\chi}=0$). 
 
 
-    These latter two equality constraints, which are mutually exclusive, may even be used to _branch_ and further simplify the FPAO problem in an iterative fashion.
+    These latter two equality constraints, which are mutually exclusive, may even be used to _branch_ and further simplify the CAPO problem in an iterative fashion.
     """
     )
     return

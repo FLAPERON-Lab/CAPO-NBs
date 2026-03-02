@@ -32,9 +32,9 @@ def _():
 
     Focus is placed on:
 
-    1. formalizing the mathematical formulation of the Flight Performance Analysis and Optimization (FPAO) problem;
+    1. formalizing the mathematical formulation of the Constrained Aircraft Performance Optimization (CAPO) problem;
     2. highlighting the role of physical and operational constraints on optimal aircraft performance;
-    3. comparing the analytical derivation with the numerical solution, creating a bridge from Calculus to Computers (CC)
+    3. comparing the analytical derivation with the numerical solution, creating a bridge from Calculus to Computers.
 
     For didactic purposes, different types of assumptions are made in the selection of the physical models used.
 

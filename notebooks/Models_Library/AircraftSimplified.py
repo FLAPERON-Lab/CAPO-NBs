@@ -49,7 +49,7 @@ def _():
     mo.md(r"""
     ## Assumptions
 
-    These are standard assumptions in the field of FPAO.
+    These are standard assumptions in the field of CAPO.
     """)
     return
 

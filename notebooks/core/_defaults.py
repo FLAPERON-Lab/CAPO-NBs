@@ -37,7 +37,7 @@ def set_sidebar():
         mo.md(f"""
             <h1>
             <a href="{FILEURL}Homepage.py" style="color: #FFFFFF; text-decoration: none;">
-                FPAO-CC
+                CAPO-NBs
             </a>
             </h1>
             """),

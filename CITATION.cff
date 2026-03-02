@@ -27,8 +27,8 @@ repository-code: 'https://github.com/FLAPERON-Lab/FPAO-CC'
 url: 'https://flaperon-lab.github.io/FPAO-CC/Homepage.html'
 abstract: >-
   A collection of Python marimo notebooks to explain and
-  experiment with Aircraft Flight Performance and
-  Optimization on the solid foundations of Calculus
+  experiment with Constrained Airfract Performance Optimization
+   on the solid foundations of Calculus
 keywords:
   - Flight Performance
   - Constrained Optimization

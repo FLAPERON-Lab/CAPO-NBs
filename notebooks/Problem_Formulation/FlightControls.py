@@ -76,10 +76,10 @@ def _():
 def _():
     mo.md(
         r"""
-    In the scope of FPAO, the aircraft is a point-mass and therefore has no geometry or spatial extension. 
+    In the scope of CAPO, the aircraft is a point-mass and therefore has no geometry or spatial extension. 
     It is therefore necessary to abstract the concept of flight controls away from the actual control surfaces, and towards a set of higher-level parameters.
 
-    Because the ultimate effect of deflecting control surfaces is to change the magnitude and orientation of the external forces acting on the aircraft, in the scope of FPAO we can use the following set of Flight Controls:
+    Because the ultimate effect of deflecting control surfaces is to change the magnitude and orientation of the external forces acting on the aircraft, in the scope of CAPO we can use the following set of Flight Controls:
 
     | <div style="width:120px">Flight Controls</div> | <div style="width:250px">**Description** | <div style="width:250px">**Bounds** |
     |:--|:--|:-----|

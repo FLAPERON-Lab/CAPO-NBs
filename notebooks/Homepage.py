@@ -36,29 +36,27 @@ def _():
 
 @app.cell
 def _(mo):
-    mo.md('<h1 style="font-size: 100px">FPAO-CC</h1>').center()
+    mo.md('<h1 style="font-size: 100px">CAPO-NBs</h1>').center()
     return
 
 
 @app.cell
 def _(mo):
-    mo.md(
-        """## Flight Performance Analysis and Optimization: from Calculus to Computers"""
-    ).center()
+    mo.md("""## Constrained Aircraft Performance Optimization Notebooks""").center()
     return
 
 
 @app.cell
 def _(mo):
     mo.md(r"""
-    This collection of marimo notebooks in Python is aimed at strengthening the connection between the calculus fundamentals of constrained optimization for multi-variate functions and classic applied problems of Flight Performance Analysis and Optimization (FPAO).
-
+    A collection of [_marimo_ notebooks](https://marimo.io/) in Python, to strengthen the connection between applied Constrained Aircraft Performance Optimization and the calculus fundamentals of constrained optimization for multi-variate functions.
+          
     The notebooks provide:
 
     - A concise presentation of the mathematical concepts of constrained optimization for multi-variate functions, including methods based on Lagrange multipliers and Karush-Kuhn-Tucker conditions.
-    - Presentation of classic FPAO problems using standard engineering derivations
+    - Presentation of classic CAPO problems using standard engineering derivations
     - Structured mathematical analysis of the problem formulation: independent variables, dependent variables, objectives, constraints, domain, boundaries.
-    - Re-formulation of the FPAO problem using formal mathematical symbology
+    - Re-formulation of the CAPO problem using formal mathematical symbology
     - Recall of relevant theorems to apply a solution method and/or predict the existence and properties of solutions
     - Interactive visualizations to observe the influence of common flight parameters (altitude, speed, weight) on flight performance metrics (climb rate, cruise speed, …), and highlight the mathematical role of physical and operational constraints (stall, limit load factor, procedures).
 
@@ -74,11 +72,11 @@ def _(mo):
     mo.md(r"""
     # Getting Started
 
-    Use the navigation bar on the left to explore the entire collection of marimo notebooks and learn how FPAO problems can be formulated in a formal and complete way using the power of calculus.
+    Use the navigation bar on the left to explore the entire collection of marimo notebooks and learn how CAPO problems can be formulated in a formal and complete way using the power of calculus.
 
     You will find a small navigation bar at bottom of each notebook, which allows you to move to the next or previous notebook just as if you were flipping through the pages of a book.
 
-    You can come back to this homepage by clicking on "FPAO-CC" on the top of the left of the sidebar, just as if it was the homepage of a website.
+    You can come back to this homepage by clicking on "CAPO-NBs" on the top of the left of the sidebar, just as if it was the homepage of a website.
 
     You can start exploring by selected the notebook "Scope" on the left, or in the footer navbar below.
     """)
@@ -195,7 +193,7 @@ def _(mo):
 
     Federico Angioni is an undergraduate honours student in Aerospace Engineering at TU Delft, pursuing a minor in Computational Science and Engineering at the Faculty of Electrical Engineering, Mathematics and Computer Science. His interests lie at the intersection of optimal control, dynamic modeling, and, more broadly, scientific computing
 
-    He is currently involved in providing the visualisations and the layout of the FPAO-CC notebook collection, enhancing the narrative written by Dr. Varriale to increase the students' understanding of the connection between calculus and flight performance optimization.
+    He is currently involved in providing the visualisations and the layout of the CAPO-NBs notebook collection, enhancing the narrative written by Dr. Varriale to increase the students' understanding of the connection between calculus and flight performance optimization.
 
     He is developing a dynamic model of a Flapping-Wing Micro Air Vehicle (FWMAV) to enable time-optimal flight, where the ultra-light, bioinspired drone rapidly navigates through gateways. Instead of a conventional PID controller, a neural network trained via Reinforcement Learning provides direct motor commands, eliminating intermediate filters that would otherwise slow actuation.
 
@@ -209,7 +207,7 @@ def _(mo):
     mo.md(r"""
     # Funding
 
-    This project has received funding from the TU Delft Open Education Stimulation Fund (OESF) 2025, under the project title “Flight Performance Analysis and Optimization: from Calculus to Computers”.
+    This project has received funding from the TU Delft Open Education Stimulation Fund (OESF) 2025, under the project title “Constrained Aircraft Performance Optimization Notebooks (CAPO-NBs)”.
 
     The OESF promotes open education, starting from TU Delft's BSc and MSc programs.
 
