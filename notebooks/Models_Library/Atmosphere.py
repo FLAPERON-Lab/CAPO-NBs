@@ -3,9 +3,10 @@
 # SPDX-FileCopyrightText: 2026 Maarten van Hoven <M.B.vanHoven@tudelft.nl>
 #
 # SPDX-License-Identifier: Apache-2.0
+
 import marimo
 
-__generated_with = "0.20.2"
+__generated_with = "0.17.8"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -17,6 +18,13 @@ with app.setup:
     # Initialization code that runs before all other cells
     import marimo as mo
     from core import _defaults
+    import numpy as np
+    import pandas as pd
+    from core import atmos
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+
+
 
     _defaults.FILEURL = _defaults.get_url()
 
@@ -62,8 +70,6 @@ def _():
 
 @app.cell
 def _():
-    import numpy as np
-
     dh_slider = mo.ui.slider(
         steps=np.array([1, 2, 5, 10, 20, 50, 100, 200, 500, 1000]),
         label=r"$\Delta h \ \text{(m)}$",
@@ -72,14 +78,11 @@ def _():
     )
 
     dh_slider
-    return dh_slider, np
+    return (dh_slider,)
 
 
 @app.cell
-def _(dh_slider, np):
-    import pandas as pd
-    from core import atmos
-
+def _(dh_slider):
     h = np.arange(
         0, atmos.hmax + dh_slider.value, dh_slider.value
     )  # Altitude in meters
@@ -94,7 +97,7 @@ def _(dh_slider, np):
     )
 
     atmos_data
-    return atmos, atmos_data
+    return (atmos_data,)
 
 
 @app.cell
@@ -106,9 +109,7 @@ def _():
 
 
 @app.cell
-def _(atmos, atmos_data):
-    import plotly.graph_objects as go
-    from plotly.subplots import make_subplots
+def _(atmos_data):
 
     fig = (
         make_subplots(
