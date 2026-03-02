@@ -57,6 +57,8 @@ Technische Universiteit Delft hereby disclaims all copyright interest in the wor
 It is a collection of Marimo notebooks to explain and visualize the theory of aircraft performance optimization using interactive visualizations in Python, written by the Author(s).
 Henri Werij, Dean of Faculty of Aerospace Engineering, Technische Universiteit Delft.
 
+See also copyright notices in the individual files, provided following REUSE standard (https://reuse.software)
+
 &copy; 2026, Carmine Varriale, Federico Angioni, Maarten van Hoven
 
 ## Cite this repository

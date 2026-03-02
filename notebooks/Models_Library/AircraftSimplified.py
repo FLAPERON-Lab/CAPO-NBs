@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2026 Carmine Varriale <C.varriale@tudelft.nl>
+# SPDX-FileCopyrightText: 2026 Federico Angioni <F.angioni@student.tudelft.nl>
+# SPDX-FileCopyrightText: 2026 Maarten van Hoven <M.B.vanHoven@tudelft.nl>
+#
+# SPDX-License-Identifier: Apache-2.0
 import marimo
 
 __generated_with = "0.19.11"
@@ -194,7 +199,9 @@ def _(fix_yaxis):
 
     m_slider = mo.ui.slider(start=0, stop=1, step=0.1, label=r"", show_value=True)
 
-    speed = mo.ui.dropdown(options=["CAS", "TAS", "EAS", "M"], value="CAS", label=r"Speed")
+    speed = mo.ui.dropdown(
+        options=["CAS", "TAS", "EAS", "M"], value="CAS", label=r"Speed"
+    )
 
     drag_condition = mo.ui.dropdown(
         options=["Cruise", "Landing", "Take Off"],
@@ -281,9 +288,13 @@ def _(
         x_axis = TAS / atmos.a(h)
 
     colors = px.colors.qualitative.Vivid
-    color_map_available = {id: colors[i % len(colors)] for i, id in enumerate(fleet.keys())}
+    color_map_available = {
+        id: colors[i % len(colors)] for i, id in enumerate(fleet.keys())
+    }
     colors = px.colors.qualitative.Safe
-    color_map_required = {id: colors[i % len(colors)] for i, id in enumerate(fleet.keys())}
+    color_map_required = {
+        id: colors[i % len(colors)] for i, id in enumerate(fleet.keys())
+    }
 
     fig.add_trace(
         go.Scatter(
@@ -321,12 +332,16 @@ def _(
                 thrust_value = np.repeat(
                     model_.compute_thrust(h) * delta_t.value / 1e3, meshgrid
                 )  # Convert to kN (constant)
-                power_value = np.asarray(thrust_value * 1e3 * TAS / 1e3)  # Convert to kW
+                power_value = np.asarray(
+                    thrust_value * 1e3 * TAS / 1e3
+                )  # Convert to kW
             else:  # ModelSimplifiedProp
                 power_value = np.repeat(
                     model_.compute_power(h) * delta_t.value / 1e3, meshgrid
                 )  # Convert to kW (constant)
-                thrust_value = np.asarray(power_value * 1e3 / TAS / 1e3)  # Convert to kN
+                thrust_value = np.asarray(
+                    power_value * 1e3 / TAS / 1e3
+                )  # Convert to kN
 
             yaxis1 = max(yaxis1, np.max(power_value))
             yaxis2 = max(yaxis2, np.max(thrust_value))
@@ -443,7 +458,9 @@ def _():
 
 @app.cell
 def _():
-    _defaults.nav_footer("Atmosphere.py", "Atmosphere", "AircraftCustom.py", "Custom Aircraft Models")
+    _defaults.nav_footer(
+        "Atmosphere.py", "Atmosphere", "AircraftCustom.py", "Custom Aircraft Models"
+    )
     return
 
 
