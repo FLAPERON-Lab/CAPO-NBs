@@ -39,6 +39,12 @@ def _():
 
 @app.cell
 def _():
+    print(f"marimo version: {mo.__version__}")
+    return
+
+
+@app.cell
+def _():
     mo.md(r"""
     # Atmospheric Model
     In all cases, the International Standard Atmosphere (ISA) model is used to calculate the air temperature, pressure and density at a given altitude.
