@@ -50,7 +50,7 @@ The content of this repository has been developed by:
 The contents of the folder `\notebooks\*.py` are licensed under an <a href="https://opensource.org/licenses/Apache-2.0" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">Apache License 2.0</a>. 
 See the [Apache-2.0.txt](LICENSES/Apache-2.0.txt) file for details.
 
-The contents of the folder `\notebooks\public\*.csv` are licensed under a <a href="https://creativecommons.org/licenses/by/4.0/ " target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY 4.0</a> license.
+The contents of the folder `\data\*.csv` are licensed under a <a href="https://creativecommons.org/licenses/by/4.0/ " target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY 4.0</a> license.
 See the [CC-BY-4.0.txt](LICENSES/CC-BY-4.0.txt) file for details.
 
 
@@ -65,7 +65,7 @@ Henri Werij, Dean of Faculty of Aerospace Engineering, Technische Universiteit D
 
 Contributions are welcome and encouraged in any form through Issues and Pull Requests on GitHub. 
 
-The main repository for this project is located at [https://github.com/CarmVarriale/FlightPerfCalculus](https://github.com/CarmVarriale/FlightPerfCalculus)
+The main repository for this project is located at [https://github.com/FLAPERON-Lab/FPAO-CC](https://github.com/FLAPERON-Lab/FPAO-CC)
 
 Please consult our [Contributing Guidelines](CONTRIBUTING.md) for more information.
 
