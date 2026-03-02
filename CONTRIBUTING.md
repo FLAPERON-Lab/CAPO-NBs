@@ -14,26 +14,30 @@ This repository relies on `uv`, an extremely fast Python project manager.
 
     ```powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"```
 
-    On a MacOS or Linux Operating System, run in your terminal window:
+    On a MacOS or Linux, run in your terminal window:
 
     ```curl -LsSf https://astral.sh/uv/install.sh | sh```
 
-2. Clone the repository from GitHub.
+   Alternatively, you can install `uv` directly from PyPI using `pip`:
+
+   `pip install uv`
+
+3. Clone the repository from GitHub.
 
    With https protocol: ```git clone https://github.com/FLAPERON-Lab/FPAO-CC.git```
    With the SSH protocol: ```git clone git@github.com:FLAPERON-Lab/FPAO-CC.git```
 
-3. Navigate to the cloned directory:
+4. Navigate to the cloned directory:
 
     ```cd your/path/to/FPAO-CC```
 
-4. Create a virtual environment and sync it with the just-installed package manager `uv`:
+5. Create a virtual environment and sync it with the just-installed package manager `uv`:
 
     ```uv sync```
 
     This will install the required Python version to your virtual environment and will install the necessary dependencies.
    
-5. Test the correct installation of the _marimo_ dependencies by running the following command:
+6. Test the correct installation of the _marimo_ dependencies by running the following command:
 
     ```uv run -m marimo tutorial intro```
 
