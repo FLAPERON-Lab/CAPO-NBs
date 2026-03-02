@@ -407,9 +407,9 @@ def _(fig_endurance):
 @app.cell
 def _():
     _defaults.nav_footer(
-        "PreambleMethodologies.py",
+        "Optimization_Methodology/PreambleMethodologies.py",
         "Preamble Methodologies",
-        "BivariateOptimization.py",
+        "Optimization_Methodology/BivariateOptimization.py",
         "Bivariate Optimization",
     )
     return

@@ -866,9 +866,9 @@ def _():
 @app.cell
 def _():
     _defaults.nav_footer(
-        after_file="MaxAltitude_Prop.py",
+        after_file="Steady_Level_Flight/MaxAltitude_Prop.py",
         after_title="Maximum Altitude Simplified Propeller",
-        above_file="MaxAltitude.py",
+        above_file="Steady_Level_Flight/MaxAltitude.py",
         above_title="Maximum Altitude Homepage",
         above_before=True,
     )

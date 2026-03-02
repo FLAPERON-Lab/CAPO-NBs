@@ -55,9 +55,9 @@ def _():
 @app.cell
 def _():
     _defaults.nav_footer(
-        "AircraftSimplified.py",
+        "Models_Library/AircraftSimplified.py",
         "Simplified Aircraft Models",
-        "../Problem_Formulation/PointPerformance.py",
+        "Problem_Formulation/PointPerformance.py",
         "Problem Formulation",
     )
     return

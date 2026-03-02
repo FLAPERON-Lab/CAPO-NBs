@@ -260,7 +260,7 @@ def _():
 
 @app.cell
 def _():
-    _defaults.nav_footer("MinDrag.py", "Minimum Drag", "MinSpeed.py", "Minimum Speed")
+    _defaults.nav_footer("Steady_Level_Flight/MinDrag.py", "Minimum Drag", "Steady_Level_Flight/MinSpeed.py", "Minimum Speed")
     return
 
 

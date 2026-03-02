@@ -236,8 +236,8 @@ def _():
 
     Before that, we notice that the expression of $c_2^\mathrm{eq}$ depends on the type of powertrain of the aircraft, and therefore we must proceed diffently for each powertrain architecture.
 
-    1. [Simplified Jet -  Karush-Kuhn-Tucker Analyis](/?file=Steady_Level_Flight/MinSpeed_Jet_KKT.py)
-    2. [Simplified Piston-Prop -  Karush-Kuhn-Tucker Analysis](/?file=Steady_Level_Flight/MinSpeed_Prop_KKT.py)
+    1. [Simplified Jet -  Karush-Kuhn-Tucker Analyis](/?file=Steady_Level_Flight/MinSpeed_Jet.py)
+    2. [Simplified Piston-Prop -  Karush-Kuhn-Tucker Analysis](/?file=Steady_Level_Flight/MinSpeed_Prop.py)
     """)
     return
 
@@ -245,9 +245,9 @@ def _():
 @app.cell
 def _():
     _defaults.nav_footer(
-        "MinPower.py",
+        "Steady_Level_Flight/MinPower.py",
         "Minimum Power",
-        "MaxSpeed.py",
+        "Steady_Level_Flight/MaxSpeed.py",
         "Maximum Speed",
     )
     return

@@ -879,9 +879,9 @@ def _(
 @app.cell
 def _():
     _defaults.nav_footer(
-        before_file="MinSpeed_Jet_KKT.py",
+        before_file="Steady_Level_Flight/MinSpeed_Jet.py",
         before_title="Minimum Speed Simplified Jet",
-        above_file="MinSpeed.py",
+        above_file="Steady_Level_Flight/MinSpeed.py",
         above_title="Minimum Speed Homepage",
         above_before=False,
     )

@@ -244,7 +244,7 @@ def _():
 
 @app.cell
 def _():
-    _defaults.nav_footer("MaxSpeed.py", "Maximum Speed", "", "")
+    _defaults.nav_footer("Steady_Level_Flight/MaxSpeed.py", "Maximum Speed", "", "")
     return
 
 

@@ -1074,9 +1074,9 @@ def _():
 @app.cell
 def _():
     _defaults.nav_footer(
-        "EqualityConstraints.py",
+        "Optimization_Methodology/EqualityConstraints.py",
         "Equality Constraints",
-        "../Steady_Level_Flight/MinDrag.py",
+        "Steady_Level_Flight/MinDrag.py",
         "Minimum Drag",
     )
     return

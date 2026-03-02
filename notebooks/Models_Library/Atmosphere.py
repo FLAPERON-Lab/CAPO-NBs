@@ -213,9 +213,9 @@ def _(atmos, atmos_data):
 @app.cell
 def _():
     _defaults.nav_footer(
-        "../Nomenclature.py",
+        "Nomenclature.py",
         "Nomenclature",
-        "AircraftSimplified.py",
+        "Models_Library/AircraftSimplified.py",
         "Simplified Aircraft",
     )
     return

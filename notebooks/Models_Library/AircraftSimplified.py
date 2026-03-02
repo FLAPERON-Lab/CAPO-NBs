@@ -459,7 +459,10 @@ def _():
 @app.cell
 def _():
     _defaults.nav_footer(
-        "Atmosphere.py", "Atmosphere", "AircraftCustom.py", "Custom Aircraft Models"
+        "Models_Library/Atmosphere.py",
+        "Atmosphere",
+        "Models_Library/AircraftCustom.py",
+        "Custom Aircraft Models",
     )
     return
 

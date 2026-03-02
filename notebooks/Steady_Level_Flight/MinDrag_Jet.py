@@ -1025,9 +1025,9 @@ def _():
 @app.cell
 def _():
     _defaults.nav_footer(
-        after_file="MinDrag_Prop.py",
+        after_file="Steady_Level_Flight/MinDrag_Prop.py",
         after_title="Minimum Drag Simplified Propeller",
-        above_file="MinDrag.py",
+        above_file="Steady_Level_Flight/MinDrag.py",
         above_title="Minimum Drag Homepage",
         above_before=True,
     )

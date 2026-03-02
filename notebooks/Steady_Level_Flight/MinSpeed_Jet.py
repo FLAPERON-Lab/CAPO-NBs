@@ -924,9 +924,9 @@ def _(mo):
 @app.cell
 def _():
     _defaults.nav_footer(
-        after_file="MinSpeed_Prop_KKT.py",
+        after_file="Steady_Level_Flight/MinSpeed_Prop_KKT.py",
         after_title="Minimum Speed Simplified Propeller",
-        above_file="MinSpeed.py",
+        above_file="Steady_Level_Flight/MinSpeed.py",
         above_title="Minimum Speed Homepage",
         above_before=True,
     )

@@ -247,9 +247,9 @@ def _():
 @app.cell
 def _():
     _defaults.nav_footer(
-        "../Optimization_Methodology/InequalityConstraints.py",
+        "Optimization_Methodology/InequalityConstraints.py",
         "Inequality Constraints",
-        "MinPower.py",
+        "Steady_Level_Flight/MinPower.py",
         "Minimum Power",
     )
     return

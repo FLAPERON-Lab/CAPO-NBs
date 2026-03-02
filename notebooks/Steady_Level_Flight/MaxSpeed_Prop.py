@@ -775,9 +775,9 @@ def _():
 @app.cell
 def _():
     _defaults.nav_footer(
-        before_file="MaxSpeed_Jet.py",
+        before_file="Steady_Level_Flight/MaxSpeed_Jet.py",
         before_title="Maximum Speed Simplified Jet",
-        above_file="MaxSpeed.py",
+        above_file="Steady_Level_Flight/MaxSpeed.py",
         above_title="Maximum Speed Homepage",
         above_before=False,
     )

@@ -823,9 +823,9 @@ def _():
 @app.cell
 def _():
     _defaults.nav_footer(
-        before_file="MaxAltitude_Jet.py",
+        before_file="Steady_Level_Flight/MaxAltitude_Jet.py",
         before_title="Maximum Simplified Jet",
-        above_file="MinSpeed.py",
+        above_file="Steady_Level_Flight/MinSpeed.py",
         above_title="Maximum Altitude Homepage",
         above_before=False,
     )

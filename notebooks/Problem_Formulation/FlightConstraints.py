@@ -361,9 +361,9 @@ def _():
 @app.cell
 def _():
     _defaults.nav_footer(
-        "PointPerformance.py",
+        "Problem_Formulation/PointPerformance.py",
         "Point Performance",
-        "FlightControls.py",
+        "Problem_Formulation/FlightControls.py",
         "Flight Controls",
     )
     return

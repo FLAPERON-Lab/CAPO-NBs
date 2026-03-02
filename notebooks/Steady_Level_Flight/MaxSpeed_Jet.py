@@ -796,9 +796,9 @@ def _(mo):
 @app.cell
 def _():
     _defaults.nav_footer(
-        after_file="MaxSpeed_Prop.py",
+        after_file="Steady_Level_Flight/MaxSpeed_Prop.py",
         after_title="Maximum Speed Simplified Propeller",
-        above_file="MaxSpeed.py",
+        above_file="Steady_Level_Flight/MaxSpeed.py",
         above_title="Maximum Speed Homepage",
         above_before=True,
     )

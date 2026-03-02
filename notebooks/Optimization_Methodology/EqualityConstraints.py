@@ -1146,9 +1146,9 @@ def _():
 @app.cell
 def _():
     _defaults.nav_footer(
-        "BivariateOptimization.py",
+        "Optimization_Methodology/BivariateOptimization.py",
         "Bivariate Optimization",
-        "InequalityConstraints.py",
+        "Optimization_Methodology/InequalityConstraints.py",
         "Inequality Constraints",
     )
     return

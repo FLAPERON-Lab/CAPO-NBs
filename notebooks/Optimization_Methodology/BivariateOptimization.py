@@ -653,9 +653,9 @@ def _():
 @app.cell
 def _():
     _defaults.nav_footer(
-        "UnivariateOptimization.py",
+        "Optimization_Methodology/UnivariateOptimization.py",
         "Univariate Optimization",
-        "EqualityConstraints.py",
+        "Optimization_Methodology/EqualityConstraints.py",
         "Equality Constraints",
     )
     return

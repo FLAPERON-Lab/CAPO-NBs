@@ -1371,9 +1371,9 @@ def _():
 @app.cell(hide_code=True)
 def _():
     _defaults.nav_footer(
-        after_file="MinPower_Prop.py",
+        after_file="Steady_Level_Flight/MinPower_Prop.py",
         after_title="Minimum Power Simplified Propeller",
-        above_file="MinPower.py",
+        above_file="Steady_Level_Flight/MinPower.py",
         above_title="Minimum Power Homepage",
         above_before=True,
     )

@@ -173,9 +173,9 @@ def _():
 @app.cell
 def _():
     _defaults.nav_footer(
-        "../Models_Library/AircraftCustom.py",
+        "Models_Library/AircraftCustom.py",
         "Custom Aircraft Models",
-        "FlightConstraints.py",
+        "Problem_Formulation/FlightConstraints.py",
         "Flight Constraints",
     )
     return

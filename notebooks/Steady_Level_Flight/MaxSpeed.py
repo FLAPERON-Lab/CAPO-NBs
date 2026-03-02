@@ -245,7 +245,10 @@ def _():
 @app.cell
 def _():
     _defaults.nav_footer(
-        "MinSpeed.py", "Minimum Speed", "MaxAltitude.py", "Maximum Altitude"
+        "Steady_Level_Flight/MinSpeed.py",
+        "Minimum Speed",
+        "Steady_Level_Flight/MaxAltitude.py",
+        "Maximum Altitude",
     )
     return
 

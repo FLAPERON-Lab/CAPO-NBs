@@ -102,9 +102,9 @@ def _():
 @app.cell
 def _():
     _defaults.nav_footer(
-        "FlightConstraints.py",
+        "Problem_Formulation/FlightConstraints.py",
         "Flight Constraints",
-        "../Optimization_Methodology/PreambleMethodologies.py",
+        "Optimization_Methodology/PreambleMethodologies.py",
         "Preamble Methodologies",
     )
     return
