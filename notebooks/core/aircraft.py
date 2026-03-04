@@ -179,7 +179,7 @@ def available_aircrafts(data_dir, verbose=False, round=True, ac_type=None):
     """Return the available aircrafts"""
 
     # Load the data
-    data = pl.read_csv(data_dir, truncate_ragged_lines=True).to_pandas()
+    data = pl.read_csv(data_dir).to_pandas()
 
     if ac_type:
         data = data[data["type"] == f"Simplified {ac_type}"]
@@ -244,11 +244,15 @@ def available_aircrafts(data_dir, verbose=False, round=True, ac_type=None):
                 "CLmax_ld",
                 "MTOM",
                 "OEM",
+                "Ta0",
+                "Pa0",
                 "beta",
             ]
         ]
 
-    return data.dropna().reset_index(drop=True)
+    return data.dropna(subset=["ID", "full_name", "type"]).reset_index(
+        drop=True
+    )  # Only check essential columns
 
 
 class Aircraft:

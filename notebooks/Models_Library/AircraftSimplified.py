@@ -3,9 +3,10 @@
 # SPDX-FileCopyrightText: 2026 Maarten van Hoven <M.B.vanHoven@tudelft.nl>
 #
 # SPDX-License-Identifier: Apache-2.0
+
 import marimo
 
-__generated_with = "0.19.11"
+__generated_with = "0.17.8"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -16,16 +17,19 @@ with app.setup:
 
     # Initialization code that runs before all other cells
     import marimo as mo
+    import numpy as np
     import pandas as pd
+    import plotly.express as px
+    import plotly.graph_objects as go
+    from core import atmos
     from core import _defaults
-    from core.aircraft import AircraftBase, ModelSimplifiedJet, ModelSimplifiedProp
+    from core.aircraft import AircraftBase, ModelSimplifiedJet, ModelSimplifiedProp, available_aircrafts
+    from plotly.subplots import make_subplots
 
     _defaults.FILEURL = _defaults.get_url()
 
     _defaults.set_plotly_template()
-    data_dir = str(
-        mo.notebook_location().parent.parent / "data" / "AircraftDB_Standard.csv"
-    )
+    data_dir = str(mo.notebook_location().parent.parent / "data" / "AircraftDB_Standard.csv")
 
 
 @app.cell
@@ -100,8 +104,8 @@ def _():
 
 
 @app.cell(hide_code=True)
-def _(ac):
-    data = ac.available_aircrafts(data_dir, verbose=False).round(decimals=4)
+def _():
+    data = available_aircrafts(data_dir, verbose=False).round(decimals=4)
 
     cols_4dec = [
         "CD0",
@@ -126,6 +130,8 @@ def _(ac):
         freeze_columns_left=["full_name"],
         show_column_summaries=False,
     ).form(show_clear_button=True)
+
+    print(data.columns)
     return (ac_table,)
 
 
@@ -169,7 +175,7 @@ def _(aircraft_list):
 
 
 @app.cell
-def _(make_subplots):
+def _():
     fig = make_subplots(rows=1, cols=2, shared_xaxes=True)
     return (fig,)
 
@@ -199,12 +205,10 @@ def _(fix_yaxis):
 
     m_slider = mo.ui.slider(start=0, stop=1, step=0.1, label=r"", show_value=True)
 
-    speed = mo.ui.dropdown(
-        options=["CAS", "TAS", "EAS", "M"], value="CAS", label=r"Speed"
-    )
+    speed = mo.ui.dropdown(options=["CAS", "TAS", "EAS", "M"], value="CAS", label=r"Speed")
 
     drag_condition = mo.ui.dropdown(
-        options=["Cruise", "Landing", "Take Off"],
+        options=["Cruise", "Landing"],
         value="Cruise",
         label="Flight Phase",
     )
@@ -249,18 +253,14 @@ def _(show_available, show_required):
 
 @app.cell(hide_code=True)
 def _(
-    atmos,
     axis_limits,
     delta_t,
     drag_condition,
     fig,
     fix_yaxis,
     fleet,
-    go,
     h_slider,
     m_slider,
-    np,
-    px,
     show_available,
     show_required,
     speed,
@@ -288,13 +288,9 @@ def _(
         x_axis = TAS / atmos.a(h)
 
     colors = px.colors.qualitative.Vivid
-    color_map_available = {
-        id: colors[i % len(colors)] for i, id in enumerate(fleet.keys())
-    }
+    color_map_available = {id: colors[i % len(colors)] for i, id in enumerate(fleet.keys())}
     colors = px.colors.qualitative.Safe
-    color_map_required = {
-        id: colors[i % len(colors)] for i, id in enumerate(fleet.keys())
-    }
+    color_map_required = {id: colors[i % len(colors)] for i, id in enumerate(fleet.keys())}
 
     fig.add_trace(
         go.Scatter(
@@ -332,16 +328,12 @@ def _(
                 thrust_value = np.repeat(
                     model_.compute_thrust(h) * delta_t.value / 1e3, meshgrid
                 )  # Convert to kN (constant)
-                power_value = np.asarray(
-                    thrust_value * 1e3 * TAS / 1e3
-                )  # Convert to kW
+                power_value = np.asarray(thrust_value * 1e3 * TAS / 1e3)  # Convert to kW
             else:  # ModelSimplifiedProp
                 power_value = np.repeat(
                     model_.compute_power(h) * delta_t.value / 1e3, meshgrid
                 )  # Convert to kW (constant)
-                thrust_value = np.asarray(
-                    power_value * 1e3 / TAS / 1e3
-                )  # Convert to kN
+                thrust_value = np.asarray(power_value * 1e3 / TAS / 1e3)  # Convert to kN
 
             yaxis1 = max(yaxis1, np.max(power_value))
             yaxis2 = max(yaxis2, np.max(thrust_value))
@@ -465,19 +457,6 @@ def _():
         "Custom Aircraft Models",
     )
     return
-
-
-@app.cell
-def _():
-    import plotly.graph_objects as go
-    from plotly.subplots import make_subplots
-    import plotly.express as px
-    import numpy as np
-    from core import aircraft as ac
-    from core import atmos
-    import polars as pl
-
-    return ac, atmos, go, make_subplots, np, px
 
 
 if __name__ == "__main__":
