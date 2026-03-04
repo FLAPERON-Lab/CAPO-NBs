@@ -10,6 +10,7 @@ from pathlib import Path
 import numpy as np
 
 FILEURL = None
+GITHUB_REPO = "FPAO-CC"
 
 
 # Get base url
@@ -19,7 +20,16 @@ def get_url():
     if isinstance(base_, Path):
         return "/?file="
 
-    return str(str(base_).rstrip("/") + "/")
+    # For GitHub Pages deployments, return the repo root path
+    # Extract the base path up to the repo name (e.g., /FPAO-CC/)
+    url_str = str(base_).rstrip("/")
+    parts = url_str.split("/")
+    # Find FPAO-CC in the path and return everything up to and including it
+    if GITHUB_REPO in parts:
+        idx = parts.index(GITHUB_REPO)
+        return "/" + "/".join(parts[: idx + 1]) + "/"
+
+    return url_str + "/"
 
 
 # Plotly
