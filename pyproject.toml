@@ -232,7 +232,7 @@ docstring-code-line-length = "dynamic"
 
 # Setup for online deployment
 [project]
-name = "fpao-cc"
+name = "capo-nbs"
 version = "0.0.1"
 dependencies = [
     "marimo==0.17.8",

@@ -29,10 +29,10 @@ identifiers:
     value: 10.5281/zenodo.18850911
     description: Zenodo All Versions
   - type: url
-    value: 'https://github.com/FLAPERON-Lab/FPAO-CC'
+    value: 'https://github.com/FLAPERON-Lab/CAPO-NBs'
     description: GitHub Repository
-repository-code: 'https://github.com/FLAPERON-Lab/FPAO-CC'
-url: 'https://flaperon-lab.github.io/FPAO-CC/Homepage.html'
+repository-code: 'https://github.com/FLAPERON-Lab/CAPO-NBs'
+url: 'https://flaperon-lab.github.io/CAPO-NBs/Homepage.html'
 abstract: >-
   A collection of marimo notebooks in Python to explain and
   experiment with Constrained Aircraft Performance

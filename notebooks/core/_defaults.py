@@ -10,7 +10,7 @@ from pathlib import Path
 import numpy as np
 
 FILEURL = None
-GITHUB_REPO = "FPAO-CC"
+GITHUB_REPO = "CAPO-NBs"
 
 
 # Get base url
@@ -20,14 +20,14 @@ def get_url():
     if isinstance(base_, Path):
         return "/?file="
 
-    # For GitHub Pages deployments, return just the repo root path (e.g., /FPAO-CC/)
+    # For GitHub Pages deployments, return just the repo root path (e.g., /CAPO-NBs/)
     url_str = str(base_).rstrip("/")
 
     # Remove protocol if present (https://domain.com/path -> /path)
     if "://" in url_str:
         url_str = "/" + url_str.split("://", 1)[1].split("/", 1)[1]
 
-    # Find FPAO-CC in the path and return up to it with trailing slash
+    # Find CAPO-NBs in the path and return up to it with trailing slash
     if f"/{GITHUB_REPO}/" in url_str:
         return f"/{GITHUB_REPO}/"
     elif url_str.endswith(f"/{GITHUB_REPO}"):

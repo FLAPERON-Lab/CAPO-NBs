@@ -29,7 +29,7 @@ import fire
 
 from loguru import logger
 
-GITHUB_REPO = "FPAO-CC"
+GITHUB_REPO = "CAPO-NBs"
 
 
 def _adapt_to_wasm(notebook_path: Path, output_dir: Path):

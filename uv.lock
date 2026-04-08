@@ -68,7 +68,7 @@ wheels = [
 ]
 
 [[package]]
-name = "fpao-cc"
+name = "capo-nbs"
 version = "0.0.1"
 source = { virtual = "." }
 dependencies = [

@@ -14,13 +14,13 @@ The sections below outline the steps in each case, and provide installation inst
 
 ## You have a question
 
-1. use the search functionality [here](https://github.com/FLAPERON-Lab/FPAO-CC/issues) to see if someone already filed the same issue;
+1. use the search functionality [here](https://github.com/FLAPERON-Lab/CAPO-NBs/issues) to see if someone already filed the same issue;
 1. if your issue search did not yield any relevant results, make a new issue;
 1. apply the "Question" label; apply other labels when relevant.
 
 ## You think you may have found a mistake
 
-1. use the search functionality [here](https://github.com/FLAPERON-Lab/FPAO-CC/issues) to see if someone already filed the same issue;
+1. use the search functionality [here](https://github.com/FLAPERON-Lab/CAPO-NBs/issues) to see if someone already filed the same issue;
 1. if your issue search did not yield any relevant results, make a new issue, making sure to provide enough information to the rest of the community to understand the cause and context of the problem.
 1. apply relevant labels to the newly created issue.
 
@@ -100,14 +100,14 @@ This repository relies on `uv`, an extremely fast Python project manager.
 2. **Clone the repository** from GitHub:
     ```bash
     # Using SSH (recommended by GitHub):
-    git clone git@github.com:FLAPERON-Lab/FPAO-CC.git
+    git clone git@github.com:FLAPERON-Lab/CAPO-NBs.git
     # Using HTTPS:
-    git clone https://github.com/FLAPERON-Lab/FPAO-CC.git
+    git clone https://github.com/FLAPERON-Lab/CAPO-NBs.git
     ```
 
 3. **Navigate** to the cloned directory:
     ```bash
-    cd your/path/to/FPAO-CC
+    cd your/path/to/CAPO-NBs
     ```
 
 4. **Create a virtual environment** and sync it with `uv`:

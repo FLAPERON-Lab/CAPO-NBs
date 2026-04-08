@@ -24,7 +24,7 @@ While the source code that is visible in the notebooks should be intended to hav
 
 ## Getting started 
 The notebooks are available for end-users in various forms: 
-- interactive web apps, accessible at this link: https://flaperon-lab.github.io/FPAO-CC/Homepage.html
+- interactive web apps, accessible at this link: https://flaperon-lab.github.io/CAPO-NBs/Homepage.html
 - static documents, downloadable via the top-right menu in each webpage
 - editable notebooks to be deployed locally (see instructions below)
 
@@ -34,7 +34,7 @@ The notebooks can be run locally using the _marimo_ server. This allows for inte
 1. Follow the [installation instructions](CONTRIBUTING.md#installation-instructions) to set up this repository on your local machine.
 2. Open a terminal and navigate to the notebooks directory:
     ```bash
-    cd your/path/to/FPAO-CC/
+    cd your/path/to/CAPO-NBs/
     cd notebooks
     ```
 3. Run the following command to start the _marimo_ server:
@@ -81,7 +81,7 @@ If you use this software, please cite it as below or check out the [CITATION.cff
     month = mar,
     title = {{Constrained Aircraft Performance Optimization Notebooks (CAPO-NBs)}},
     doi = {https://doi.org/10.5281/zenodo.18850911},
-    url = {https://github.com/FLAPERON-Lab/FPAO-CC},
+    url = {https://github.com/FLAPERON-Lab/CAPO-NBs},
     version = {1.1},
     year = {2026}
 }
@@ -89,11 +89,11 @@ If you use this software, please cite it as below or check out the [CITATION.cff
 
 **APA**
 
-_Varriale, C., Angioni, F., & van Hoven, M.B. (2026). Constrained Aircraft Performance Optimization Notebooks (CAPO-NBs) (Version 1.1) [Computer software]. DOI: 10.5281/zenodo.18850911, URL: https://github.com/FLAPERON-Lab/FPAO-CC_
+_Varriale, C., Angioni, F., & van Hoven, M.B. (2026). Constrained Aircraft Performance Optimization Notebooks (CAPO-NBs) (Version 1.1) [Computer software]. DOI: 10.5281/zenodo.18850911, URL: https://github.com/FLAPERON-Lab/CAPO-NBs_
 
 ## Contributors
 
-You are welcome to contribute to this project by submitting issues or pull requests on GitHub: https://github.com/FLAPERON-Lab/FPAO-CC
+You are welcome to contribute to this project by submitting issues or pull requests on GitHub: https://github.com/FLAPERON-Lab/CAPO-NBs
 
 Suggestions, corrections and additions will contribute to the improvement of this open educational resource.
 
