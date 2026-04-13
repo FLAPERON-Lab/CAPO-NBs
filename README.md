@@ -1,6 +1,4 @@
-[Convert]::ToBase64String([IO.File]::ReadAllBytes("C:\path\to\marimo-logo.png"))
-
-[![DOI](https://zenodo.org/badge/968610632.svg)](https://doi.org/10.5281/zenodo.18850911)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18850911.svg)](https://doi.org/10.5281/zenodo.18850911)
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![marimo](https://img.shields.io/badge/marimo-darkgreen?)](https://marimo.io/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-lightgrey.svg)](LICENSE.Apache-2.0)
@@ -78,11 +76,11 @@ If you use this software, please cite it as below or check out the [CITATION.cff
 @software{Varriale2026,
     author = {Varriale, Carmine and Angioni, Federico and {van Hoven}, Maarten},
     license = {Apache-2.0},
-    month = mar,
+    month = apr,
     title = {{Constrained Aircraft Performance Optimization Notebooks (CAPO-NBs)}},
     doi = {https://doi.org/10.5281/zenodo.18850911},
     url = {https://github.com/FLAPERON-Lab/CAPO-NBs},
-    version = {1.1},
+    version = {1.2},
     year = {2026}
 }
 ```
